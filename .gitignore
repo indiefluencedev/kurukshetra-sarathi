@@ -33,3 +33,6 @@ pnpm-debug.log*
 
 # editor / os
 .vercel
+
+# claude code (local tooling)
+.claude
