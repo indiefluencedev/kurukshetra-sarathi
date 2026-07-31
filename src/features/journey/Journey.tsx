@@ -10,6 +10,7 @@ import { Photo } from "@/shared/ui/Photo";
 import { StatusPill } from "@/shared/ui/PlaceCard";
 import { modeWord } from "@/features/route/route-actions";
 import { Engine } from "@/features/planner/engine";
+import { DriveGuide } from "./DriveGuide";
 
 function here() {
   const j = S.journey!;
@@ -193,6 +194,9 @@ export function Journey() {
           <StatusPill d={d} />
         </div>
       </div>
+      {/* what you will pass on the way to this stop, named as you pass it */}
+      <DriveGuide stop={{ d: (j.stops[j.i - 1] as any)?.d || d } as any} next={s} />
+
       <button
         className="btn nav"
         style={{ marginTop: 12, minHeight: 58, fontSize: "calc(16.5px*var(--ts))" }}

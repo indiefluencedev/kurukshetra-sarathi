@@ -63,7 +63,7 @@ function howToInstall() {
   );
   const shareIcon = (
     <span className="mini">
-      <Icon name="ios" />
+      <Icon name="share" />
     </span>
   );
   // dlIos1d contains a {icon} placeholder — splice the share glyph in where it sits.
@@ -104,7 +104,7 @@ export function InstallCard() {
     <div className="dl">
       <div className="row">
         <span className="ic">
-          <Icon name="phone" />
+          <Icon name="download" />
         </span>
         <span style={{ minWidth: 0 }}>
           <h3 lang={S.lang}>{t("dlTitle")}</h3>
@@ -112,7 +112,7 @@ export function InstallCard() {
         </span>
       </div>
       <button className="go" onClick={installApp}>
-        <Icon name="ios" />
+        <Icon name="share" />
         {t("dlBtn")}
       </button>
       <div className="plats">Android · iPhone · iPad</div>

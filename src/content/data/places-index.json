@@ -1,0 +1,70 @@
+[
+ {
+  "id": "stn-kkde",
+  "kind": "station",
+  "name": {
+   "en": "Kurukshetra Junction",
+   "hi": "कुरुक्षेत्र जंक्शन"
+  },
+  "lat": 29.9772,
+  "lng": 76.834,
+  "verified": false,
+  "code": "KKDE"
+ },
+ {
+  "id": "stn-thc",
+  "kind": "station",
+  "name": {
+   "en": "Thanesar City",
+   "hi": "थानेसर सिटी"
+  },
+  "lat": 29.954,
+  "lng": 76.829,
+  "verified": false,
+  "code": "TNDE"
+ },
+ {
+  "id": "bus-new",
+  "kind": "busstand",
+  "name": {
+   "en": "New Bus Stand (Sector 13)",
+   "hi": "नया बस अड्डा (सेक्टर 13)"
+  },
+  "lat": 29.976,
+  "lng": 76.842,
+  "verified": false
+ },
+ {
+  "id": "bus-pipli",
+  "kind": "busstand",
+  "name": {
+   "en": "Pipli Bus Stand",
+   "hi": "पिपली बस अड्डा"
+  },
+  "lat": 29.933,
+  "lng": 76.868,
+  "verified": false
+ },
+ {
+  "id": "stay-neelkanthi",
+  "kind": "hotel",
+  "name": {
+   "en": "Neelkanthi Krishna Dham Yatri Niwas",
+   "hi": "नीलकंठी कृष्ण धाम यात्री निवास"
+  },
+  "lat": 29.9625,
+  "lng": 76.8262,
+  "verified": false
+ },
+ {
+  "id": "stay-parashar",
+  "kind": "dharamshala",
+  "name": {
+   "en": "Parashar Tourist Complex",
+   "hi": "पराशर पर्यटक परिसर"
+  },
+  "lat": 29.9601,
+  "lng": 76.8305,
+  "verified": false
+ }
+]

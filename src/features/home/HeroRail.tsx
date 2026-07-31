@@ -74,7 +74,7 @@ export function HeroRail() {
                   {S.lang === "hi" ? d.name.en : d.name.hi}
                 </span>
                 <span className="hs-fact">
-                  <Icon name="spark" />
+                  <Icon name="tara" />
                   <span>{nm(h.fact)}</span>
                 </span>
               </span>

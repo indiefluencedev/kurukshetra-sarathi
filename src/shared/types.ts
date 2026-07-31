@@ -72,6 +72,13 @@ export interface Stop {
   d: Destination;
   arrive: number;
   depart: number;
+  /**
+   * Set when this stop was reached **on foot from a stop you already parked
+   * at** — the id of that anchor. An annexed stop pays walking minutes and no
+   * parking buffer, and the car stays at the anchor until the pocket is done.
+   * See docs/08 and `data/graph.ts`.
+   */
+  anchor?: string;
   [k: string]: unknown;
 }
 
@@ -117,7 +124,11 @@ export interface Plan {
   alts: { it: Itinerary; [k: string]: unknown }[];
   startClock: number | null;
   date: string;
+  /** nights+1 — how many calendar days the visit spans (1 = a day trip). */
+  days: number;
   endManual?: boolean; // true once the user sets the end themselves (stops start-mirroring)
+  /** id of the saved record this plan is, once it has been built and kept */
+  savedId?: string;
   multi?: { days: Itinerary[]; totals: Itinerary["totals"]; meta: Record<string, unknown> } | null;
   day?: number;
 }

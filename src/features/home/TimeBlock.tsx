@@ -2,18 +2,17 @@ import { S } from "@/app/state";
 import { nm } from "@/shared/i18n/i18n";
 import { isoToday } from "@/shared/lib/datetime";
 import { Icon } from "@/shared/icons/Icon";
-import { quick, homeDate, dayLabel, setDay } from "@/features/planner/plan";
+import { quick, homeDate, dayLabel, setDay, WINDOWS, go2plan } from "@/features/planner/plan";
 import type { Loc } from "@/shared/types";
 
-const WSHORT: [string, number][] = [["1h", 60], ["2h", 120], ["3h", 180], ["4h", 240], ["6h", 360]];
-const WLONG: [Loc, number][] = [
-  [{ en: "½ day", hi: "आधा दिन" }, 300],
-  [{ en: "Full day", hi: "पूरा दिन" }, 480],
-  [{ en: "2 days", hi: "2 दिन" }, 960],
-  [{ en: "3 days", hi: "3 दिन" }, 1440],
-];
-
-/** First thing on the screen: how long, and which day. Two fixed rows of pills. */
+/**
+ * First thing on the screen: how long, and which day.
+ *
+ * The lengths come from WINDOWS — the same list the planner's first step
+ * offers — because these pills *are* that step, answered early. When the two
+ * were separate lists Home could hand the planner a "2 days" it had no chip
+ * for, and the step opened showing "Custom · 16h".
+ */
 export function TimeBlock() {
   const iso = homeDate();
   const pill = (l: string | Loc, m: number) => {
@@ -43,8 +42,12 @@ export function TimeBlock() {
           />
         </label>
       </div>
-      <div className="tp-row a">{WSHORT.map((w) => pill(w[0], w[1]))}</div>
-      <div className="tp-row b">{WLONG.map((w) => pill(w[0], w[1]))}</div>
+      <div className="tp-row a">{WINDOWS.map((w) => pill(w.lb, w.mins))}</div>
+      {/* anything the five presets don't cover — including a stay of several
+          days — is one tap away in the step itself, where it has room */}
+      <button className="tpill more" onClick={go2plan}>
+        {nm({ en: "Another length, or more than a day", hi: "कोई और अवधि, या एक से अधिक दिन" })}
+      </button>
       <p className="tb-note">
         {nm({ en: "Pick one and a route is built for that day — opening hours and Monday closures included.", hi: "एक चुनिए, उसी दिन का मार्ग बन जाएगा — खुलने का समय और सोमवार की बंदी सहित।" })}
       </p>

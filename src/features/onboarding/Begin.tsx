@@ -46,8 +46,8 @@ export function Begin() {
       <div className="hub stagger">
         {card("route", "", t("planVisit"), t("planVisitD"), () => go("/plan"))}
         {card("tara", "brass", t("highlights"), t("highlightsD"), () => go("/explore"))}
-        {card("compass", "slate", t("browse"), t("browseD"), () => go("/explore"))}
-        {card("pin", "slate", t("nearMe"), t("nearMeD"), () => askLoc(() => go("/map")))}
+        {card("compass", "umber", t("browse"), t("browseD"), () => go("/explore"))}
+        {card("pin", "umber", t("nearMe"), t("nearMeD"), () => askLoc(() => go("/map")))}
       </div>
     </div>
   );

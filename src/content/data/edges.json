@@ -1,0 +1,1010 @@
+[
+ {
+  "a": "anubhav-kendra",
+  "b": "jyotisar",
+  "rel": "same-complex",
+  "m": 90,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Mahabharata Anubhav Kendra ↔ Jyotisar",
+  "_check": "https://www.google.com/maps/dir/29.9612781,76.7688638/29.9615995,76.7697201/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "anubhav-kendra",
+  "b": "jyotisar-virat",
+  "rel": "same-complex",
+  "m": 90,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Mahabharata Anubhav Kendra ↔ Virat Swaroop Light & Sound Show, Jyotisar",
+  "_check": "https://www.google.com/maps/dir/29.9612781,76.7688638/29.9615995,76.7697201/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "anubhav-kendra",
+  "b": "jyotisar-water",
+  "rel": "same-complex",
+  "m": 90,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Mahabharata Anubhav Kendra ↔ Water Light & Sound Show, Jyotisar",
+  "_check": "https://www.google.com/maps/dir/29.9612781,76.7688638/29.9615995,76.7697201/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "ban-ganga",
+  "b": "bhishma-kund",
+  "rel": "walkable",
+  "m": 159,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Baan Ganga, Dayalpur ↔ Bhishma Kund, Narkatari",
+  "_check": "https://www.google.com/maps/dir/29.9375417,76.8136975/29.9386322,76.8126273/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "bhadrakali",
+  "b": "sheikh-chilli",
+  "rel": "walkable",
+  "m": 471,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Devikoop Bhadrakali Shaktipeeth ↔ Sheikh Chilli's Tomb",
+  "_check": "https://www.google.com/maps/dir/29.9792032,76.8320469/29.976698,76.8281101/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "bhadrakali",
+  "b": "sthaneshwar",
+  "rel": "walkable",
+  "m": 466,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Devikoop Bhadrakali Shaktipeeth ↔ Sthaneshwar Mahadev Tirtha",
+  "_check": "https://www.google.com/maps/dir/29.9792032,76.8320469/29.9814274,76.8279468/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "bhadrakali",
+  "b": "stn-kkde",
+  "rel": "walkable",
+  "m": 292,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Devikoop Bhadrakali Shaktipeeth ↔ Kurukshetra Junction",
+  "_check": "https://www.google.com/maps/dir/29.9792032,76.8320469/29.9772,76.834/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "brahma-sarovar",
+  "rel": "walkable",
+  "m": 445,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Brahma Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9613554,76.8285533/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "gaudiya-math",
+  "rel": "walkable",
+  "m": 459,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Shri Vyas Gaudiya Math",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9636279,76.8314856/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "gita-bhawan",
+  "rel": "walkable",
+  "m": 272,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Gita Bhawan",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9638687,76.8294689/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "gurudwara-dasvin",
+  "rel": "walkable",
+  "m": 441,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Gurudwara Dasvin Patshahi",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "jairam",
+  "rel": "walkable",
+  "m": 350,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Shri Jairam Vidyapeeth",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9640579,76.8304651/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "kali-kamli",
+  "rel": "walkable",
+  "m": 441,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Baba Kali Kamli Wale",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 304,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "gaudiya-math",
+  "rel": "walkable",
+  "m": 379,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Shri Vyas Gaudiya Math",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9636279,76.8314856/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "gita-bhawan",
+  "rel": "walkable",
+  "m": 293,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Gita Bhawan",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9638687,76.8294689/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "gurudwara-dasvin",
+  "rel": "same-complex",
+  "m": 7,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Gurudwara Dasvin Patshahi",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "jairam",
+  "rel": "walkable",
+  "m": 352,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Shri Jairam Vidyapeeth",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9640579,76.8304651/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "kali-kamli",
+  "rel": "same-complex",
+  "m": 7,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Baba Kali Kamli Wale",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 260,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "brahma-sarovar",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 234,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Brahma Sarovar ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "buddha-stupa",
+  "b": "dharohar",
+  "rel": "walkable",
+  "m": 332,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Buddhist Stupa, Thanesar ↔ Dharohar Haryana Museum",
+  "_check": "https://www.google.com/maps/dir/29.963246,76.821349/29.9611944,76.8188497/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "buddha-stupa",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 475,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Buddhist Stupa, Thanesar ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.963246,76.821349/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "gita-bhawan",
+  "rel": "walkable",
+  "m": 196,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Gita Bhawan",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9638687,76.8294689/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "gurudwara-dasvin",
+  "rel": "walkable",
+  "m": 372,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Gurudwara Dasvin Patshahi",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "jairam",
+  "rel": "same-complex",
+  "m": 109,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Shri Jairam Vidyapeeth",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9640579,76.8304651/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "kali-kamli",
+  "rel": "walkable",
+  "m": 372,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Baba Kali Kamli Wale",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "krishna-museum",
+  "rel": "walkable",
+  "m": 233,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Sri Krishna Museum",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.965068,76.8332478/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "laxmi-narayan",
+  "rel": "walkable",
+  "m": 476,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Laxmi Narayan Mandir",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9671886,76.8342256/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "nabha-house",
+  "rel": "walkable",
+  "m": 443,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Nabha House",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9667363,76.8343648/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "nanda-memorial",
+  "rel": "walkable",
+  "m": 303,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Gulzarilal Nanda Memorial",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9626645,76.8344297/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "panorama",
+  "rel": "walkable",
+  "m": 353,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gaudiya-math",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 404,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Vyas Gaudiya Math ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "gurudwara-dasvin",
+  "rel": "walkable",
+  "m": 287,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Gurudwara Dasvin Patshahi",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "jairam",
+  "rel": "same-complex",
+  "m": 98,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Shri Jairam Vidyapeeth",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9640579,76.8304651/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "kali-kamli",
+  "rel": "walkable",
+  "m": 287,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Baba Kali Kamli Wale",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "krishna-museum",
+  "rel": "walkable",
+  "m": 388,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Sri Krishna Museum",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.965068,76.8332478/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "nanda-memorial",
+  "rel": "walkable",
+  "m": 496,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Gulzarilal Nanda Memorial",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9626645,76.8344297/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "panorama",
+  "rel": "walkable",
+  "m": 489,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 350,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-bhawan",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 431,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Gita Bhawan ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gita-gyan",
+  "b": "tirupati-balaji",
+  "rel": "walkable",
+  "m": 383,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Gita Gyan Sansthanam ↔ Shri Venkateswara Swamy Temple",
+  "_check": "https://www.google.com/maps/dir/29.9573168,76.838602/29.9577926,76.834666/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-chhevin",
+  "b": "krishna-museum",
+  "rel": "walkable",
+  "m": 429,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Gurudwara Chhevin Patshahi ↔ Sri Krishna Museum",
+  "_check": "https://www.google.com/maps/dir/29.9688743,76.8339753/29.965068,76.8332478/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-chhevin",
+  "b": "laxmi-narayan",
+  "rel": "walkable",
+  "m": 189,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Gurudwara Chhevin Patshahi ↔ Laxmi Narayan Mandir",
+  "_check": "https://www.google.com/maps/dir/29.9688743,76.8339753/29.9671886,76.8342256/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-chhevin",
+  "b": "nabha-house",
+  "rel": "walkable",
+  "m": 241,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Chhevin Patshahi ↔ Nabha House",
+  "_check": "https://www.google.com/maps/dir/29.9688743,76.8339753/29.9667363,76.8343648/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-chhevin",
+  "b": "panorama",
+  "rel": "walkable",
+  "m": 319,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gurudwara Chhevin Patshahi ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9688743,76.8339753/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-chhevin",
+  "b": "sannihit-sarovar",
+  "rel": "walkable",
+  "m": 302,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gurudwara Chhevin Patshahi ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.9688743,76.8339753/29.9667155,76.8358776/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-dasvin",
+  "b": "jairam",
+  "rel": "walkable",
+  "m": 346,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Gurudwara Dasvin Patshahi ↔ Shri Jairam Vidyapeeth",
+  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9640579,76.8304651/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-dasvin",
+  "b": "kali-kamli",
+  "rel": "same-complex",
+  "m": 0,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Gurudwara Dasvin Patshahi ↔ Baba Kali Kamli Wale",
+  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-dasvin",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 262,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Dasvin Patshahi ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-dasvin",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 233,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Dasvin Patshahi ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-pehli",
+  "b": "stn-thc",
+  "rel": "walkable",
+  "m": 422,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Gurudwara Pehli Patshahi, Siddh Vati ↔ Thanesar City",
+  "_check": "https://www.google.com/maps/dir/29.9559293,76.8252334/29.954,76.829/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "harsh-ka-tila",
+  "b": "nabhi-kamal",
+  "rel": "walkable",
+  "m": 368,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Harsh Ka Tila ↔ Nabhi Kamal Tirtha",
+  "_check": "https://www.google.com/maps/dir/29.9760686,76.8264199/29.9728192,76.8256921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "harsh-ka-tila",
+  "b": "sheikh-chilli",
+  "rel": "walkable",
+  "m": 177,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Harsh Ka Tila ↔ Sheikh Chilli's Tomb",
+  "_check": "https://www.google.com/maps/dir/29.9760686,76.8264199/29.976698,76.8281101/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "kali-kamli",
+  "rel": "walkable",
+  "m": 346,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Baba Kali Kamli Wale",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9614,76.8286/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "krishna-museum",
+  "rel": "walkable",
+  "m": 291,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Sri Krishna Museum",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.965068,76.8332478/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "nabha-house",
+  "rel": "walkable",
+  "m": 479,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Nabha House",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9667363,76.8343648/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "nanda-memorial",
+  "rel": "walkable",
+  "m": 412,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Gulzarilal Nanda Memorial",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9626645,76.8344297/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "panorama",
+  "rel": "walkable",
+  "m": 396,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 446,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jairam",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 440,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Jairam Vidyapeeth ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jyotisar",
+  "b": "jyotisar-virat",
+  "rel": "same-complex",
+  "m": 0,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Jyotisar ↔ Virat Swaroop Light & Sound Show, Jyotisar",
+  "_check": "https://www.google.com/maps/dir/29.9615995,76.7697201/29.9615995,76.7697201/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jyotisar",
+  "b": "jyotisar-water",
+  "rel": "same-complex",
+  "m": 0,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Jyotisar ↔ Water Light & Sound Show, Jyotisar",
+  "_check": "https://www.google.com/maps/dir/29.9615995,76.7697201/29.9615995,76.7697201/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "jyotisar-virat",
+  "b": "jyotisar-water",
+  "rel": "same-complex",
+  "m": 0,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Virat Swaroop Light & Sound Show, Jyotisar ↔ Water Light & Sound Show, Jyotisar",
+  "_check": "https://www.google.com/maps/dir/29.9615995,76.7697201/29.9615995,76.7697201/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "kali-kamli",
+  "b": "stay-neelkanthi",
+  "rel": "walkable",
+  "m": 262,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Baba Kali Kamli Wale ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "kali-kamli",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 233,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Baba Kali Kamli Wale ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "krishna-museum",
+  "b": "laxmi-narayan",
+  "rel": "walkable",
+  "m": 254,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Sri Krishna Museum ↔ Laxmi Narayan Mandir",
+  "_check": "https://www.google.com/maps/dir/29.965068,76.8332478/29.9671886,76.8342256/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "krishna-museum",
+  "b": "nabha-house",
+  "rel": "walkable",
+  "m": 214,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Sri Krishna Museum ↔ Nabha House",
+  "_check": "https://www.google.com/maps/dir/29.965068,76.8332478/29.9667363,76.8343648/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "krishna-museum",
+  "b": "nanda-memorial",
+  "rel": "walkable",
+  "m": 290,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Sri Krishna Museum ↔ Gulzarilal Nanda Memorial",
+  "_check": "https://www.google.com/maps/dir/29.965068,76.8332478/29.9626645,76.8344297/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "krishna-museum",
+  "b": "panorama",
+  "rel": "same-complex",
+  "m": 122,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Sri Krishna Museum ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.965068,76.8332478/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "krishna-museum",
+  "b": "sannihit-sarovar",
+  "rel": "walkable",
+  "m": 313,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Sri Krishna Museum ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.965068,76.8332478/29.9667155,76.8358776/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "laxmi-narayan",
+  "b": "nabha-house",
+  "rel": "same-complex",
+  "m": 52,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Laxmi Narayan Mandir ↔ Nabha House",
+  "_check": "https://www.google.com/maps/dir/29.9671886,76.8342256/29.9667363,76.8343648/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "laxmi-narayan",
+  "b": "panorama",
+  "rel": "same-complex",
+  "m": 135,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Laxmi Narayan Mandir ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9671886,76.8342256/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "laxmi-narayan",
+  "b": "sannihit-sarovar",
+  "rel": "walkable",
+  "m": 168,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Laxmi Narayan Mandir ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.9671886,76.8342256/29.9667155,76.8358776/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nabha-house",
+  "b": "nanda-memorial",
+  "rel": "walkable",
+  "m": 453,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Nabha House ↔ Gulzarilal Nanda Memorial",
+  "_check": "https://www.google.com/maps/dir/29.9667363,76.8343648/29.9626645,76.8344297/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nabha-house",
+  "b": "panorama",
+  "rel": "same-complex",
+  "m": 92,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Nabha House ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9667363,76.8343648/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nabha-house",
+  "b": "sannihit-sarovar",
+  "rel": "same-complex",
+  "m": 146,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Nabha House ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.9667363,76.8343648/29.9667155,76.8358776/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nabhi-kamal",
+  "b": "sheikh-chilli",
+  "rel": "walkable",
+  "m": 490,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Nabhi Kamal Tirtha ↔ Sheikh Chilli's Tomb",
+  "_check": "https://www.google.com/maps/dir/29.9728192,76.8256921/29.976698,76.8281101/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nanda-memorial",
+  "b": "panorama",
+  "rel": "walkable",
+  "m": 375,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Gulzarilal Nanda Memorial ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.9626645,76.8344297/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nanda-memorial",
+  "b": "sannihit-sarovar",
+  "rel": "walkable",
+  "m": 472,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Gulzarilal Nanda Memorial ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.9626645,76.8344297/29.9667155,76.8358776/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "nanda-memorial",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 474,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Gulzarilal Nanda Memorial ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9626645,76.8344297/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "panorama",
+  "b": "sannihit-sarovar",
+  "rel": "walkable",
+  "m": 206,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Kurukshetra Panorama & Science Centre ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.9660103,76.8339023/29.9667155,76.8358776/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "stay-neelkanthi",
+  "b": "stay-parashar",
+  "rel": "walkable",
+  "m": 493,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Neelkanthi Krishna Dham Yatri Niwas ↔ Parashar Tourist Complex",
+  "_check": "https://www.google.com/maps/dir/29.9625,76.8262/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "stay-parashar",
+  "b": "tirupati-balaji",
+  "rel": "walkable",
+  "m": 476,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Parashar Tourist Complex ↔ Shri Venkateswara Swamy Temple",
+  "_check": "https://www.google.com/maps/dir/29.9601,76.8305/29.9577926,76.834666/data=!4m2!4m1!3e2"
+ }
+]

@@ -1,3 +1,4 @@
+import themesData from "@/content/data/themes.json";
 import type { ThemeDef, Loc } from "@/shared/types";
 
 export const PHOTO_CREDIT: Record<string, { author?: string; licence: string }> = {};
@@ -16,6 +17,20 @@ export const CONFIG = {
   mealWindow: [13, 14],
   paceVisitFactor: { fast: 0.8, balanced: 1, relaxed: 1.25 },
   centre: { lat: 29.9614, lng: 76.8286 },
+  places: {
+    /**
+     * Whether the start/end pickers fall back to live OpenStreetMap search.
+     *
+     * The curated list in content/data/places-index.json is the source of
+     * truth: hand-checked coordinates, bilingual names, and it works with the
+     * aeroplane mode on — which matters, because this is a PWA a pilgrim opens
+     * on patchy rural data. OSM is only here to cover what the list is still
+     * missing. Once the list covers the district's stays and terminals, set
+     * this to false: no network calls, no rate limits, no third-party outage,
+     * nothing to attribute. Run `npm run harvest-places` to gather candidates.
+     */
+    useOSM: true,
+  },
   // Live weather, Open-Meteo — no key needed. Thanesar, Kurukshetra 136118.
   weather: {
     lat: 29.9732,
@@ -26,16 +41,8 @@ export const CONFIG = {
 };
 
 // Interest groups, each carrying a Mahabharata-era icon.
-export const THEMES: ThemeDef[] = [
-  { id: "mahabharata", en: "Mahabharat", hi: "महाभारत", icon: "rath", img: "jyotisar" },
-  { id: "spiritual", en: "Temples", hi: "मंदिर", icon: "kalash", img: "bhadrakali" },
-  { id: "sarovar", en: "Sarovars", hi: "सरोवर", icon: "ghat", img: "brahma-sarovar" },
-  { id: "museums", en: "Museums", hi: "संग्रहालय", icon: "sangrah", img: "krishna-museum" },
-  { id: "heritage", en: "Heritage", hi: "धरोहर", icon: "kila", img: "sheikh-chilli" },
-  { id: "archaeology", en: "Archaeology", hi: "पुरातत्व", icon: "granth", img: "harsh-ka-tila" },
-  { id: "shows", en: "Shows", hi: "शो", icon: "surya", img: "jyotisar-virat" },
-  { id: "aarti", en: "Aarti", hi: "आरती", icon: "deep", img: "brahma-sarovar-1" },
-];
+// Source of truth: src/content/data/themes.json.
+export const THEMES = themesData as ThemeDef[];
 
 export const theme = (id: string): ThemeDef | null => THEMES.find((t) => t.id === id) || null;
 export const shownThemes = (list?: string[]): string[] => (list || []).filter((x) => !!theme(x));

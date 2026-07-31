@@ -30,10 +30,12 @@ export function Place() {
       ? d.closed.map((i) => (S.lang === "hi" ? DY[i][1] : DY[i][0])).join(", ")
       : t("openAll");
   const cr = d.img ? PHOTO_CREDIT[d.img] : undefined;
+  // a real <dl>: each fact is a term and its value, not two spans that happen
+  // to sit next to each other
   const row = (k: string, v: ReactNode) => (
     <div className="frow">
-      <span className="k">{k}</span>
-      <span className="v">{v}</span>
+      <dt className="k">{k}</dt>
+      <dd className="v">{v}</dd>
     </div>
   );
   track("place", { id });
@@ -163,7 +165,7 @@ export function Place() {
           <Icon name="clock" />
           {t("planning")}
         </h2>
-        <div className="facts">
+        <dl className="facts">
           {row(t("hours"), d.hours ? d.hours.o + " – " + d.hours.c : "—")}
           {row(t("closedOn"), shut)}
           {row(t("entry"), nm(d.fee))}
@@ -171,7 +173,7 @@ export function Place() {
           {row(t("bestTime"), nm(d.best))}
           {row(t("parking"), nm(d.parking))}
           {row(t("access"), d.senior ? t("stepFree") : "—")}
-        </div>
+        </dl>
       </div>
 
       {d.facilities && d.facilities.length > 0 && (
@@ -205,6 +207,7 @@ export function Place() {
         </div>
       </div>
 
+      <div className="dockbar-space" />
       <div className="dockbar">
         {d.pending ? (
           <div className="note" style={{ flex: 1 }}>

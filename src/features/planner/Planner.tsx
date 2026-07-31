@@ -1,57 +1,128 @@
+import { useState } from "react";
 import { S, newPlan } from "@/app/state";
+import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
-import { clock, isoToday, isToday, pad2, nowM } from "@/shared/lib/datetime";
-import { planDate } from "@/app/nav";
+import { clock, isToday, fromISO, nowM } from "@/shared/lib/datetime";
+import { dur } from "@/shared/lib/format";
 import { bump } from "@/app/state";
 import { Icon } from "@/shared/icons/Icon";
 import { THEMES } from "@/data/config";
-import { MONS, WINDOWS, setDay, valid, pNext, pBack, setWin, pickStart, pickEnd, setStartPoint, setEndPoint, flipTheme, buildRoute } from "./plan";
+import { theme } from "@/data/config";
+import { WINDOWS, CUSTOM, DAYNAMES, dayLabel, longDate, shortDate, lastDay, valid, missing, pNext, pBack, setWin, pickStart, pickEnd, setStartPoint, setEndPoint, flipTheme, buildRoute } from "./plan";
 import { PlacePicker, PinMap, PickedLine } from "./LocationPicker";
-import type { Loc } from "@/shared/types";
+import { openDateSheet, openTimeSheet } from "./DateTimeSheets";
+import type { PlaceKind } from "@/data/places-index";
+import type { GeoPoint, Loc } from "@/shared/types";
 
-const DAYNAMES: Record<string, string[]> = {
-  en: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-  hi: ["रविवार", "सोमवार", "मंगलवार", "बुधवार", "गुरुवार", "शुक्रवार", "शनिवार"],
-};
-
-function WhenLine() {
+/**
+ * Day and start time, each as one summary row that opens a real picker in the
+ * sheet: a month calendar for the day, a clock dial for the time. The row shows
+ * the current value so the step reads at a glance.
+ */
+function DayTimeRows() {
   const p = S.plan!;
-  const d = planDate();
   const tod = isToday(p.date);
-  const dn = DAYNAMES[S.lang === "hi" ? "hi" : "en"][d.getDay()];
-  const date = d.getDate() + " " + MONS[S.lang === "hi" ? "hi" : "en"][d.getMonth()] + " " + d.getFullYear();
-  const cl = p.startClock == null ? (tod ? clock(nowM()) : "9:00am") : clock(p.startClock);
+  const multi = p.days > 1;
+  // A stay of several days has to show both ends of it, or "3 days" is a number
+  // the traveller has to work out a date from.
+  const dateLine = multi
+    ? shortDate(p.date) + " → " + shortDate(lastDay(p))
+    : (tod ? dayLabel(p.date) + " · " : "") + longDate(p.date);
+  const dateSub = multi
+    ? p.days + nm({ en: " days · arriving " + DAYNAMES[S.lang === "hi" ? "hi" : "en"][fromISO(p.date).getDay()], hi: " दिन · " + DAYNAMES.hi[fromISO(p.date).getDay()] + " को पहुँचना" })
+    : t("dayOfVisit");
+  const startsNow = p.startClock == null && tod;
+  const timeLine = clock(p.startClock != null ? p.startClock : tod ? nowM() : 9 * 60);
+
   return (
-    <label className="when">
-      <span className="ic">
-        <Icon name="cal" />
-      </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <b lang={S.lang}>
-          {tod ? nm({ en: "Today", hi: "आज" }) + " · " : ""}
-          {dn}, {date}
-        </b>
-        <p>
-          {nm({ en: "Starting around", hi: "आरंभ लगभग" })} {cl} ·{" "}
-          {nm({ en: "tap to change the day", hi: "दिन बदलने हेतु दबाएँ" })}
-        </p>
-      </span>
-      <span className="chev">
-        <Icon name="fwd" />
-      </span>
-      <input type="date" value={p.date} min={isoToday()} onChange={(e) => setDay(e.target.value)} />
-    </label>
+    <>
+      <button className="when pickrow" onClick={openDateSheet}>
+        <span className="ic">
+          <Icon name="cal" />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <b lang={S.lang}>{dateLine}</b>
+          <span className="sub">{dateSub}</span>
+        </span>
+        <span className="chev">
+          <Icon name="fwd" />
+        </span>
+      </button>
+
+      <button className="when pickrow" onClick={openTimeSheet}>
+        <span className="ic">
+          <Icon name="clock" />
+        </span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <b lang={S.lang}>{timeLine}</b>
+          <span className="sub">{startsNow ? t("startNow") : t("startAt")}</span>
+        </span>
+        <span className="chev">
+          <Icon name="fwd" />
+        </span>
+      </button>
+    </>
+  );
+}
+
+/**
+ * Any length that is not one of the five presets.
+ *
+ * It used to be a number field behind a disclosure triangle — two taps, a
+ * keyboard, and a free-text box that happily accepted "0". A pair of large
+ * −/+ buttons needs no keyboard, cannot be given a nonsense value, and reads
+ * its own answer out loud in the middle.
+ */
+function CustomLength({ mins }: { mins: number }) {
+  const set = (v: number) => {
+    const m = Math.max(CUSTOM.min, Math.min(CUSTOM.max, v));
+    setWin(m, dur(m), 1);
+  };
+  const atMin = mins <= CUSTOM.min,
+    atMax = mins >= CUSTOM.max;
+  return (
+    <div className="lenwrap">
+      <div className="lenstep">
+        <button
+          className="lb"
+          onClick={() => set(mins - CUSTOM.step)}
+          disabled={atMin}
+          aria-label={nm({ en: "Half an hour less", hi: "आधा घंटा कम" })}
+        >
+          <Icon name="minus" />
+        </button>
+        <span className="lv" role="status" aria-live="polite">
+          <b className="tnum">{dur(mins)}</b>
+          <small>{nm({ en: "in Kurukshetra", hi: "कुरुक्षेत्र में" })}</small>
+        </span>
+        <button
+          className="lb"
+          onClick={() => set(mins + CUSTOM.step)}
+          disabled={atMax}
+          aria-label={nm({ en: "Half an hour more", hi: "आधा घंटा अधिक" })}
+        >
+          <Icon name="plus" />
+        </button>
+      </div>
+      <p className="lenhint" lang={S.lang}>
+        {nm({
+          en: "Staying more than a day? Tap the date above and pick the day you leave as well.",
+          hi: "एक दिन से अधिक रुक रहे हैं? ऊपर दिनांक दबाकर जाने का दिन भी चुनें।",
+        })}
+      </p>
+    </div>
   );
 }
 
 function StepTime() {
   const p = S.plan!;
-  const startVal =
-    p.startClock == null
-      ? isToday(p.date)
-        ? pad2(Math.floor(nowM() / 60)) + ":" + pad2(nowM() % 60)
-        : "09:00"
-      : pad2(Math.floor(p.startClock / 60)) + ":" + pad2(p.startClock % 60);
+  const preset = WINDOWS.find((w) => w.mins === p.mins && w.days === p.days);
+  // A length that matches no preset is, by definition, a custom one — so the
+  // panel is open because of the answer, not because of a remembered tap.
+  const [asked, setAsked] = useState(false);
+  const custom = p.days === 1 && p.mins != null && !preset;
+  const showCustom = custom || asked;
+
   return (
     <>
       <h2 className="q" lang={S.lang}>
@@ -60,59 +131,56 @@ function StepTime() {
       <p className="qs">
         {nm({ en: "Today and now, unless you pick another day. Opening hours and Monday closures are checked against the day you choose.", hi: "जब तक आप कोई और दिन न चुनें, आज और अभी। खुलने का समय और सोमवार की बंदी आपके चुने दिन के अनुसार जाँची जाती है।" })}
       </p>
-      <WhenLine />
-      {/* Start time is now visible at step 1 (not hidden) — date is set via the line above. */}
-      <div className="field" style={{ marginTop: 12 }}>
-        <label lang={S.lang}>{t("startAt")}</label>
-        <input
-          type="time"
-          value={startVal}
-          onChange={(e) => {
-            const q = e.target.value.split(":");
-            p.startClock = +q[0] * 60 + +q[1];
-            bump();
-          }}
-        />
-      </div>
-      <h2 className="q" style={{ marginTop: 22 }} lang={S.lang}>
+      <DayTimeRows />
+
+      <div className="qsplit" />
+
+      <h2 className="q" lang={S.lang}>
         {t("q_time")}
       </h2>
       <p className="qs">{t("q_time_s")}</p>
       <div className="tgrid">
         {WINDOWS.map((w) => {
-          const l = typeof w[0] === "string" ? w[0] : nm(w[0]);
+          const l = typeof w.lb === "string" ? w.lb : nm(w.lb);
           return (
             <button
               key={l}
-              className={"chip warm" + (p.mins === w[1] && p.label === l ? " on" : "")}
-              onClick={() => setWin(w[1], l)}
+              className={"chip warm" + (preset === w ? " on" : "")}
+              aria-pressed={preset === w}
+              onClick={() => {
+                setAsked(false);
+                setWin(w.mins, w.lb, w.days);
+              }}
             >
               {l}
             </button>
           );
         })}
+        <button
+          className={"chip warm" + (showCustom ? " on" : "")}
+          aria-pressed={showCustom}
+          onClick={() => {
+            setAsked(true);
+            if (!custom) setWin(240, dur(240), 1); // open on 4h — the gap the presets leave
+          }}
+        >
+          {nm({ en: "Custom", hi: "अन्य" })}
+        </button>
       </div>
-      <details className="more">
-        <summary>
-          <Icon name="fwd" />
-          {t("exact")}
-        </summary>
-        <div className="field">
-          <label>{t("hrsHave")}</label>
-          <input
-            type="number"
-            min={1}
-            max={24}
-            inputMode="numeric"
-            placeholder="4"
-            onInput={(e) => {
-              const v = +(e.target as HTMLInputElement).value || 1;
-              p.mins = Math.max(1, v) * 60;
-              p.label = v + "h";
-            }}
-          />
+
+      {showCustom && p.days === 1 && <CustomLength mins={p.mins || 240} />}
+
+      {p.days > 1 && (
+        <div className="note" style={{ marginTop: 12 }}>
+          <Icon name="cal" />
+          <span lang={S.lang}>
+            {nm({
+              en: `${p.days} days — ${longDate(p.date)} to ${longDate(lastDay(p))}. Tap the day above to change either end.`,
+              hi: `${p.days} दिन — ${longDate(p.date)} से ${longDate(lastDay(p))} तक। बदलने के लिए ऊपर दिनांक दबाएँ।`,
+            })}
+          </span>
         </div>
-      </details>
+      )}
     </>
   );
 }
@@ -134,82 +202,166 @@ function Opt({
   );
 }
 
+/** The place list for a chosen option, nested under it so the hierarchy reads. */
+function SubPick({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="subpick">
+      <span className="lb">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+const WHICH_ONE = { en: "Which one?", hi: "कौन सा?" };
+const DROP_PIN = { en: "Drop a pin", hi: "पिन लगाएँ" };
+const KINDS: Record<string, PlaceKind[]> = {
+  hotel: ["hotel", "dharamshala"],
+  station: ["station"],
+  bus: ["busstand"],
+};
+
+/**
+ * The picker that belongs to whichever option is selected, rendered directly
+ * under it — a list to search, or a map to pin. Both steps use the same body,
+ * so "where from" and "where to" behave identically.
+ */
+function WhereBody({ type, point, onPick }: { type: string; point: GeoPoint; onPick: (g: GeoPoint) => void }) {
+  if (KINDS[type])
+    return (
+      <SubPick label={nm(WHICH_ONE)}>
+        <PlacePicker kinds={KINDS[type]} value={point} onPick={onPick} />
+      </SubPick>
+    );
+  // A pin is the answer for "somewhere else" and for a location fix alike — the
+  // fix is only ever an estimate, and seeing it on a map is how you check it.
+  if (type === "other" || type === "anywhere" || type === "useLoc")
+    return (
+      <SubPick label={nm(type === "useLoc" ? { en: "Where we think you are", hi: "हमारे अनुसार आप यहाँ हैं" } : DROP_PIN)}>
+        <PinMap
+          value={point}
+          onPin={onPick}
+          height={type === "useLoc" ? 200 : 260}
+          hint={
+            type === "useLoc"
+              ? nm({ en: "This is where we think you are. Tap the map if it's off.", hi: "हमारे अनुसार आप यहाँ हैं। गलत हो तो नक्शे पर दबाएँ।" })
+              : undefined
+          }
+        />
+      </SubPick>
+    );
+  return null;
+}
+
+type WhereOpt = { type: string; ic: string; lb: string; sub?: string };
+
+/**
+ * "Where from" and "where to" are the same question asked twice, so they are
+ * one component with two lists.
+ *
+ * The picker for a chosen option is rendered **directly beneath that option**,
+ * not after the whole list. It used to sit below all five: you tapped the third
+ * row and the answer to your tap appeared off-screen under the fifth, which
+ * asks the visitor to re-find their place in a list they just answered.
+ */
+function WhereStep({
+  q, qs, opts, sel, point, pick, setPoint, lead, tail,
+}: {
+  q: string; qs: string; opts: WhereOpt[]; sel: string; point: GeoPoint;
+  pick: (t: string) => void; setPoint: (g: GeoPoint) => void;
+  lead?: React.ReactNode; tail?: React.ReactNode;
+}) {
+  return (
+    <>
+      <h2 className="q" lang={S.lang}>{q}</h2>
+      <p className="qs">{qs}</p>
+      {lead}
+      <div className="opts">
+        {opts.map((o) => (
+          <div key={o.type} className={"optwrap" + (sel === o.type ? " on" : "")}>
+            <Opt on={sel === o.type} ic={o.ic} lb={o.lb} sub={o.sub} onClick={() => pick(o.type)} />
+            {sel === o.type && <WhereBody type={o.type} point={point} onPick={setPoint} />}
+          </div>
+        ))}
+      </div>
+      {tail}
+    </>
+  );
+}
+
+/** Step 2 — where the route begins. */
 function StepStart() {
   const p = S.plan!;
+  // "My location" states what it actually has — it never implies a fix it lacks.
+  const locSub =
+    p.startType !== "useLoc"
+      ? undefined
+      : S.userLoc
+        ? nm({ en: "Location allowed", hi: "स्थान अनुमत" })
+        : nm({ en: "Using the town centre", hi: "नगर केंद्र से" });
+
   return (
-    <>
-      <h2 className="q" lang={S.lang}>{t("q_start")}</h2>
-      <p className="qs">{t("q_start_s")}</p>
-      <div className="opts">
-        <Opt on={p.startType === "useLoc"} ic="pin" lb={t("useLoc")} sub={S.userLoc ? "✓" : ""} onClick={() => pickStart("useLoc")} />
-        <Opt on={p.startType === "hotel"} ic="home" lb={t("hotel")} onClick={() => pickStart("hotel")} />
-        <Opt on={p.startType === "station"} ic="mapi" lb={t("station")} onClick={() => pickStart("station")} />
-        <Opt on={p.startType === "bus"} ic="bus" lb={t("bus")} onClick={() => pickStart("bus")} />
-        <Opt on={p.startType === "other"} ic="compass" lb={t("elsewhere")} onClick={() => pickStart("other")} />
-      </div>
-      {p.startType === "hotel" && <PlacePicker kinds={["hotel", "dharamshala"]} value={p.start} onPick={setStartPoint} />}
-      {p.startType === "station" && <PlacePicker kinds={["station"]} value={p.start} onPick={setStartPoint} />}
-      {p.startType === "bus" && <PlacePicker kinds={["busstand"]} value={p.start} onPick={setStartPoint} />}
-      {p.startType === "other" && <PinMap value={p.start} onPin={setStartPoint} />}
-      {p.startType !== "useLoc" && p.startType !== "other" && (
-        <PickedLine point={p.start} prefix={nm({ en: "Starting from", hi: "आरंभ" })} />
-      )}
-    </>
+    <WhereStep
+      q={t("q_start")}
+      qs={t("q_start_s")}
+      sel={p.startType}
+      point={p.start}
+      pick={pickStart}
+      setPoint={setStartPoint}
+      opts={[
+        { type: "useLoc", ic: "pin", lb: t("useLoc"), sub: locSub },
+        { type: "hotel", ic: "home", lb: t("hotel"), sub: nm({ en: "Search any stay by name", hi: "किसी भी ठहराव को नाम से खोजें" }) },
+        { type: "station", ic: "mapi", lb: t("station") },
+        { type: "bus", ic: "bus", lb: t("bus") },
+        { type: "other", ic: "compass", lb: t("elsewhere"), sub: nm({ en: "Pin it on a map", hi: "नक्शे पर पिन करें" }) },
+      ]}
+      tail={p.startType !== "useLoc" ? <PickedLine point={p.start} prefix={nm({ en: "Starting at", hi: "आरंभ" })} /> : null}
+    />
   );
 }
 
+/** Step 3 — where it ends. Separate, because the return leg costs real time. */
 function StepEnd() {
   const p = S.plan!;
-  const endPrefix = nm({ en: "Ending at", hi: "समाप्ति" });
   return (
-    <>
-      <h2 className="q" lang={S.lang}>{t("q_end")}</h2>
-      <p className="qs">{t("q_end_s")}</p>
-      <div className="opts">
-        <Opt on={p.endType === "backToStart"} ic="pin" lb={t("backToStart")} onClick={() => pickEnd("backToStart")} />
-        <Opt on={p.endType === "hotel"} ic="home" lb={t("hotel")} onClick={() => pickEnd("hotel")} />
-        <Opt on={p.endType === "station"} ic="mapi" lb={t("station")} onClick={() => pickEnd("station")} />
-        <Opt on={p.endType === "bus"} ic="bus" lb={t("bus")} onClick={() => pickEnd("bus")} />
-        <Opt on={p.endType === "anywhere"} ic="compass" lb={t("anywhere")} onClick={() => pickEnd("anywhere")} />
-      </div>
-      {p.endType === "hotel" && <PlacePicker kinds={["hotel", "dharamshala"]} value={p.end} onPick={setEndPoint} />}
-      {p.endType === "station" && <PlacePicker kinds={["station"]} value={p.end} onPick={setEndPoint} />}
-      {p.endType === "bus" && <PlacePicker kinds={["busstand"]} value={p.end} onPick={setEndPoint} />}
-      {p.endType !== "anywhere" && <PickedLine point={p.end} prefix={endPrefix} />}
-    </>
-  );
-}
-
-function StepTheme() {
-  const p = S.plan!;
-  const chip = (id: string, lb: string, ic?: string) => (
-    <button
-      key={id}
-      className={"chip" + (p.themes.indexOf(id) >= 0 ? " on" : "")}
-      onClick={() => flipTheme(id)}
-      lang={S.lang}
-    >
-      {ic ? <Icon name={ic} /> : null}
-      {lb}
-    </button>
-  );
-  return (
-    <>
-      <h2 className="q" lang={S.lang}>{t("q_theme")}</h2>
-      <p className="qs">{t("q_theme_s")}</p>
-      <div className="wrap">
-        {THEMES.map((th) => chip(th.id, nm(th), th.icon))}
-        {chip("any", t("anyTheme"))}
-      </div>
-    </>
+    <WhereStep
+      q={t("q_end")}
+      qs={t("q_end_s")}
+      sel={p.endType}
+      point={p.end}
+      pick={pickEnd}
+      setPoint={setEndPoint}
+      lead={
+        p.start.label ? (
+          <div className="note" style={{ marginBottom: 12 }}>
+            <Icon name="pin" />
+            <span lang={S.lang}>
+              {nm({ en: "You start at", hi: "आप आरंभ करते हैं" })} <b>{p.start.label}</b>
+            </span>
+          </div>
+        ) : null
+      }
+      opts={[
+        { type: "backToStart", ic: "pin", lb: t("backToStart"), sub: p.start.label },
+        { type: "hotel", ic: "home", lb: t("hotel"), sub: nm({ en: "Search any stay by name", hi: "किसी भी ठहराव को नाम से खोजें" }) },
+        { type: "station", ic: "mapi", lb: t("station") },
+        { type: "bus", ic: "bus", lb: t("bus") },
+        { type: "anywhere", ic: "compass", lb: t("anywhere"), sub: nm({ en: "Optional — pin a spot", hi: "वैकल्पिक — कोई स्थान पिन करें" }) },
+      ]}
+      tail={p.endType !== "backToStart" ? <PickedLine point={p.end} prefix={nm({ en: "Ending at", hi: "समाप्ति" })} /> : null}
+    />
   );
 }
 
 function StepHow() {
   const p = S.plan!;
+  // pace and company are one-of; modes and themes are any-of. That difference
+  // was invisible to a screen reader and only weakly visible to anyone else,
+  // so it is now in the role AND in the hint on every card.
   const seg = (f: "mode" | "pace" | "who", v: string, ic: string | undefined, lb: string) => (
     <button
       key={f + v}
+      role="radio"
+      aria-checked={p[f] === v}
       className={"chip" + (p[f] === v ? " on" : "")}
       onClick={() => {
         p[f] = v;
@@ -248,47 +400,82 @@ function StepHow() {
     bump();
   };
   const modeChip = (v: string, ic: string, lb: string) => (
-    <button key={v} className={"chip" + (p.modes.indexOf(v) >= 0 ? " on" : "")} onClick={() => toggleMode(v)}>
+    <button
+      key={v}
+      aria-pressed={p.modes.indexOf(v) >= 0}
+      className={"chip" + (p.modes.indexOf(v) >= 0 ? " on" : "")}
+      onClick={() => toggleMode(v)}
+    >
       <Icon name={ic} />
       <span lang={S.lang}>{lb}</span>
     </button>
   );
+  const themeChip = (id: string, lb: string, ic?: string) => (
+    <button
+      key={id}
+      aria-pressed={p.themes.indexOf(id) >= 0}
+      className={"chip" + (p.themes.indexOf(id) >= 0 ? " on" : "")}
+      onClick={() => flipTheme(id)}
+      lang={S.lang}
+    >
+      {ic ? <Icon name={ic} /> : null}
+      {lb}
+    </button>
+  );
+  // This step used to be one unbroken wall of chips — four questions with only
+  // a label between them. Each question is its own plate now, so the eye can
+  // tell where one ends, and a half-finished step is obvious at a glance.
+  const QCard = ({
+    lb, hint, one, children,
+  }: { lb: string; hint?: string; one?: boolean; children: React.ReactNode }) => (
+    <section className="qcard">
+      <h3 lang={S.lang}>{lb}</h3>
+      <p className="qc-hint" lang={S.lang}>
+        <span className="pick">{one ? nm({ en: "Pick one", hi: "एक चुनें" }) : nm({ en: "Pick any", hi: "जो भी लागू हों" })}</span>
+        {hint ? " · " + hint : ""}
+      </p>
+      <div className="wrap" role={one ? "radiogroup" : undefined} aria-label={lb}>
+        {children}
+      </div>
+    </section>
+  );
+
   return (
     <>
-      <h2 className="q" lang={S.lang}>{t("q_how")}</h2>
-      <p className="qs">{t("q_how_s")}</p>
-      <div className="field">
-        <label lang={S.lang}>{t("mode")}</label>
-        <p className="qs" style={{ margin: "0 0 8px" }}>
-          {nm({ en: "Pick any that apply — e.g. bus to the area, then walk.", hi: "जो लागू हों चुनें — जैसे क्षेत्र तक बस, फिर पैदल।" })}
-        </p>
-        <div className="wrap">
-          {modeChip("car", "car", t("car"))}
-          {modeChip("taxi", "car", t("taxi"))}
-          {modeChip("twowheeler", "bike", t("twowheeler"))}
-          {modeChip("erickshaw", "car", nm({ en: "E-rickshaw", hi: "ई-रिक्शा" }))}
-          {modeChip("public", "bus", t("public"))}
-          {modeChip("walking", "walk", t("walking"))}
-        </div>
-      </div>
-      <div className="field">
-        <label lang={S.lang}>{t("pace")}</label>
-        <div className="wrap">
-          {seg("pace", "relaxed", undefined, t("relaxed"))}
-          {seg("pace", "balanced", undefined, t("balanced"))}
-          {seg("pace", "fast", undefined, t("fast"))}
-        </div>
-      </div>
-      <div className="field">
-        <label lang={S.lang}>{t("who")}</label>
-        <div className="wrap">
-          {seg("who", "solo", undefined, t("solo"))}
-          {seg("who", "couple", undefined, t("couple"))}
-          {seg("who", "family", undefined, t("family"))}
-          {seg("who", "seniors", undefined, t("seniors"))}
-          {seg("who", "group", undefined, t("group"))}
-        </div>
-      </div>
+      {/* Interests and transport are both "shape the route" — one step. The
+          stepper above names it and every card asks its own question, so there
+          is no step title here: it only ever repeated the first card. */}
+      <QCard lb={t("q_theme")}>
+        {THEMES.map((th) => themeChip(th.id, nm(th), th.icon))}
+        {themeChip("any", t("anyTheme"))}
+      </QCard>
+
+      <QCard
+        lb={t("mode")}
+        hint={nm({ en: "e.g. bus to the area, then walk.", hi: "जैसे क्षेत्र तक बस, फिर पैदल।" })}
+      >
+        {modeChip("car", "car", t("car"))}
+        {modeChip("taxi", "car", t("taxi"))}
+        {modeChip("twowheeler", "bike", t("twowheeler"))}
+        {modeChip("erickshaw", "car", nm({ en: "E-rickshaw", hi: "ई-रिक्शा" }))}
+        {modeChip("public", "bus", t("public"))}
+        {modeChip("walking", "walk", t("walking"))}
+      </QCard>
+
+      <QCard lb={t("pace")} one>
+        {seg("pace", "relaxed", undefined, t("relaxed"))}
+        {seg("pace", "balanced", undefined, t("balanced"))}
+        {seg("pace", "fast", undefined, t("fast"))}
+      </QCard>
+
+      <QCard lb={t("who")} one>
+        {seg("who", "solo", undefined, t("solo"))}
+        {seg("who", "couple", undefined, t("couple"))}
+        {seg("who", "family", undefined, t("family"))}
+        {seg("who", "seniors", undefined, t("seniors"))}
+        {seg("who", "group", undefined, t("group"))}
+      </QCard>
+
       <details className="more">
         <summary>
           <Icon name="fwd" />
@@ -306,15 +493,124 @@ function StepHow() {
   );
 }
 
-const STEPS = [StepTime, StepStart, StepEnd, StepTheme, StepHow];
+// Four steps: when → from → to → what & how. Start and end each get a screen,
+// because each of them needs a list to search and a map to check.
+const STEPS = [StepTime, StepStart, StepEnd, StepHow];
+const LAST = STEPS.length - 1;
+// Named, because four anonymous dashes tell a visitor neither where they are
+// nor how much is left — the two things a form has to answer to be bearable.
+const STEP_NAMES: Loc[] = [
+  { en: "When", hi: "कब" },
+  { en: "Where from", hi: "कहाँ से" },
+  { en: "Where to", hi: "कहाँ तक" },
+  { en: "What & how", hi: "क्या और कैसे" },
+];
 
-/** 5-step visit planner. */
+/**
+ * What you see when you tap Plan and a plan already exists.
+ *
+ * Answering four steps is the expensive part of this app. Handing that person
+ * a blank form because they tapped the tab again is the one thing the screen
+ * must never do — so the built plan is here, whole, and starting over is a
+ * deliberate second choice rather than the default.
+ */
+function ExistingPlan({ onNew }: { onNew: () => void }) {
+  const p = S.plan!;
+  const it = p.res!;
+  const label = typeof p.label === "string" ? p.label : nm(p.label);
+  const th = p.themes.length && p.themes[0] !== "any" ? nm(theme(p.themes[0]) || { en: "", hi: "" }) : "";
+  const days = p.multi ? p.multi.days.length : 1;
+  const stops = p.multi ? p.multi.days.reduce((a, d) => a + d.stops.length, 0) : it.stops.length;
+
+  return (
+    <>
+      <div className="phead">
+        <h1 className="display" lang={S.lang}>
+          {nm({ en: "Your plan", hi: "आपकी योजना" })}
+        </h1>
+      </div>
+
+      <div className="planhold">
+        <div className="ph-top">
+          <span className="ic">
+            <Icon name="route" />
+          </span>
+          <span style={{ minWidth: 0, flex: 1 }}>
+            <b className="display" lang={S.lang}>
+              {label || dur(p.mins || 0)}
+              {th ? " · " + th : ""}
+            </b>
+            <small>{longDate(p.date)}{days > 1 ? " → " + longDate(lastDay(p)) : ""}</small>
+          </span>
+        </div>
+
+        <div className="ph-facts">
+          <span>
+            <b className="tnum">{stops}</b>
+            {t("stops")}
+          </span>
+          {days > 1 && (
+            <span>
+              <b className="tnum">{days}</b>
+              {nm({ en: "days", hi: "दिन" })}
+            </span>
+          )}
+          <span>
+            <b className="tnum">{clock((it.totals as any).finish)}</b>
+            {nm({ en: "done by", hi: "समाप्ति" })}
+          </span>
+        </div>
+
+        <p className="ph-list" lang={S.lang}>
+          {(p.multi ? p.multi.days[0].stops : it.stops).map((s) => nm(s.d.name)).join(" · ")}
+        </p>
+
+        <button className="btn primary" onClick={() => go("/route")}>
+          <Icon name="fwd" />
+          {nm({ en: "Open my plan", hi: "मेरी योजना खोलें" })}
+        </button>
+      </div>
+
+      <button className="btn ghost" style={{ marginTop: 11 }} onClick={onNew}>
+        <Icon name="route" />
+        {nm({ en: "Plan a different visit", hi: "कोई और यात्रा बनाएँ" })}
+      </button>
+      <p className="ph-note" lang={S.lang}>
+        {nm({
+          en: "Starting a new plan keeps this one — it is in Saved.",
+          hi: "नई योजना बनाने पर यह सुरक्षित रहेगी — सहेजे में मिलेगी।",
+        })}
+      </p>
+    </>
+  );
+}
+
+/** 4-step visit planner. */
 export function Planner() {
   if (!S.plan) S.plan = newPlan();
   const p = S.plan;
-  const i = Math.min(p.step, 4);
-  const last = i === 4;
+  // A built route means there is something to come back to. `fresh` is set by
+  // "plan a different visit", so the wizard is reachable without throwing the
+  // old plan away first.
+  const [fresh, setFresh] = useState(false);
+  // The engine is synchronous and a three-day plan is real work — long enough
+  // that the tap looked ignored. Paint the waiting state first, then build on
+  // the next frame, so the button always answers immediately.
+  const [building, setBuilding] = useState(false);
+  if (p.res && !fresh)
+    return (
+      <ExistingPlan
+        onNew={() => {
+          S.plan = newPlan();
+          setFresh(true);
+          bump();
+        }}
+      />
+    );
+  const i = Math.min(p.step, LAST);
+  const last = i === LAST;
   const ok = valid(i);
+  const gap = missing(i);
   const CurrentStep = STEPS[i];
 
   return (
@@ -327,27 +623,63 @@ export function Planner() {
           {t("planVisit")}
         </h1>
       </div>
-      <div className="steps">
-        {STEPS.map((_, n) => (
-          <i key={n} className={n <= i ? "on" : ""} />
-        ))}
+
+      <div className="stepper">
+        <div className="stepper-lb" aria-live="polite">
+          <b lang={S.lang}>{nm(STEP_NAMES[i])}</b>
+          <span className="tnum">
+            {nm({ en: `Step ${i + 1} of ${STEPS.length}`, hi: `चरण ${i + 1} / ${STEPS.length}` })}
+          </span>
+        </div>
+        <div className="steps" role="progressbar" aria-valuenow={i + 1} aria-valuemin={1} aria-valuemax={STEPS.length}>
+          {STEPS.map((_, n) => (
+            <i key={n} className={n <= i ? "on" : ""} />
+          ))}
+        </div>
       </div>
+
       <CurrentStep />
-      <div style={{ height: 76 }} />
+      <div className="planbar-space" />
       <div className="planbar">
-        <button className="btn ghost" onClick={pBack}>
-          {t("back")}
-        </button>
-        <button className="btn primary" disabled={!ok} onClick={last ? buildRoute : pNext}>
-          {last ? (
-            <>
-              <Icon name="route" />
-              {t("build")}
-            </>
-          ) : (
-            t("next")
-          )}
-        </button>
+        {/* say what is missing where the visitor is already looking, rather
+            than greying out the button and explaining nothing */}
+        {!ok && (
+          <p className="planbar-why" role="status" lang={S.lang}>
+            <Icon name="info" />
+            {gap}
+          </p>
+        )}
+        <div className="planbar-row">
+          <button className="btn ghost" onClick={pBack}>
+            {i === 0 ? t("home") : t("back")}
+          </button>
+          <button
+            className={"btn primary" + (ok ? "" : " waiting") + (building ? " busy" : "")}
+            aria-busy={building}
+            onClick={
+              last && ok
+                ? () => {
+                    setBuilding(true);
+                    setTimeout(buildRoute, 30);
+                  }
+                : pNext
+            }
+          >
+            {building ? (
+              <>
+                <span className="spin" aria-hidden="true" />
+                {nm({ en: "Building your journey…", hi: "आपकी यात्रा बन रही है…" })}
+              </>
+            ) : last ? (
+              <>
+                <Icon name="route" />
+                {t("build")}
+              </>
+            ) : (
+              t("next")
+            )}
+          </button>
+        </div>
       </div>
     </>
   );

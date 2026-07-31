@@ -44,7 +44,7 @@ export function Settings() {
           <b style={{ fontSize: "calc(14.5px*var(--ts))" }} lang={S.lang}>
             {t("bigText")}
           </b>
-          <div className="muted" style={{ fontSize: "calc(12.5px*var(--ts))", marginBottom: 11 }}>
+          <div className="muted" style={{ fontSize: "calc(13px*var(--ts))", marginBottom: 11 }}>
             {t("bigTextD")}
           </div>
           <div className="tsize">
@@ -67,8 +67,9 @@ export function Settings() {
 
       {!isStandalone() && (
         <button className="card rcard" style={{ marginTop: 11 }} onClick={installApp}>
+          {/* "phone" is not in the icon set — it rendered an empty box */}
           <span className="ic">
-            <Icon name="phone" />
+            <Icon name="download" />
           </span>
           <span style={{ flex: 1 }}>
             <h3>{t("dlTitle")}</h3>

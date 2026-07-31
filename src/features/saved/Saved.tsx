@@ -1,59 +1,30 @@
-import { S, store, newPlan } from "@/app/state";
-import { go, planWeekday } from "@/app/nav";
+import { useEffect, useState } from "react";
+import { S } from "@/app/state";
+import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
-import { nowM } from "@/shared/lib/datetime";
 import { byId } from "@/shared/lib/geo";
 import { toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 import { Pcard } from "@/shared/ui/PlaceCard";
-import { Engine } from "@/features/planner/engine";
-import { bump } from "@/app/state";
+import { store } from "@/app/state";
+import { listPlans, deletePlan, openPlan, type SavedPlan } from "@/features/planner/persist";
+import { buildRoute, longDate, lastDay } from "@/features/planner/plan";
 
-interface SavedRoute {
-  id: string;
-  title: string;
-  at: number;
-  ids: string[];
-  mode?: string;
-  pace?: string;
-  themes?: string[];
-  mins?: number;
+/**
+ * Reopen a saved plan: every answer comes back — the day, the start point, the
+ * people, the pace — and the route is rebuilt from them against today's opening
+ * hours, rather than being restored from a stale copy.
+ */
+async function reopen(id: string) {
+  const p = await openPlan(id);
+  if (p) buildRoute(); // navigates to /route itself
 }
 
-const delRoute = (id: string) => {
-  store.routes = store.routes.filter((r: SavedRoute) => r.id !== id);
-  toast(t("removedT"));
-  bump();
-};
-
-function loadRoute(id: string) {
-  const r = store.routes.find((x: SavedRoute) => x.id === id);
-  if (!r) return;
-  S.plan = newPlan();
-  S.plan.mins = r.mins || 240;
-  S.plan.label = r.title;
-  S.plan.mode = r.mode || "car";
-  S.plan.pace = r.pace || "balanced";
-  S.plan.themes = r.themes || [];
-  S.plan.startClock = nowM();
-  S.plan.res = Engine.build({
-    budgetMin: S.plan.mins,
-    start: S.plan.start,
-    end: S.plan.end,
-    interests: [],
-    mode: S.plan.mode,
-    pace: S.plan.pace,
-    startClock: S.plan.startClock,
-    weekday: planWeekday(),
-    filters: { meal: true },
-    onlyIds: r.ids,
-  });
-  S.plan.alts = [];
-  go("/route");
-}
-
-function RouteRow({ r }: { r: SavedRoute }) {
+function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
   const ns = r.ids.map((i) => byId(i)).filter(Boolean).map((d) => nm(d!.name));
+  const p = r.plan;
+  const when = p.days > 1 ? longDate(p.date) + " → " + longDate(lastDay(p as any)) : longDate(p.date);
+  const where = p.start?.label;
   return (
     <div className="card" style={{ padding: 13 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
@@ -69,21 +40,40 @@ function RouteRow({ r }: { r: SavedRoute }) {
           <b className="display" style={{ fontSize: "calc(15px*var(--ts))" }}>
             {r.title}
           </b>
-          <div className="muted" style={{ fontSize: "calc(12px*var(--ts))" }}>
+          <div className="muted" style={{ fontSize: "calc(13px*var(--ts))" }}>
             {ns.length} {t("stops")} ·{" "}
             {new Date(r.at).toLocaleDateString(S.lang === "hi" ? "hi-IN" : "en-IN")}
           </div>
         </div>
-        <button className="iconbtn" onClick={() => delRoute(r.id)} aria-label={t("removedT")}>
+        <button
+          className="iconbtn"
+          onClick={() => deletePlan(r.id).then(onGone)}
+          aria-label={nm({ en: "Remove ", hi: "हटाएँ " }) + r.title}
+        >
           <Icon name="close" />
         </button>
       </div>
-      <div className="muted" style={{ fontSize: "calc(12.5px*var(--ts))", marginTop: 9, lineHeight: 1.65 }}>
+
+      {/* the answers, so a saved plan is recognisable without opening it */}
+      <div className="savemeta">
+        <span>
+          <Icon name="cal" />
+          {when}
+        </span>
+        {where && (
+          <span>
+            <Icon name="pin" />
+            {where}
+          </span>
+        )}
+      </div>
+
+      <div className="muted" style={{ fontSize: "calc(13px*var(--ts))", marginTop: 9, lineHeight: 1.65 }}>
         {ns.map((n, i) => i + 1 + ". " + n).join(" · ")}
       </div>
-      <button className="btn ghost sm" style={{ marginTop: 11 }} onClick={() => loadRoute(r.id)}>
-        <Icon name="play" />
-        {t("startTour")}
+      <button className="btn ghost sm" style={{ marginTop: 11 }} onClick={() => reopen(r.id)}>
+        <Icon name="route" />
+        {nm({ en: "Open this plan", hi: "यह योजना खोलें" })}
       </button>
     </div>
   );
@@ -91,7 +81,29 @@ function RouteRow({ r }: { r: SavedRoute }) {
 
 export function Saved() {
   const favs = store.favs.map((i) => byId(i)).filter(Boolean) as NonNullable<ReturnType<typeof byId>>[];
-  const rs = store.routes as SavedRoute[];
+  const [rs, setRs] = useState<SavedPlan[] | null>(null);
+  const refresh = () => listPlans().then(setRs, () => setRs([]));
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  // IndexedDB answers a frame or two late. Returning null flashed a blank
+  // screen; hold the title and two card-shaped placeholders instead, so the
+  // layout that arrives is the layout that was already there.
+  if (rs === null)
+    return (
+      <>
+        <div className="phead">
+          <h1 className="display" lang={S.lang}>
+            {t("saved")}
+          </h1>
+        </div>
+        <div className="plist" aria-hidden="true">
+          <div className="card skel" style={{ height: 118 }} />
+          <div className="card skel" style={{ height: 118 }} />
+        </div>
+      </>
+    );
 
   if (!favs.length && !rs.length)
     return (
@@ -126,7 +138,7 @@ export function Saved() {
           </div>
           <div className="plist stagger">
             {rs.map((r) => (
-              <RouteRow key={r.id} r={r} />
+              <PlanRow key={r.id} r={r} onGone={() => { toast(t("removedT")); refresh(); }} />
             ))}
           </div>
         </div>

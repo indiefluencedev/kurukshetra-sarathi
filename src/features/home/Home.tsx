@@ -1,17 +1,16 @@
 import { useEffect } from "react";
-import { S } from "@/app/state";
+import { S, store } from "@/app/state";
 import { go } from "@/app/nav";
-import { t, nm } from "@/shared/i18n/i18n";
+import { t, nm, nPlaces } from "@/shared/i18n/i18n";
 import { THEMES } from "@/data/config";
 import { D } from "@/data/destinations";
 import { imgUrl } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { loadWeather } from "@/features/weather/weather";
+import { WeatherChip } from "@/features/weather/WeatherChip";
 import { TimeBlock } from "./TimeBlock";
 import { HeroRail } from "./HeroRail";
-import { ReelsRail } from "./ReelsRail";
 import { HowToCard } from "./HowToCard";
-import { InstallCard } from "./install";
 
 export function Home() {
   useEffect(() => {
@@ -21,6 +20,17 @@ export function Home() {
   return (
     <>
       <TimeBlock />
+
+      {/* Search reads as the field it leads to, not as a 21px icon in the
+          header. The weather + clock sit beside it — one row, both large. */}
+      <div className="homerow">
+        <button className="searchrow" onClick={() => go("/search")}>
+          <Icon name="search" />
+          <span lang={S.lang}>{nm({ en: "Search places", hi: "स्थान खोजें" })}</span>
+        </button>
+        <WeatherChip />
+      </div>
+
       <HeroRail />
 
       <div className="sec">
@@ -46,18 +56,17 @@ export function Home() {
                 <span className="tl" lang={S.lang}>
                   {nm(th)}
                 </span>
-                <span className="tc">
-                  {n} {t("places")}
-                </span>
+                <span className="tc">{nPlaces(n)}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      <ReelsRail pid={null} />
-      <HowToCard />
-      <InstallCard />
+      {/* Reels are contextual — they live on the place they were filmed at, not
+          here. The install prompt lives in Settings. The walkthrough shows only
+          until the visitor has built their first route. */}
+      {!store.routes.length && <HowToCard />}
 
       <div className="note" style={{ marginBottom: 10, alignItems: "center" }}>
         <Icon name="info" />

@@ -75,9 +75,20 @@ export const S = {
 /* ---- React subscription: bump() re-renders everything (like render()) ---- */
 let version = 0;
 const listeners = new Set<() => void>();
+
+/* Every mutation in the app ends in bump(), so it is the one place a draft-save
+   can hook without every caller having to remember to. Registered by the
+   persistence layer at boot; a plain callback rather than an import, because
+   state.ts must stay a dependency leaf. */
+let afterBump: (() => void) | null = null;
+export const onBump = (fn: () => void) => {
+  afterBump = fn;
+};
+
 export function bump() {
   version++;
   listeners.forEach((l) => l());
+  if (afterBump) afterBump();
 }
 function subscribe(l: () => void) {
   listeners.add(l);
@@ -105,7 +116,9 @@ export const newPlan = (): Plan => ({
   step: 0,
   mins: null,
   label: "",
-  startType: "useLoc",
+  // No start pre-selected: "my location" is permission-gated, so it must be an
+  // explicit choice, not a default that implies a fix we don't have.
+  startType: "",
   start: { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng },
   endType: "backToStart",
   end: { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng },
@@ -119,4 +132,5 @@ export const newPlan = (): Plan => ({
   alts: [],
   startClock: null,
   date: isoToday(),
+  days: 1,
 });

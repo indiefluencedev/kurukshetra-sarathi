@@ -1,5 +1,5 @@
 import { S } from "@/app/state";
-import { t } from "@/shared/i18n/i18n";
+import { t, nPlaces } from "@/shared/i18n/i18n";
 import { D } from "@/data/destinations";
 import { Pcard } from "@/shared/ui/PlaceCard";
 
@@ -14,7 +14,7 @@ export function Explore() {
         </h1>
       </div>
       <p className="muted" style={{ fontSize: "calc(13px*var(--ts))", margin: "-6px 0 16px" }}>
-        {list.length} {t("places")}
+        {nPlaces(list.length)}
       </p>
       <div className="plist stagger">
         {list.map((d) => (

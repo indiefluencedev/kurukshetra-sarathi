@@ -1,34 +1,27 @@
+import data from "@/content/data/places-index.json";
 import type { Loc } from "@/shared/types";
 
-// Curated start/end points for the planner (Steps 2 & 3): the town's stations,
-// bus stands, and notable stays. Searchable; not tourist POIs (those are in D).
-//
-// coords marked `verified:false` are best-estimate and should be snapped to the
-// real point (Phase 2 build script can resolve them from Google Place IDs).
+// Curated start/end points for the planner (stations, bus stands, stays).
+// Source of truth: src/content/data/places-index.json. See docs/04.
 export type PlaceKind = "station" | "busstand" | "hotel" | "dharamshala";
-
 export interface IndexPlace {
   id: string;
   kind: PlaceKind;
   name: Loc;
   lat: number;
   lng: number;
+  /** the locality — "Sector 13" / "Pehowa". What tells a visitor how far out it is. */
+  area?: Loc;
+  /** station code for a railway station (KKDE, SHDM) — what a ticket is booked against */
+  code?: string;
+  phone?: string;
+  /** ISO date the coordinates were last checked against a map by a human */
+  checked?: string;
+  /** true once a person has confirmed the pin lands on the actual gate */
   verified?: boolean;
 }
 
-export const PLACES_INDEX: IndexPlace[] = [
-  // ---- Railway stations (Kurukshetra has 2) ----
-  { id: "stn-kkde", kind: "station", name: { en: "Kurukshetra Junction", hi: "कुरुक्षेत्र जंक्शन" }, lat: 29.9772, lng: 76.834, verified: false },
-  { id: "stn-thc", kind: "station", name: { en: "Thanesar City", hi: "थानेसर सिटी" }, lat: 29.954, lng: 76.829, verified: false },
-
-  // ---- Bus stands (2) ----
-  { id: "bus-new", kind: "busstand", name: { en: "New Bus Stand (Sector 13)", hi: "नया बस अड्डा (सेक्टर 13)" }, lat: 29.976, lng: 76.842, verified: false },
-  { id: "bus-pipli", kind: "busstand", name: { en: "Pipli Bus Stand", hi: "पिपली बस अड्डा" }, lat: 29.933, lng: 76.868, verified: false },
-
-  // ---- Stays (seed; extend from the tourism board's list) ----
-  { id: "stay-neelkanthi", kind: "hotel", name: { en: "Neelkanthi Krishna Dham Yatri Niwas", hi: "नीलकंठी कृष्ण धाम यात्री निवास" }, lat: 29.9625, lng: 76.8262, verified: false },
-  { id: "stay-parashar", kind: "dharamshala", name: { en: "Parashar Tourist Complex", hi: "पराशर पर्यटक परिसर" }, lat: 29.9601, lng: 76.8305, verified: false },
-];
+export const PLACES_INDEX = data as unknown as IndexPlace[];
 
 export const byIndexId = (id?: string): IndexPlace | undefined =>
   id ? PLACES_INDEX.find((p) => p.id === id) : undefined;
