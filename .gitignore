@@ -37,8 +37,5 @@ pnpm-debug.log*
 # claude code (local tooling)
 .claude
 
-# internal design docs (kept local, not published)
-docs
-
 # harvested review files, not shipped
 scripts/out/

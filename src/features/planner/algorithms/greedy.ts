@@ -7,7 +7,7 @@
 // that stop in the place graph is offered at its real cost — a few minutes on
 // foot and no second parking buffer. This is the step that stops the planner
 // driving a visitor past the Krishna Museum's front door on the way to Brahma
-// Sarovar and never mentioning it. See docs/08.
+// Sarovar and never mentioning it. See docs/03 and docs/10 §3.3.
 import { routing } from "../routing";
 import { openAt, openMin, isClosedDay } from "../rules/hours";
 import { timeFit } from "../rules/scoring";

@@ -76,7 +76,7 @@ export interface Stop {
    * Set when this stop was reached **on foot from a stop you already parked
    * at** — the id of that anchor. An annexed stop pays walking minutes and no
    * parking buffer, and the car stays at the anchor until the pocket is done.
-   * See docs/08 and `data/graph.ts`.
+   * See docs/10 §4.3 and `data/graph.ts`.
    */
   anchor?: string;
   [k: string]: unknown;
