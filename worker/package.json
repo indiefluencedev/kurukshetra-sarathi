@@ -1,0 +1,19 @@
+{
+  "name": "kuk-saarthi-api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "inspect": "node inspect-db.mjs",
+    "migrate:local": "wrangler d1 execute discover_kurukshetra --local --file=migrations/0001_init.sql",
+    "migrate": "node inspect-db.mjs --remote && wrangler d1 execute discover_kurukshetra --remote --file=migrations/0001_init.sql",
+    "seed:local": "wrangler d1 execute discover_kurukshetra --local --file=seed.sql",
+    "seed": "wrangler d1 execute discover_kurukshetra --remote --file=seed.sql",
+    "test": "node --experimental-strip-types test-encrypt.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240909.0",
+    "wrangler": "^4.0.0"
+  }
+}
