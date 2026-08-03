@@ -2,13 +2,25 @@
   {
     "id": "janmashtami-2026",
     "kind": "festival",
-    "name": { "en": "Shri Krishna Janmashtami", "hi": "श्री कृष्ण जन्माष्टमी" },
+    "name": {
+      "en": "Shri Krishna Janmashtami",
+      "hi": "श्री कृष्ण जन्माष्टमी"
+    },
     "from": "2026-09-04",
     "to": "2026-09-05",
-    "places": ["iskcon", "gaudiya-math", "birla-mandir", "jyotisar", "krishna-museum"],
+    "places": [
+      "iskcon",
+      "gaudiya-math",
+      "birla-mandir",
+      "jyotisar",
+      "krishna-museum"
+    ],
     "visitFactor": 1.5,
     "travelFactor": 1.25,
-    "bias": { "jyotisar": 50, "iskcon": 40 },
+    "bias": {
+      "jyotisar": 50,
+      "iskcon": 40
+    },
     "blurb": {
       "en": "Midnight aarti, jhankis and kirtan at every Krishna temple in the district.",
       "hi": "जिले के हर कृष्ण मंदिर में मध्यरात्रि आरती, झांकियाँ और कीर्तन।"
@@ -21,13 +33,24 @@
   {
     "id": "somvati-amavasya-2026-10",
     "kind": "snan",
-    "name": { "en": "Somvati Amavasya snan", "hi": "सोमवती अमावस्या स्नान" },
+    "name": {
+      "en": "Somvati Amavasya snan",
+      "hi": "सोमवती अमावस्या स्नान"
+    },
     "from": "2026-10-19",
     "to": "2026-10-19",
-    "places": ["brahma-sarovar", "sannihit-sarovar", "sthaneshwar", "bhishma-kund"],
+    "places": [
+      "brahma-sarovar",
+      "sannihit-sarovar",
+      "sthaneshwar",
+      "bhishma-kund"
+    ],
     "visitFactor": 1.6,
     "travelFactor": 1.35,
-    "bias": { "sannihit-sarovar": 55, "brahma-sarovar": 45 },
+    "bias": {
+      "sannihit-sarovar": 55,
+      "brahma-sarovar": 45
+    },
     "blurb": {
       "en": "A new moon falling on a Monday — the day pilgrims bathe at Sannihit and Brahma Sarovar.",
       "hi": "सोमवार को पड़ने वाली अमावस्या — इस दिन तीर्थयात्री सन्निहित और ब्रह्म सरोवर में स्नान करते हैं।"
@@ -40,13 +63,25 @@
   {
     "id": "gita-mahotsav-2026",
     "kind": "mela",
-    "name": { "en": "International Gita Mahotsav", "hi": "अंतर्राष्ट्रीय गीता महोत्सव" },
+    "name": {
+      "en": "International Gita Mahotsav",
+      "hi": "अंतर्राष्ट्रीय गीता महोत्सव"
+    },
     "from": "2026-12-10",
     "to": "2026-12-20",
-    "places": ["brahma-sarovar", "sannihit-sarovar", "jyotisar", "krishna-museum", "dharohar"],
+    "places": [
+      "brahma-sarovar",
+      "sannihit-sarovar",
+      "jyotisar",
+      "krishna-museum",
+      "dharohar"
+    ],
     "visitFactor": 1.8,
     "travelFactor": 1.4,
-    "bias": { "brahma-sarovar": 60, "jyotisar": 40 },
+    "bias": {
+      "brahma-sarovar": 60,
+      "jyotisar": 40
+    },
     "blurb": {
       "en": "Eleven days of aarti, shobha yatra and shilp mela on the Brahma Sarovar ghats.",
       "hi": "ब्रह्म सरोवर के घाटों पर ग्यारह दिन की आरती, शोभायात्रा और शिल्प मेला।"
@@ -54,6 +89,57 @@
     "notice": {
       "en": "Expect heavy crowds and road diversions around Brahma Sarovar. Allow far longer than usual for every stop in the centre.",
       "hi": "ब्रह्म सरोवर के आसपास भारी भीड़ और मार्ग परिवर्तन की संभावना। केंद्र के हर पड़ाव के लिए सामान्य से बहुत अधिक समय रखें।"
+    }
+  },
+  {
+    "id": "gita-shobha-yatra-2026",
+    "kind": "yatra",
+    "name": {
+      "en": "Gita Shobha Yatra",
+      "hi": "गीता शोभा यात्रा"
+    },
+    "from": "2026-12-14",
+    "to": "2026-12-14",
+    "window": {
+      "from": "16:00",
+      "to": "18:30"
+    },
+    "places": [
+      "brahma-sarovar",
+      "sthaneshwar",
+      "sannihit-sarovar"
+    ],
+    "corridor": [
+      {
+        "lat": 29.9695,
+        "lng": 76.8181
+      },
+      {
+        "lat": 29.9662,
+        "lng": 76.8265
+      },
+      {
+        "lat": 29.9633,
+        "lng": 76.8342
+      },
+      {
+        "lat": 29.9608,
+        "lng": 76.8398
+      }
+    ],
+    "advice": "avoid",
+    "visitFactor": 1.4,
+    "travelFactor": 1.6,
+    "bias": {
+      "brahma-sarovar": 40
+    },
+    "blurb": {
+      "en": "A procession of decorated tableaux from Sthaneshwar to Brahma Sarovar.",
+      "hi": "स्थाणेश्वर से ब्रह्म सरोवर तक सजी झांकियों की शोभा यात्रा।"
+    },
+    "notice": {
+      "en": "The Jhansa road and the sarovar approach close to traffic from about 4pm. Allow an extra half hour, or walk.",
+      "hi": "झांसा रोड और सरोवर का रास्ता लगभग 4 बजे से बंद रहता है। आधा घंटा अतिरिक्त रखें, या पैदल चलें।"
     }
   }
 ]

@@ -4,6 +4,7 @@ import { HashRouter } from "react-router-dom";
 import { App } from "./App";
 import { onBump } from "./app/state";
 import { bootPersistence, saveDraft } from "./features/planner/persist";
+import { refreshContent } from "./content/live";
 import "./styles/global.css";
 
 // Dev-only: warn if any content is half-translated or UI keys drift (see docs/04).
@@ -18,6 +19,10 @@ if (import.meta.env.DEV) {
 // mounts with a fresh plan and immediately saves that over the stored one.
 bootPersistence().finally(() => {
   onBump(saveDraft);
+  // Deliberately NOT awaited. The bundled calendar is already correct enough to
+  // render; a fresher one arrives when it arrives, and on a rural signal it may
+  // never arrive at all. Nothing on the first paint waits for a network.
+  refreshContent();
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       <HashRouter>

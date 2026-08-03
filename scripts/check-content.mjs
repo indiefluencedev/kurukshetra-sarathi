@@ -1,6 +1,7 @@
 // CI / pre-commit content check: every {en,hi} is fully translated and the two
 // UI dictionaries share the same keys. Exits non-zero on any problem. See docs/04.
 import { readFileSync } from "node:fs";
+import { validateEvent, validateEventSet } from "../shared/event-rules.mjs";
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const base = "../src/content/";
@@ -65,53 +66,19 @@ data.places.forEach((p, i) => {
    exactly the kind of field that gets a typo nobody notices until the festival
    has been and gone. The factors are calibration knobs, so their band is
    checked rather than their value. See docs/10 §4.4. */
-const KINDS_E = new Set(["festival", "snan", "show", "mela"]);
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
+/* The rules themselves live in shared/event-rules.mjs, because the Worker's
+   admin dashboard has to enforce exactly the same ones. Two copies would drift
+   the first time a field was added, and the dashboard would happily accept an
+   event the app refuses to render. This file supplies the one thing the Worker
+   cannot: whether a place id actually exists in the catalogue. */
 const destIds = new Set(data.destinations.map((d) => d.id));
-const seenE = new Map();
-const claimed = new Map(); // "placeId@date" → event id, so two events can't own a place at once
+const knownPlace = (id) => destIds.has(id);
 
 data.events.forEach((e, i) => {
   const at = `events[${i}] ${e?.name?.en || e?.id || "?"}`;
-  if (!e.id) out.push(`${at}: missing id`);
-  else if (seenE.has(e.id)) out.push(`${at}: duplicate id "${e.id}"`);
-  else seenE.set(e.id, at);
-
-  if (!KINDS_E.has(e.kind)) out.push(`${at}: unknown kind "${e.kind}"`);
-  if (!ISO.test(e.from || "")) out.push(`${at}: from "${e.from}" is not YYYY-MM-DD`);
-  if (!ISO.test(e.to || "")) out.push(`${at}: to "${e.to}" is not YYYY-MM-DD`);
-  if (ISO.test(e.from || "") && ISO.test(e.to || "") && e.from > e.to) out.push(`${at}: from is after to`);
-
-  for (const f of ["visitFactor", "travelFactor"]) {
-    const v = e[f];
-    if (typeof v !== "number" || v < 1 || v > 3) out.push(`${at}: ${f} ${v} is outside 1.0–3.0`);
-  }
-
-  if (!Array.isArray(e.places) || !e.places.length) out.push(`${at}: no places`);
-  else
-    e.places.forEach((id) => {
-      if (!destIds.has(id)) out.push(`${at}: unknown place "${id}"`);
-    });
-
-  Object.keys(e.bias || {}).forEach((id) => {
-    if (!destIds.has(id)) out.push(`${at}: bias names unknown place "${id}"`);
-  });
-
-  // activeEvent() returns the first match, so an overlap on the same place is
-  // an ambiguity the reader would resolve silently and wrongly
-  if (ISO.test(e.from || "") && ISO.test(e.to || "")) {
-    // local dates throughout — toISOString() would shift IST midnight back a day
-    const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    for (let d = new Date(e.from + "T00:00"); iso(d) <= e.to; d.setDate(d.getDate() + 1)) {
-      for (const id of e.places || []) {
-        const day = iso(d);
-        const k = id + "@" + day;
-        if (claimed.has(k)) out.push(`${at}: ${id} on ${day} is already claimed by ${claimed.get(k)}`);
-        else claimed.set(k, e.id);
-      }
-    }
-  }
+  for (const p of validateEvent(e, knownPlace)) out.push(`${at}: ${p.replace(/^[^:]*: /, "")}`);
 });
+for (const p of validateEventSet(data.events)) out.push(`events: ${p}`);
 
 if (warn.length) {
   console.warn(`places index — ${warn.length} thing(s) still to do:`);
@@ -125,3 +92,4 @@ if (out.length) {
   process.exit(1);
 }
 console.log("content check OK — all {en,hi} translated, UI keys in parity.");
+

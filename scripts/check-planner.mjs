@@ -291,3 +291,55 @@ console.log("multi-day start-time checks passed");
 }
 
 console.log("walk-order checks passed");
+
+/* ── the resident's questions actually answer ───────────────────────────────
+   The Home alert only appears on the day an overlay event runs, so on any
+   other day it cannot be verified by looking at the app. These assert the
+   three functions behind it against the real calendar.
+
+   (This lives here rather than in check-content because check-content runs on
+   plain node and cannot import a .ts module.) */
+{
+  const { liveAt, liveToday, startingSoon, isOverlay, eventPoints } = await import("../src/data/events.ts");
+  const { locate } = await import("../src/features/journey/corridor.ts");
+  const { D } = await import("../src/data/destinations.ts");
+  const byId = (id) => D.find((d) => d.id === id);
+
+  const overlays = EVENTS.filter((e) => isOverlay(e));
+  assert.ok(overlays.length, "there should be at least one overlay event to check");
+
+  for (const e of overlays) {
+    const day = e.from;
+    const mins = (s) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
+    const open = mins(e.window.from);
+    const shut = mins(e.window.to);
+
+    // the HOUR matters, not just the date — a 4pm procession is not news at breakfast
+    assert.ok(liveAt(e, day, open + 5), `${e.id} must be live inside its own window`);
+    assert.ok(!liveAt(e, day, open - 30), `${e.id} must not be live half an hour before it starts`);
+    assert.ok(!liveAt(e, day, shut + 30), `${e.id} must not be live after it ends`);
+
+    assert.ok(liveToday(day, open + 5).some((x) => x.id === e.id));
+    assert.ok(
+      startingSoon(day, open - 45, 90).some((x) => x.id === e.id),
+      `${e.id} should be announced 45 minutes ahead`,
+    );
+    assert.ok(!startingSoon(day, open - 45, 10).some((x) => x.id === e.id), "…but not on a 10-minute horizon");
+
+    // an overlay never governs the engine's factors, even on its own day
+    const active = activeEvent(day);
+    assert.ok(!active || !isOverlay(active), `${e.id} must not be what activeEvent returns`);
+
+    // "is it in my way" is answerable: a point ON the corridor reads as on it,
+    // one well off it does not
+    const pts = eventPoints(e, byId);
+    assert.ok(pts.length >= 2, `${e.id} needs a usable line`);
+    assert.ok(locate(pts[1], pts).offset < 50, `a point on ${e.id}'s corridor should read as on it`);
+    assert.ok(
+      locate({ lat: pts[0].lat + 0.05, lng: pts[0].lng + 0.05 }, pts).offset > 2500,
+      "a point 5 km away should not",
+    );
+  }
+}
+
+console.log("event alert checks passed");

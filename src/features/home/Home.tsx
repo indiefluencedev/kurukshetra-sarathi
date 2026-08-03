@@ -12,6 +12,7 @@ import { TodayStrip } from "./TodayStrip";
 import { TimeBlock } from "./TimeBlock";
 import { StartHere } from "./StartHere";
 import { EventRail } from "./EventRail";
+import { EventAlert } from "./EventAlert";
 import { HowToCard } from "./HowToCard";
 import { InstallBar } from "./install";
 
@@ -48,9 +49,13 @@ export function Home() {
 
       <TodayStrip />
 
-      {/* Only inside three weeks. An event 77 days out is not news, and a rail
-          announcing one is a rail announcing nothing. */}
-      <EventRail withinDays={21} />
+      {/* Directly above "Start here", because for someone who lives here the
+          question is not "what is Kurukshetra" — it is "what is on". Ninety
+          days, not three weeks: a resident plans around a mela weeks out, and
+          the rail sorts ongoing first so today always leads. */}
+      <EventAlert />
+
+      <EventRail withinDays={90} />
 
       <StartHere />
 
