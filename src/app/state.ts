@@ -75,9 +75,20 @@ export const S = {
 /* ---- React subscription: bump() re-renders everything (like render()) ---- */
 let version = 0;
 const listeners = new Set<() => void>();
+
+/* Every mutation in the app ends in bump(), so it is the one place a draft-save
+   can hook without every caller having to remember to. Registered by the
+   persistence layer at boot; a plain callback rather than an import, because
+   state.ts must stay a dependency leaf. */
+let afterBump: (() => void) | null = null;
+export const onBump = (fn: () => void) => {
+  afterBump = fn;
+};
+
 export function bump() {
   version++;
   listeners.forEach((l) => l());
+  if (afterBump) afterBump();
 }
 function subscribe(l: () => void) {
   listeners.add(l);
@@ -100,12 +111,20 @@ export const setLangStay = (l: Lang) => {
 };
 export const flipLang = () => setLangStay(S.lang === "hi" ? "en" : "hi");
 
+/* ---- answers carried over from the last plan ----
+   Filled by the persistence layer at boot. It is pushed in rather than
+   imported because state.ts has to stay a dependency leaf — the same reason
+   onBump exists. See docs/10 §2.5. */
+let carried: Partial<Plan> = {};
+export const setCarried = (p: Partial<Plan>) => {
+  carried = p;
+};
+
 /* ---- a fresh plan (was newPlan) ---- */
 export const newPlan = (): Plan => ({
-  step: 0,
-  mins: null,
-  label: "",
-  startType: "useLoc",
+  // No start pre-selected: "my location" is permission-gated, so it must be an
+  // explicit choice, not a default that implies a fix we don't have.
+  startType: "",
   start: { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng },
   endType: "backToStart",
   end: { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng },
@@ -115,8 +134,21 @@ export const newPlan = (): Plan => ({
   pace: "balanced",
   who: "family",
   opts: { meal: true },
+  // Where they set off from last time, how they travel, who with, at what pace.
+  // Answering the same four questions on every visit is the thing this app was
+  // built to stop doing.
+  ...carried,
+  // Never carried, whatever ends up in the record — these sit after the spread
+  // so a field added to Prefs by mistake still cannot resurrect them. The
+  // length of *this* visit is the question the planner opens with, and a stale
+  // date silently checks the route against the opening hours of a day that has
+  // already gone.
+  step: 0,
+  mins: null,
+  label: "",
   res: null,
   alts: [],
   startClock: null,
   date: isoToday(),
+  days: 1,
 });

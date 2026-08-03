@@ -1,197 +1,267 @@
-// @ts-nocheck — verbatim 1:1 port of the demo's route engine (untyped vanilla JS).
-// Typing its internals would add no behaviour; the public shape is used via Itinerary.
-import { CONFIG, THEMES } from "@/data/config";
+// @ts-nocheck — orchestrator with a loosely-typed options object. Owns no math:
+// it wires the routing provider (routing/), the rule sets (rules/), and the
+// algorithms (algorithms/) into an Itinerary. See docs/03. The public `Engine`
+// facade is unchanged, so every caller (geo, place-actions, Saved, Journey,
+// plan) keeps working.
 import { D } from "@/data/destinations";
-import { reorder, suggestNearby } from "./orienteering";
+import { THEMES } from "@/data/config";
+import { activeEvent, affects } from "@/data/events";
+import { addDays, fromISO } from "@/shared/lib/datetime";
+import { routing } from "./routing";
+import { openAt } from "./rules/hours";
+import { poiScore, timeFit } from "./rules/scoring";
+import { computeBudget, PARKING } from "./rules/budget";
+import { greedy } from "./algorithms/greedy";
+import { reorder } from "./algorithms/twoOpt";
+import { suggestNearby } from "./algorithms/suggest";
+import { buildDays, DAY_MAX } from "./algorithms/multiday";
+import { simulate, legMin, type RouteCtx } from "./algorithms/schedule";
 
-// Route-building engine — ported verbatim from the demo (pure functions).
-export const Engine = (function () {
- const R=6371, rad=d=>d*Math.PI/180;
- function hav(a,b){
-   const dLat=rad(b.lat-a.lat), dLng=rad(b.lng-a.lng);
-   const s=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLng/2)**2;
-   return R*2*Math.atan2(Math.sqrt(s),Math.sqrt(1-s));
- }
- const roadKm=(a,b)=>+(hav(a,b)*CONFIG.roadFactor).toFixed(1);
- function travelMin(a,b,mode){
-   const km=hav(a,b)*CONFIG.roadFactor, sp=CONFIG.speed[mode]||CONFIG.speed.car;
-   return Math.max(2,Math.round(km/sp*60));
- }
- const mins=hhmm=>{const p=hhmm.split(":");return (+p[0])*60+(+p[1]);};
- function openAt(d,wd,m){
-   if(d.closed&&d.closed.indexOf(wd)>=0) return false;
-   if(!d.hours) return true;
-   return m>=mins(d.hours.o)&&m<=mins(d.hours.c);
- }
- /* how well a stop suits the hour it would be reached */
- function timeFit(d,arriveMin){
-   const h=Math.floor((((arriveMin%1440)+1440)%1440)/60);
-   switch(d.bestKey){
-     case "evening": return h>=16?26:(h>=14?8:-14);
-     case "morning": return h<11?22:(h<14?2:-10);
-     case "midday":  return (h>=11&&h<16)?18:2;
-     default:        return 0;
-   }
- }
+/* How far behind an off-theme place starts. Big enough that it never beats
+   a theme match at equal cost; small enough that "you are already parked
+   sixty metres away" can still carry it. Tune with a real itinerary, not
+   by reasoning about the number. */
+const OFF_THEME = 18;
 
- function build(o){
-  const budget=o.budgetMin, mode=o.mode||"car", pace=o.pace||"balanced";
-  const cont=CONFIG.contingency[pace]!=null?CONFIG.contingency[pace]:.10;
-  const usable=Math.round(budget*(1-cont));
-  const vf=CONFIG.paceVisitFactor[pace]||1;
-  const f=o.filters||{}, interests=o.interests||[], wantAll=interests.length===0;
-  const wd=o.weekday, endPt=o.end;
+/* Nobody sets off before six. */
+const MIN_START = 6 * 60;
 
-  /* meal reserved up front so it can never overflow the window */
-  const sH=Math.floor(o.startClock/60), eH=Math.floor((o.startClock+budget)/60);
-  const spansMeal=(eH-sH)>=4 && sH<=CONFIG.mealWindow[1] && eH>=CONFIG.mealWindow[0];
-  const meal=(f.meal&&spansMeal)?CONFIG.mealBreakMin:0;
-  const spendable=usable-meal;
+/**
+ * When nothing fits, work out what would.
+ *
+ * "Nothing fits that window — try a longer window, fewer themes, or a brisker
+ * pace" is true and useless: it is three guesses handed back to the person who
+ * has the least information. The engine can simply try them. Each probe is one
+ * more `build()` — a couple of thousand operations — and it turns the one
+ * screen in the app a visitor cannot act on into a single tap.
+ *
+ * Ordered by how little it costs the visitor to accept: leaving earlier is
+ * free, a longer day is a real concession, changing the date is the last
+ * resort. First one that actually works wins. See docs/10 §5 step 6.
+ */
+function suggestFix(o) {
+  const tries = [];
 
-  let pool=D.filter(function(d){
-    if(d.pending) return false;              /* coordinates not yet verified */
-    if(o.onlyIds&&o.onlyIds.indexOf(d.id)<0) return false;
-    if(f.free&&!d.free) return false;
-    if(f.indoor&&!d.indoor) return false;
-    if(!wantAll&&!o.onlyIds&&!d.themes.some(t=>interests.indexOf(t)>=0)) return false;
+  const earlier = Math.max(MIN_START, (o.startClock || 9 * 60) - 60);
+  if (earlier < o.startClock) tries.push({ key: "earlier", patch: { startClock: earlier } });
+
+  tries.push({ key: "longer", patch: { budgetMin: Math.round(o.budgetMin * 1.5) } });
+
+  if (o.date) {
+    // If a festival is what made the day impossible, the useful alternative is
+    // the day after it ends — not tomorrow, which is still the festival.
+    const ev = activeEvent(o.date);
+    const alt = ev ? addDays(ev.to, 1) : addDays(o.date, 1);
+    tries.push({
+      key: ev ? "afterEvent" : "otherDay",
+      patch: { date: alt, weekday: fromISO(alt).getDay() },
+    });
+  }
+
+  for (const t of tries) {
+    // `probe` stops this recursing: a failed probe must not go looking for a
+    // fix for the fix.
+    const it = build(Object.assign({}, o, t.patch, { probe: true }));
+    if (it.stops.length) return Object.assign({ stops: it.stops.length }, t);
+  }
+  return null;
+}
+
+function build(o) {
+  const mode = o.mode || "car",
+    pace = o.pace || "balanced";
+  const f = o.filters || {},
+    interests = o.interests || [],
+    wantAll = interests.length === 0;
+
+  const budget = computeBudget(o.budgetMin, o.startClock, pace, { meal: f.meal, who: o.who });
+  const spendable = budget.spendable;
+
+  // The event covering this date, if any. It bends the plan through the ordinary
+  // cost model — longer visits, slower legs — plus a score nudge so the day
+  // actually reaches it. Nothing about it is a special case. See docs/10 §4.5.
+  const ev = activeEvent(o.date);
+  const bias = ev?.bias ? { ...(o.bias || {}), ...ev.bias } : o.bias;
+
+  const ctx: RouteCtx = {
+    start: o.start,
+    end: o.end,
+    mode,
+    weekday: o.weekday,
+    visitFactor: budget.visitFactor,
+    startClock: o.startClock,
+    parking: PARKING,
+    breaks: budget.breaks,
+    ev,
+  };
+
+  // 1) candidates — hard filters only.
+  //
+  // The theme used to be a hard gate here, and that was the single biggest
+  // cause of the planner ignoring what was in front of it: ask for Mahabharat
+  // and the Krishna Museum never entered the running, even though the route
+  // drives past its gate and you could walk there from the Panorama car park.
+  // A theme is a strong preference, not a wall. It is worth a large score
+  // bonus (see poiScore) and off-theme places stay in the pool where the
+  // cost model can decide whether they are nearly free.
+  const pool = D.filter((d) => {
+    if (d.pending) return false; // coordinates not yet verified
+    if (o.onlyIds && o.onlyIds.indexOf(d.id) < 0) return false;
+    if (f.free && !d.free) return false;
+    if (f.indoor && !d.indoor) return false;
     return true;
   });
 
-  const score={};
-  pool.forEach(function(d){
-    let s=d.rank*.4+d.first*.3;
-    if(!wantAll){
-      const hits=d.themes.filter(t=>interests.indexOf(t)>=0).length;
-      s+=hits*34;
-    }
-    if(o.bias&&o.bias[d.id]) s+=o.bias[d.id];
-    score[d.id]=s;
+  // 2) score each candidate
+  const score = {};
+  pool.forEach((d) => {
+    const s = poiScore(d, interests, wantAll, bias);
+    const off = !wantAll && !o.onlyIds && !d.themes.some((t) => interests.indexOf(t) >= 0);
+    // Off-theme places start well behind and can only win on cheapness — a
+    // few minutes' walk from a stop already chosen. They can never outrank a
+    // theme match that costs the same, which is what keeps a Mahabharat day
+    // recognisably a Mahabharat day.
+    score[d.id] = off ? s * 0.35 - OFF_THEME : s;
   });
 
-  const stops=[], dropped=[];
-  let cur={lat:o.start.lat,lng:o.start.lng}, clock=o.startClock, used=0;
-  const left=pool.slice();
+  // 3) construct greedily, then 4) improve order with 2-opt
+  const g = greedy(pool, score, ctx, spendable);
+  const imp = reorder(g.stops, ctx);
+  const chosenStops = imp ? imp.stops : g.stops;
+  const chosen = chosenStops.map((s) => ({ d: s.d, anchor: s.anchor }));
 
-  while(left.length){
-    let best=null,bv=-1e9,bi=-1,bt=0,bw=0;
-    for(let i=0;i<left.length;i++){
-      const d=left[i];
-      const t=travelMin(cur,d,mode), visit=Math.round(d.visit.rec*vf);
-      let arrive=clock+t, wait=0;
-      if(d.closed&&d.closed.indexOf(wd)>=0) continue;
-      if(d.hours){                                   /* wait rather than discard */
-        const op=mins(d.hours.o), day=((arrive%1440)+1440)%1440;
-        if(day<op){ wait=op-day; arrive+=wait; }
-      }
-      if(!openAt(d,wd,((arrive%1440)+1440)%1440)) continue;
-      if(!openAt(d,wd,(((arrive+visit)%1440)+1440)%1440)) continue;  /* shuts mid-visit */
-      const back=travelMin(d,endPt,mode);
-      if(used+t+wait+visit+CONFIG.parkingBufferMin+back>spendable) continue;
-      const v=score[d.id]+timeFit(d,arrive)-t*1.6-wait*1.3;
-      if(v>bv){ bv=v;best=d;bi=i;bt=t;bw=wait; }
-    }
-    if(!best) break;
-    const visit=Math.round(best.visit.rec*vf), arrive=clock+bt+bw;
-    stops.push({d:best,travel:bt,km:roadKm(cur,best),wait:bw,arrive:arrive,visit:visit,depart:arrive+visit});
-    used+=bt+bw+visit+CONFIG.parkingBufferMin;
-    clock=arrive+visit+CONFIG.parkingBufferMin;
-    cur=best; left.splice(bi,1);
-  }
+  // 5) one authoritative pass: greedy picks *which* places, simulate decides
+  // *when* — so the clock, the opening-hours checks and the breaks are all
+  // computed in exactly one place.
+  const sim = simulate(chosen, ctx);
+  const stops = sim.valid ? sim.stops : imp ? imp.stops : g.stops;
+  const breaks = sim.valid ? sim.breaks : [];
+  const cur = stops.length ? stops[stops.length - 1].d : o.start;
 
-  /* 2-opt: shorten the tour without breaking opening hours (orienteering.ts) */
-  const rctx={start:o.start,end:endPt,mode:mode,wd:wd,vf:vf,startClock:o.startClock,
-    parking:CONFIG.parkingBufferMin,travelMin:travelMin,roadKm:roadKm,openAt:openAt};
-  const imp=reorder(stops,rctx);
-  if(imp){ stops.length=0; imp.stops.forEach(s=>stops.push(s)); cur=imp.cur; }
+  const closeT = stops.length ? legMin(cur, o.end, ctx) : 0;
 
-  const closeT=stops.length?travelMin(cur,endPt,mode):0;
-  used+=closeT;
+  // 5) "left out" — the next-best unreached candidates, with a reason
+  const dropped = [];
+  g.left
+    .slice()
+    .sort((a, b) => score[b.id] - score[a.id])
+    .slice(0, 4)
+    .forEach((d) => {
+      const noMatch = !wantAll && !d.themes.some((t) => interests.indexOf(t) >= 0);
+      const shut = d.closed && d.closed.indexOf(o.weekday) >= 0;
+      // theme is a preference now, so "theme" means outranked, not excluded
+      dropped.push({ d, why: shut ? "closed" : noMatch ? "theme" : "time" });
+    });
 
-  left.sort((a,b)=>score[b.id]-score[a.id]);
-  left.slice(0,4).forEach(function(d){
-    const noMatch=!wantAll&&!d.themes.some(t=>interests.indexOf(t)>=0);
-    const shut=d.closed&&d.closed.indexOf(wd)>=0;
-    dropped.push({d:d,why:shut?"closed":(noMatch?"theme":"time")});
-  });
+  // 6) totals
+  const travel = stops.reduce((a, s) => a + s.travel, 0) + closeT;
+  const visitT = stops.reduce((a, s) => a + s.visit, 0);
+  const waitT = stops.reduce((a, s) => a + s.wait, 0);
+  // one buffer per car park, not one per stop: a pocket you walk around
+  // parks once. simulate() is the authority; the fallback matches the old
+  // behaviour for the (invalid-sim) path that never sets anchors.
+  const park = sim.valid ? sim.park : stops.length * PARKING;
+  const km = +(stops.reduce((a, s) => a + s.km, 0) + (stops.length ? routing.roadKm(cur, o.end) : 0)).toFixed(1);
+  // count the breaks actually taken, not the ones reserved — a short route that
+  // finishes before lunch shouldn't report a lunch hour it never spent
+  const mealU = breaks.reduce((a, b) => a + b.min, 0);
+  const total = travel + visitT + waitT + park + mealU;
 
-  const travel=stops.reduce((a,s)=>a+s.travel,0)+closeT;
-  const visitT=stops.reduce((a,s)=>a+s.visit,0);
-  const waitT =stops.reduce((a,s)=>a+s.wait,0);
-  const park  =stops.length*CONFIG.parkingBufferMin;
-  const km    =+(stops.reduce((a,s)=>a+s.km,0)+(stops.length?roadKm(cur,endPt):0)).toFixed(1);
-  const mealU =stops.length?meal:0;
-  const total =travel+visitT+waitT+park+mealU;
-
-  /* nearby-fit: unused POIs that still fit the spare time, cheapest-insertion first.
-     Drawn from ALL valid places (not just the theme-filtered pool) so a themed
-     route can still surface a close-by extra worth adding. */
-  const slack=spendable-(travel+visitT+waitT+park);
-  const suggestPool=D.filter(function(d){
-    if(d.pending) return false;
-    if(f.free&&!d.free) return false;
-    if(f.indoor&&!d.indoor) return false;
+  // 7) nearby-fit suggestions from ALL valid places (not just the theme pool)
+  const slack = spendable - (travel + visitT + waitT + park);
+  const suggestPool = D.filter((d) => {
+    if (d.pending) return false;
+    if (f.free && !d.free) return false;
+    if (f.indoor && !d.indoor) return false;
     return true;
   });
-  const suggest=suggestNearby(stops,suggestPool,rctx,slack,score).map(x=>({id:x.d.id,addMin:x.addMin}));
+  const suggest = suggestNearby(stops, suggestPool, ctx, slack, score).map((x) => ({ id: x.d.id, addMin: x.addMin }));
 
-  return {stops:stops,dropped:dropped,suggest:suggest,
-    totals:{travel:travel,visit:visitT,wait:waitT,park:park,meal:mealU,
-            buffer:park+waitT+mealU+(budget-usable),km:km,total:total,
-            budget:budget,finish:o.startClock+total},
-    meta:{mode:mode,pace:pace,start:o.start,end:endPt,startClock:o.startClock,weekday:wd,
-          interests:interests,contingency:cont,at:Date.now(),liveTraffic:false},
-    warn:stops.length?[]:["nofit"]};
- }
+  return {
+    stops,
+    breaks,
+    dropped,
+    suggest,
+    totals: {
+      travel,
+      visit: visitT,
+      wait: waitT,
+      park,
+      meal: mealU,
+      buffer: park + waitT + mealU + (o.budgetMin - budget.usable),
+      km,
+      total,
+      budget: o.budgetMin,
+      finish: o.startClock + total,
+    },
+    meta: {
+      mode,
+      pace,
+      start: o.start,
+      end: o.end,
+      startClock: o.startClock,
+      weekday: o.weekday,
+      interests,
+      contingency: budget.contingency,
+      at: Date.now(),
+      liveTraffic: false,
+      date: o.date,
+      // the id, not the object — meta is JSON-cloned into saved plans
+      event: ev ? ev.id : null,
+      /** which of these stops the event touches, so the UI can badge them */
+      eventStops: ev ? stops.filter((s) => affects(ev, s.d.id)).map((s) => s.d.id) : [],
+    },
+    warn: stops.length ? [] : ["nofit"],
+    // what would work instead — computed only on the real build, never inside
+    // a probe, and only when there is nothing to show
+    fix: stops.length || o.probe ? null : suggestFix(o),
+  };
+}
 
- function generate(o){
-  const primary=build(o), alts=[];
-  if(o.pace!=="relaxed") alts.push({tag:"relaxed",it:build(Object.assign({},o,{pace:"relaxed"}))});
-  const other=THEMES.find(t=>(o.interests||[]).indexOf(t.id)<0);
-  if(other){ const b={}; D.forEach(d=>{ if(d.themes.indexOf(other.id)>=0) b[d.id]=42; });
-    alts.push({tag:other.id,it:build(Object.assign({},o,{bias:b}))}); }
-  const key=it=>it.stops.map(s=>s.d.id).join(">");
-  const seen={}; seen[key(primary)]=1; const uniq=[];
-  alts.forEach(a=>{const k=key(a.it); if(!seen[k]&&a.it.stops.length){seen[k]=1;uniq.push(a);}});
-  return {primary:primary,alts:uniq.slice(0,2)};
- }
+/**
+ * The plan for a set of answers.
+ *
+ * This used to also build two alternatives — the same day at a relaxed pace,
+ * and the same day biased towards a theme the visitor had not asked for — and
+ * offer them at the bottom of the route screen under "Other ways".
+ *
+ * They are gone, and with them two extra full builds per plan. The visitor
+ * asked four questions' worth of preferences; answering them and then
+ * presenting two ways of ignoring one of the answers is not a choice, it is a
+ * hedge. Everything the alternatives offered is still reachable and is now
+ * honest about being a change of mind: pace and themes are one tap back in the
+ * planner, and the no-fit fallback still proposes concrete remedies when a day
+ * genuinely will not fit.
+ */
+function generate(o) {
+  return { primary: build(o), alts: [] };
+}
 
- function recalc(it,from,fromClock,ids){
-  const m=it.meta;
-  return build({budgetMin:Math.max(30,m.startClock+it.totals.total-fromClock),
-    start:from,end:m.end,interests:m.interests,mode:m.mode,pace:m.pace,
-    startClock:fromClock,weekday:m.weekday,filters:{},onlyIds:ids});
- }
+function recalc(it, from, fromClock, ids) {
+  const m = it.meta;
+  return build({
+    budgetMin: Math.max(30, m.startClock + it.totals.total - fromClock),
+    start: from,
+    end: m.end,
+    interests: m.interests,
+    mode: m.mode,
+    pace: m.pace,
+    startClock: fromClock,
+    weekday: m.weekday,
+    date: m.date,
+    filters: {},
+    onlyIds: ids,
+  });
+}
 
- /* Multi-day: a window longer than one sensible day is split into
-    days of at most DAY_MAX active minutes, each starting fresh in the
-    morning. Places already used on an earlier day are not repeated. */
- const DAY_MAX=9*60, DAY_START=9*60;
- function buildDays(o){
-  const totalDays=Math.max(1,Math.min(7,Math.ceil(o.budgetMin/DAY_MAX)));
-  if(totalDays===1) return null;
-  const used={}; const days=[];
-  for(let n=0;n<totalDays;n++){
-    const left=o.budgetMin-n*DAY_MAX;
-    if(left<=45) break;
-    const pool=D.filter(d=>!used[d.id]).map(d=>d.id);
-    if(!pool.length) break;
-    const day=build(Object.assign({},o,{
-      budgetMin:Math.min(DAY_MAX,left),
-      startClock:DAY_START,
-      weekday:(o.weekday+n)%7,
-      onlyIds:pool
-    }));
-    if(!day.stops.length) break;
-    day.stops.forEach(s=>{used[s.d.id]=1});
-    days.push(day);
-  }
-  if(days.length<2) return null;
-  const sum=days.reduce((a,d)=>({
-    travel:a.travel+d.totals.travel, visit:a.visit+d.totals.visit,
-    wait:a.wait+d.totals.wait, park:a.park+d.totals.park, meal:a.meal+d.totals.meal,
-    km:+(a.km+d.totals.km).toFixed(1), total:a.total+d.totals.total, stops:a.stops+d.stops.length
-  }),{travel:0,visit:0,wait:0,park:0,meal:0,km:0,total:0,stops:0});
-  return {days:days,totals:sum,meta:days[0].meta};
- }
- return {build,generate,recalc,buildDays,travelMin,roadKm,openAt,timeFit,DAY_MAX};
-})();
+export const Engine = {
+  build,
+  generate,
+  recalc,
+  buildDays: (o) => buildDays(o, build),
+  travelMin: (a, b, mode) => routing.travelMin(a, b, mode),
+  roadKm: (a, b) => routing.roadKm(a, b),
+  openAt,
+  timeFit,
+  DAY_MAX,
+};

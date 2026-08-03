@@ -23,34 +23,10 @@ export function WxGlyph({ kind, day }: { kind: string; day: number }) {
   );
 }
 
-/** Header chip: glyph + temperature + live clock. */
-export function WeatherChip() {
-  const [clock, setClock] = useState(clock12());
-  const w = S.wx;
+/* The header chip that used to live here is gone: Home now carries the
+   weather inside TodayStrip, and nothing else ever rendered it. WxGlyph and
+   openWxSheet below are still used from there. */
 
-  useEffect(() => {
-    loadWeather();
-    const id = setInterval(() => setClock(clock12()), 10000);
-    return () => clearInterval(id);
-  }, []);
-
-  const d = w ? wcode(w.code) : null;
-  return (
-    <button
-      className="wxchip"
-      onClick={() => openWxSheet()}
-      aria-label={nm({ en: "Weather and time", hi: "मौसम और समय" })}
-    >
-      <span className="wxg">{d && w ? <WxGlyph kind={d[0]} day={w.day ? 1 : 0} /> : null}</span>
-      <span className="wxn">
-        <b>{w ? w.temp + "°" : "··"}</b>
-        <i>{clock}</i>
-      </span>
-    </button>
-  );
-}
-
-/** One tap: today's reading and the single thing worth knowing. */
 export function openWxSheet() {
   const w = S.wx;
   if (!w) {

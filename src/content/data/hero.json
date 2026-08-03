@@ -1,0 +1,66 @@
+[
+ {
+  "id": "brahma-sarovar",
+  "img": "h-brahma-sarovar",
+  "fact": {
+   "en": "Abul Fazl, in Akbar's court, looked at this tank and called it a small sea.",
+   "hi": "अकबर के दरबारी अबुल-फ़ज़ल ने इस सरोवर को देखकर इसे 'लघु समुद्र' कहा था।"
+  }
+ },
+ {
+  "id": "jyotisar",
+  "img": "h-jyotisar",
+  "fact": {
+   "en": "After dark, 3D projection turns this fifty-foot bronze into the Virat Swaroop itself.",
+   "hi": "संध्या पश्चात 3डी प्रोजेक्शन इस पचास फुट ऊँची कांस्य प्रतिमा को विराट स्वरूप में बदल देता है।"
+  }
+ },
+ {
+  "id": "anubhav-kendra",
+  "img": "h-anubhav-kendra",
+  "fact": {
+   "en": "Not a museum of objects — domed screens, holograms and a VR chariot put you inside the epic.",
+   "hi": "वस्तुओं का संग्रहालय नहीं — गुंबददार पर्दे, होलोग्राम और वीआर रथ आपको महाकाव्य के भीतर ले जाते हैं।"
+  }
+ },
+ {
+  "id": "panorama",
+  "img": "h-panorama",
+  "fact": {
+   "en": "Inside this drum, a painted 360° battlefield stands you in the middle of all eighteen days.",
+   "hi": "इस गोलाकार भवन के भीतर 360 अंश चित्रित रणभूमि आपको युद्ध के अठारहों दिनों के बीच खड़ा कर देती है।"
+  }
+ },
+ {
+  "id": "bhadrakali",
+  "img": "h-bhadrakali",
+  "fact": {
+   "en": "Have a wish granted here and you leave a small horse — as the Pandavas left theirs after the war.",
+   "hi": "यहाँ मनोकामना पूर्ण होने पर छोटा घोड़ा अर्पित किया जाता है — जैसे युद्ध के बाद पांडवों ने किया था।"
+  }
+ },
+ {
+  "id": "gurudwara-chhevin",
+  "img": "h-gurudwara-chhevin",
+  "fact": {
+   "en": "Guru Hargobind Sahib halted here on the sarovar bank; the langar has not stopped since.",
+   "hi": "गुरु हरगोबिंद साहिब ने सरोवर तट पर यहाँ विश्राम किया; तब से लंगर कभी नहीं रुका।"
+  }
+ },
+ {
+  "id": "harsh-ka-tila",
+  "img": "h-harsh-ka-tila",
+  "fact": {
+   "en": "Layer upon layer, this mound holds Thanesar's living record from the Kushana age to the Mughals.",
+   "hi": "परत दर परत, यह टीला कुषाण काल से मुग़लों तक थानेसर का जीवंत अभिलेख समेटे है।"
+  }
+ },
+ {
+  "id": "krishna-museum",
+  "img": "h-krishna-museum",
+  "fact": {
+   "en": "The only museum in the country given wholly to Krishna, across seven galleries.",
+   "hi": "देश का एकमात्र संग्रहालय जो पूर्णतः श्रीकृष्ण को समर्पित है, सात दीर्घाओं में।"
+  }
+ }
+]

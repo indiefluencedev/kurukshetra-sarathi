@@ -6,7 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check-content": "node scripts/check-content.mjs",
+    "check-planner": "node --experimental-strip-types --import ./scripts/alias.mjs scripts/check-planner.mjs",
+    "harvest-places": "node scripts/harvest-places.mjs",
+    "build-graph": "node scripts/build-graph.mjs",
+    "check-graph": "node --experimental-strip-types --import ./scripts/alias.mjs scripts/check-graph.mjs",
+    "check-corridor": "node --experimental-strip-types --import ./scripts/alias.mjs scripts/check-corridor.mjs",
+    "build-matrix": "node scripts/build-matrix.mjs",
+    "check-matrix": "node --experimental-strip-types --import ./scripts/alias.mjs scripts/check-matrix.mjs"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

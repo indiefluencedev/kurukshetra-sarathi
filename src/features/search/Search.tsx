@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { S } from "@/app/state";
-import { t, nm } from "@/shared/i18n/i18n";
+import { t, nm, nPlaces } from "@/shared/i18n/i18n";
 import { D } from "@/data/destinations";
 import { isOpen } from "@/shared/lib/geo";
 import { Icon } from "@/shared/icons/Icon";
@@ -40,9 +40,10 @@ export function Search() {
     return true;
   }).sort((a, b) => (b.rank || 0) - (a.rank || 0));
 
+  const anyFilter = Object.values(sf).some(Boolean);
   const toggle = (k: keyof Filters) => setSf((p) => ({ ...p, [k]: !p[k] }));
   const chip = (k: keyof Filters, lb: string) => (
-    <button className={"chip" + (sf[k] ? " on" : "")} onClick={() => toggle(k)}>
+    <button className={"chip" + (sf[k] ? " on" : "")} aria-pressed={!!sf[k]} onClick={() => toggle(k)}>
       {lb}
     </button>
   );
@@ -78,8 +79,13 @@ export function Search() {
         {chip("indoor", t("fIndoor"))}
         {chip("short", t("fShort"))}
       </div>
+      <p className="srescount" role="status" aria-live="polite" lang={S.lang}>
+        {res.length ? nPlaces(res.length) : ""}
+      </p>
+      {/* no .stagger on these results: they change on every keystroke, and an
+          entrance animation on a live filter is a flicker, not a flourish */}
       {res.length ? (
-        <div className="plist stagger">
+        <div className="plist">
           {res.map((d) => (
             <Pcard key={d.id} d={d} />
           ))}
@@ -89,6 +95,17 @@ export function Search() {
           <Icon name="search" />
           <p className="t">{t("nothing")}</p>
           <p>{t("nothingD")}</p>
+          {/* when a filter is what emptied the list, clearing it is the likely
+              fix — offer it rather than making them find which chip did it */}
+          {anyFilter && (
+            <button
+              className="btn ghost"
+              style={{ maxWidth: 230, margin: "16px auto 0" }}
+              onClick={() => setSf({})}
+            >
+              {nm({ en: "Clear filters", hi: "फ़िल्टर हटाएँ" })}
+            </button>
+          )}
         </div>
       )}
     </>

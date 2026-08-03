@@ -18,6 +18,16 @@ export function fromISO(iso?: string): Date {
 export function isToday(iso: string): boolean {
   return iso === isoToday();
 }
+/** iso + n calendar days, as iso. */
+export function addDays(iso: string, n: number): string {
+  const d = fromISO(iso);
+  d.setDate(d.getDate() + n);
+  return isoDate(d);
+}
+/** whole days from a→b (b exclusive of time-of-day). */
+export function daysBetween(a: string, b: string): number {
+  return Math.round((fromISO(b).getTime() - fromISO(a).getTime()) / 86400000);
+}
 
 /** minutes-since-midnight → "h:mmam/pm" */
 export function clock(m: number): string {

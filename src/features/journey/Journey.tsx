@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { S, bump } from "@/app/state";
 import { go, track } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
@@ -8,8 +9,10 @@ import { openSheet, closeSheet, toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 import { Photo } from "@/shared/ui/Photo";
 import { StatusPill } from "@/shared/ui/PlaceCard";
-import { modeWord } from "@/features/route/route-actions";
+import { modeWord, startGo } from "@/features/route/route-actions";
 import { Engine } from "@/features/planner/engine";
+import { DriveGuide } from "./DriveGuide";
+import { DriveMap } from "./DriveMap";
 
 function here() {
   const j = S.journey!;
@@ -132,17 +135,52 @@ function applyR() {
 
 /** Live, step-through tour with "arrived / skip / running late" controls. */
 export function Journey() {
+  // The map is the default once a trip is running: "start the trip" should put
+  // a moving map in front of the visitor, not a card they have to read. The
+  // list is still one tap away for the notices and the skip/late controls.
+  const [asMap, setAsMap] = useState(true);
   const j = S.journey;
-  if (!j)
+  if (!j) {
+    // A built-but-not-started route is not "no route". Tapping through to this
+    // screen right after building one used to answer "No route yet" and offer
+    // to plan another — the visitor's actual itinerary was sitting one tab
+    // away, unmentioned. Offer to start it.
+    const it = S.plan && S.plan.res;
+    const ready = !!(it && it.stops.length);
     return (
       <div className="empty">
         <Icon name="play" />
-        <p className="t">{t("noRoute")}</p>
-        <button className="btn primary" style={{ maxWidth: 220, margin: "16px auto 0" }} onClick={() => go("/plan")}>
-          {t("planVisit")}
+        <p className="t">
+          {ready ? nm({ en: "Your route is ready", hi: "आपका मार्ग तैयार है" }) : t("noRoute")}
+        </p>
+        {ready && (
+          <p style={{ maxWidth: "22em", margin: "6px auto 0" }} lang={S.lang}>
+            {nm({
+              en: `${it!.stops.length} stops, starting at ${nm(it!.stops[0].d.name)}.`,
+              hi: `${it!.stops.length} पड़ाव, ${nm(it!.stops[0].d.name)} से आरंभ।`,
+            })}
+          </p>
+        )}
+        <button
+          className="btn primary"
+          style={{ maxWidth: 240, margin: "18px auto 0" }}
+          onClick={() => (ready ? startGo() : go("/plan"))}
+        >
+          <Icon name={ready ? "play" : "route"} />
+          {ready ? nm({ en: "Start the route", hi: "मार्ग शुरू करें" }) : t("planVisit")}
         </button>
+        {ready && (
+          <button
+            className="link"
+            style={{ margin: "10px auto 0" }}
+            onClick={() => go("/route")}
+          >
+            {nm({ en: "See the plan first", hi: "पहले योजना देखें" })}
+          </button>
+        )}
       </div>
     );
+  }
   if (j.i >= j.stops.length)
     return (
       <div className="empty" style={{ paddingTop: 60 }}>
@@ -159,6 +197,9 @@ export function Journey() {
 
   const s = j.stops[j.i] as any;
   const d = s.d;
+
+  if (asMap) return <DriveMap onClose={() => setAsMap(false)} />;
+
   return (
     <>
       <div className="phead">
@@ -168,6 +209,10 @@ export function Journey() {
         <h1 className="display" style={{ fontSize: "calc(19px*var(--ts))" }} lang={S.lang}>
           {t("startTour")}
         </h1>
+        <button className="btn ghost sm" style={{ marginLeft: "auto" }} onClick={() => setAsMap(true)}>
+          <Icon name="mapi" />
+          {nm({ en: "Map", hi: "नक्शा" })}
+        </button>
       </div>
       <div className="jcard">
         <Photo d={d} />
@@ -193,6 +238,16 @@ export function Journey() {
           <StatusPill d={d} />
         </div>
       </div>
+      {/* What you pass on the way to this stop, named as you pass it.
+          The first leg runs from where the DAY starts — the bus stand, the
+          station, the hotel — not from the first stop to itself, which is what
+          the previous wiring asked for and which announced nothing at all on
+          the one leg a visitor is most likely to be driving blind. */}
+      <DriveGuide
+        from={j.i === 0 ? S.plan?.start : (j.stops[j.i - 1] as any)?.d}
+        to={d}
+      />
+
       <button
         className="btn nav"
         style={{ marginTop: 12, minHeight: 58, fontSize: "calc(16.5px*var(--ts))" }}

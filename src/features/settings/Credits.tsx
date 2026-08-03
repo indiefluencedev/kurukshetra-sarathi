@@ -43,7 +43,7 @@ export function Credits() {
                 <span className="k" style={{ flex: 1, textAlign: "left" }}>
                   {k.replace(/-/g, " ")}
                 </span>
-                <span className="v" style={{ fontWeight: 500, fontSize: "calc(12px*var(--ts))" }}>
+                <span className="v" style={{ fontWeight: 500, fontSize: "calc(13px*var(--ts))" }}>
                   {c.author || "—"}
                   <br />
                   <span className="muted">{c.licence}</span>

@@ -1,31 +1,23 @@
-import { S, store, bump } from "@/app/state";
+import { S, bump } from "@/app/state";
+import { primeSpeech, resetGuide } from "@/features/journey/guide";
+import { savePlan } from "@/features/planner/persist";
 import { go, track } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { dur } from "@/shared/lib/format";
 import { clock } from "@/shared/lib/datetime";
 import { toast } from "@/shared/ui/overlays";
 
-export const modeWord = () => {
-  const m = (S.plan && S.plan.mode) || "car";
-  return m === "walking" ? t("walkThere") : m === "public" ? t("rideThere") : t("driveThere");
-};
+export { modeWord, leaveVehicle, leaveVehicleShort } from "./mode-words";
 
 export function saveRoute() {
   const it = S.plan && S.plan.res;
   if (!it || !it.stops.length) return;
-  const a = store.routes;
-  a.unshift({
-    id: "r" + Date.now(),
-    title: (typeof S.plan!.label === "string" ? S.plan!.label : nm(S.plan!.label)) || dur(S.plan!.mins!),
-    at: Date.now(),
-    ids: it.stops.map((s) => s.d.id),
-    mode: S.plan!.mode,
-    pace: S.plan!.pace,
-    themes: S.plan!.themes,
-    mins: S.plan!.mins,
-  });
-  store.routes = a;
-  toast(t("savedT"));
+  // the whole plan, not a summary of it — the day, the start point, the people,
+  // everything the route was built from, so reopening it is not re-answering it
+  savePlan(S.plan!).then(
+    () => toast(t("savedT")),
+    () => toast(nm({ en: "Could not save — storage is unavailable.", hi: "सहेजा नहीं जा सका — संग्रहण उपलब्ध नहीं।" })),
+  );
 }
 
 export function shareRoute() {
@@ -43,18 +35,14 @@ export function shareRoute() {
 export function startGo() {
   const it = S.plan && S.plan.res;
   if (!it || !it.stops.length) return;
+  // Audio has to be unlocked inside the gesture that starts the tour. Do it
+  // here and the guide can speak later; do it later and iOS silently swallows
+  // the first announcement — the one that teaches the visitor the feature
+  // exists at all.
+  primeSpeech();
+  resetGuide();
   S.journey = { stops: it.stops.map((s) => Object.assign({}, s)), i: 0 };
   track("go_start");
   go("/go");
 }
 
-export function useAlt(i: number) {
-  const a = S.plan!.alts[i];
-  if (!a) return;
-  const old = S.plan!.res!;
-  S.plan!.res = a.it;
-  S.plan!.alts = [{ tag: "primary", it: old } as any].concat(S.plan!.alts.filter((_, n) => n !== i));
-  bump();
-  window.scrollTo(0, 0);
-  toast(t("applied"));
-}

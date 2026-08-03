@@ -108,7 +108,7 @@ export function calSheet() {
         <Icon name="download" />
         {nm({ en: "Download the whole day", hi: "पूरा दिन डाउनलोड करें" })}
       </button>
-      <h3 style={{ margin: "18px 0 2px", fontSize: "calc(12px*var(--ts))", letterSpacing: ".11em", textTransform: "uppercase", color: "var(--muted)" }}>
+      <h3 style={{ margin: "18px 0 2px", fontSize: "calc(13px*var(--ts))", letterSpacing: ".11em", textTransform: "uppercase", color: "var(--muted)" }}>
         {nm({ en: "Or add one stop at a time to Google", hi: "अथवा गूगल में एक-एक पड़ाव जोड़ें" })}
       </h3>
       {ev.map((e, i) => (
