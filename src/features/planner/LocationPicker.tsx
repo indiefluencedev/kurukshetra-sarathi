@@ -6,7 +6,7 @@ import { t, nm } from "@/shared/i18n/i18n";
 import { CONFIG } from "@/data/config";
 import { Icon } from "@/shared/icons/Icon";
 import { PLACES_INDEX, type IndexPlace, type PlaceKind } from "@/data/places-index";
-import { browseNearby, searchNearby, type FoundPlace } from "./places-search";
+import { searchNearby, type FoundPlace } from "./places-search";
 import type { GeoPoint } from "@/shared/types";
 
 const ICON_FOR: Record<string, string> = { busstand: "bus", station: "mapi", hotel: "home", dharamshala: "home" };
@@ -36,23 +36,35 @@ export function PlacePicker({
     (p) => !needle || (p.name.en + " " + p.name.hi).toLowerCase().includes(needle),
   );
 
-  // Typing searches OSM by name; an empty box lists what's nearby. Debounced
-  // and aborted on every keystroke — these are community-run, rate-limited APIs.
-  // Skipped entirely when the curated list is the only source (CONFIG.places).
+  // OSM is queried ONLY when something has been typed.
+  //
+  // An empty box used to call browseNearby() and pour every lodge, dhaba and
+  // banquet hall within a few kilometres into the step — a dozen-odd rows of
+  // things nobody asked for, under a heading nobody needed, which had to be
+  // scrolled past to reach the two entries that were actually curated. Nothing
+  // in that list was an answer to "where are you staying?"; it was a directory.
+  //
+  // The curated entries still show unprompted, because they are short and
+  // authoritative and for a railway station or a bus stand they ARE the answer.
+  // Everything else has to be named. Debounced and aborted per keystroke —
+  // these are community-run, rate-limited APIs.
   useEffect(() => {
-    if (!CONFIG.places.useOSM) return;
+    if (!CONFIG.places.useOSM || needle.length < 2) {
+      setLive([]);
+      setBusy(false);
+      return;
+    }
     const ac = new AbortController();
     setBusy(true);
     setFailed(false);
-    const wait = needle ? 550 : 0;
     const timer = setTimeout(() => {
-      (needle ? searchNearby(needle, ac.signal, kinds[0]) : browseNearby(kinds, ac.signal))
+      searchNearby(needle, ac.signal, kinds[0])
         .then((r) => setLive(r))
         .catch((e) => {
           if (e.name !== "AbortError") setFailed(true);
         })
         .finally(() => setBusy(false));
-    }, wait);
+    }, 450);
     return () => {
       clearTimeout(timer);
       ac.abort();
@@ -61,8 +73,10 @@ export function PlacePicker({
   }, [needle, kinds.join(",")]);
 
   // Never show the same place twice because it's both curated and in OSM.
+  // Eight is a screenful; beyond that the answer is a better search term.
   const names = new Set(curated.flatMap((p) => [p.name.en.toLowerCase(), p.name.hi.toLowerCase()]));
-  const extra = live.filter((p) => !names.has(p.name.toLowerCase())).slice(0, 12);
+  const extra = live.filter((p) => !names.has(p.name.toLowerCase())).slice(0, 8);
+  const searching = needle.length >= 2;
 
   const pickCurated = (p: IndexPlace) => onPick({ lat: p.lat, lng: p.lng, label: nm(p.name), ref: p.id });
   /** the locality, or the station code — whichever the curated entry carries */
@@ -107,16 +121,27 @@ export function PlacePicker({
         )}
       </div>
 
-      {busy && CONFIG.places.useOSM && (
-        <p className="muted" style={{ fontSize: "calc(13px*var(--ts))", padding: "8px 2px" }}>
-          {nm({ en: "Looking…", hi: "खोज रहे हैं…" })}
+      {busy && (
+        <p className="pickhint">{nm({ en: "Looking…", hi: "खोज रहे हैं…" })}</p>
+      )}
+
+      {/* Nothing typed: say what the box is for rather than filling it with a
+          directory. This is the whole point of not browsing — the step now
+          fits on one screen and asks one question. */}
+      {!searching && !busy && (
+        <p className="pickhint">
+          {nm({
+            en: "Staying somewhere else? Type its name above.",
+            hi: "कहीं और ठहरे हैं? ऊपर उसका नाम लिखें।",
+          })}
         </p>
       )}
-      {!busy && !curated.length && !extra.length && (
-        <p className="muted" style={{ fontSize: "calc(13px*var(--ts))", padding: "4px 2px" }}>
+
+      {searching && !busy && !curated.length && !extra.length && (
+        <p className="pickhint">
           {failed
-            ? nm({ en: "Search is offline. Pick from the list, or drop a pin below.", hi: "खोज उपलब्ध नहीं। सूची से चुनें, या नीचे पिन लगाएँ।" })
-            : nm({ en: "Not on our list. Try a different spelling, or choose “Somewhere else” to pin it on the map.", hi: "हमारी सूची में नहीं। दूसरी वर्तनी आज़माएँ, या “कोई और जगह” चुनकर नक्शे पर पिन लगाएँ।" })}
+            ? nm({ en: "Search is offline. Pick from the list, or choose “Somewhere else” to pin it on the map.", hi: "खोज उपलब्ध नहीं। सूची से चुनें, या “कोई और जगह” चुनकर नक्शे पर पिन लगाएँ।" })
+            : nm({ en: "Nothing by that name. Try a shorter word, or choose “Somewhere else” to pin it on the map.", hi: "इस नाम से कुछ नहीं मिला। छोटा शब्द आज़माएँ, या “कोई और जगह” चुनकर नक्शे पर पिन लगाएँ।" })}
         </p>
       )}
 
@@ -160,8 +185,12 @@ export function PinMap({
     });
     setTimeout(() => map.invalidateSize(false), 150);
     return () => {
-      map.off();
-      map.remove();
+      try {
+        map.off();
+        map.remove();
+      } catch {
+        /* the container went first — same race as RouteMap's */
+      }
       mapRef.current = null;
       markerRef.current = null;
     };
@@ -192,14 +221,25 @@ export function PinMap({
   );
 }
 
-/** A small "Selected: …" / "Ending at: …" confirmation line. */
+/**
+ * "Starting from: …" / "Ending at: …" — the step's answer, said back.
+ *
+ * Was a `.note`, which is the app's style for a caveat or a footnote. An
+ * answered question is not a footnote, and steps 1 and 4 now both close with
+ * `.answered`; this makes all four steps end the same way.
+ */
 export function PickedLine({ point, prefix }: { point: GeoPoint; prefix?: string }) {
   if (!point.label) return null;
   return (
-    <div className="note" style={{ marginTop: 10, alignItems: "center" }}>
-      <Icon name="check" />
+    <div className="answered">
+      <span className="ic">
+        <Icon name="check" />
+      </span>
       <span>
-        {prefix || t("save")}: <b>{point.label}</b>
+        <b lang={S.lang}>{point.label}</b>
+        <span className="sub" lang={S.lang}>
+          {prefix || t("save")}
+        </span>
       </span>
     </div>
   );

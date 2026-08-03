@@ -29,9 +29,24 @@ today. 10 describes what is being built next and why.
 
 ## Status
 
-- **Done:** planner flow rework, the algorithm suite on the estimate model, the
-  place graph and walk pockets, real road geometry for drawing.
-- **Next:** the six steps in [10 §5](10-engine-events-and-data.md#5--build-order)
-  — events + engine wiring, the home event slider, the routing matrix, the prefs
-  store, event surfaces, the no-fit fallback.
+- **Done:** planner flow rework, the algorithm suite, the place graph and walk
+  pockets, real road geometry for drawing, and all six steps of
+  [10 §5](10-engine-events-and-data.md#5--build-order) — the event calendar and
+  its engine wiring, the home event rail, the precomputed road matrix, the prefs
+  store, event surfaces on route/place/calendar, and the no-fit fallback.
+- **Not built, on purpose:** [10 §6](10-engine-events-and-data.md#6--what-is-not-built).
 - **Later:** curated bus / e-rickshaw datasets for true multi-modal ([05](05-routing-phase2.md)).
+
+## Before you commit
+
+```
+npm run check-content && npm run check-graph && npm run check-planner \
+  && npm run check-matrix && npm run check-corridor && npm run build
+```
+
+The checks are plain `assert`s in `scripts/` — no framework, no fixtures. Each
+one exists because something was wrong once and the wrongness was invisible.
+When a check fails, read what it is asserting before changing it: two of them
+have been rewritten because they measured a proxy rather than the thing
+([10 §4.8](10-engine-events-and-data.md#48-content-checks)), and that is a
+judgement call, not a licence.

@@ -11,7 +11,7 @@
 // Only the *answers* are stored. The route itself is rebuilt from them, because
 // the engine is deterministic given the same inputs and the same day — storing
 // it would just be a second copy that can go stale against the place data.
-import { S, bump, newPlan, store } from "@/app/state";
+import { S, bump, newPlan, store, setCarried } from "@/app/state";
 import { put, get, all, del } from "@/shared/lib/db";
 import { nm } from "@/shared/i18n/i18n";
 import { dur } from "@/shared/lib/format";
@@ -46,6 +46,56 @@ function rehydrate(saved: PlanInputs): Plan {
   // opening hours of a day that has been and gone.
   if (p.date < isoToday()) p.date = isoToday();
   return p;
+}
+
+/* ---------------- the answers that outlive one plan ----------------
+   The draft brings back the plan you were in the middle of. This brings back
+   the parts of it that are true of *you* rather than of that particular day:
+   where you are staying, how you get about, who you are with. Second and third
+   plans start four taps in. See docs/10 §2.5. */
+
+const PREFS = "prefs";
+
+/**
+ * The fields that carry over. An explicit list, not a spread: adding a field
+ * to Plan should never start silently persisting it, and `mins`, `date`,
+ * `startClock` and `days` must never appear here — they describe one visit.
+ */
+const CARRY = [
+  "startType",
+  "start",
+  "endType",
+  "end",
+  "endManual",
+  "mode",
+  "modes",
+  "pace",
+  "who",
+  "themes",
+  "opts",
+] as const;
+
+type Carried = Pick<Plan, (typeof CARRY)[number]>;
+
+/** Remember how this plan was answered. Called once per built route. */
+export function rememberAnswers(p: Plan): void {
+  const rec: { id: string; at: number } & Record<string, unknown> = { id: PREFS, at: Date.now() };
+  for (const k of CARRY) rec[k] = p[k];
+  put(rec).catch(() => {
+    /* private mode / no quota — the next plan just starts blank */
+  });
+}
+
+async function loadCarried(): Promise<void> {
+  try {
+    const rec = (await get<Record<string, unknown>>(PREFS)) as (Carried & { id: string }) | undefined;
+    if (!rec) return;
+    const seed: Partial<Plan> = {};
+    for (const k of CARRY) if (rec[k] !== undefined) (seed as Record<string, unknown>)[k] = rec[k];
+    setCarried(seed);
+  } catch {
+    /* no prefs yet, or no IndexedDB */
+  }
 }
 
 /* ---------------- the draft ---------------- */
@@ -101,7 +151,8 @@ export async function savePlan(p: Plan): Promise<SavedPlan> {
 }
 
 export const listPlans = async (): Promise<SavedPlan[]> => {
-  const rows = (await all<SavedPlan>()).filter((r) => r.id !== DRAFT);
+  // the store holds three kinds of record in one table; only one is a plan
+  const rows = (await all<SavedPlan>()).filter((r) => r.id !== DRAFT && r.id !== PREFS);
   return rows.sort((a, b) => b.at - a.at);
 };
 
@@ -148,5 +199,7 @@ export async function bootPersistence(): Promise<void> {
   } catch {
     /* a failed migration must never block the app starting */
   }
+  // carried answers first: they seed newPlan(), which loadDraft() builds on
+  await loadCarried();
   await loadDraft();
 }

@@ -46,13 +46,3 @@ export function startGo() {
   go("/go");
 }
 
-export function useAlt(i: number) {
-  const a = S.plan!.alts[i];
-  if (!a) return;
-  const old = S.plan!.res!;
-  S.plan!.res = a.it;
-  S.plan!.alts = [{ tag: "primary", it: old } as any].concat(S.plan!.alts.filter((_, n) => n !== i));
-  bump();
-  window.scrollTo(0, 0);
-  toast(t("applied"));
-}

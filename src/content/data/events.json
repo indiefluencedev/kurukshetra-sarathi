@@ -1,0 +1,59 @@
+[
+  {
+    "id": "janmashtami-2026",
+    "kind": "festival",
+    "name": { "en": "Shri Krishna Janmashtami", "hi": "श्री कृष्ण जन्माष्टमी" },
+    "from": "2026-09-04",
+    "to": "2026-09-05",
+    "places": ["iskcon", "gaudiya-math", "birla-mandir", "jyotisar", "krishna-museum"],
+    "visitFactor": 1.5,
+    "travelFactor": 1.25,
+    "bias": { "jyotisar": 50, "iskcon": 40 },
+    "blurb": {
+      "en": "Midnight aarti, jhankis and kirtan at every Krishna temple in the district.",
+      "hi": "जिले के हर कृष्ण मंदिर में मध्यरात्रि आरती, झांकियाँ और कीर्तन।"
+    },
+    "notice": {
+      "en": "Temples stay open late and fill up after dark — come in the morning if you want a quiet darshan.",
+      "hi": "मंदिर देर रात तक खुले रहते हैं और अँधेरे के बाद भर जाते हैं — शांत दर्शन के लिए सुबह आएँ।"
+    }
+  },
+  {
+    "id": "somvati-amavasya-2026-10",
+    "kind": "snan",
+    "name": { "en": "Somvati Amavasya snan", "hi": "सोमवती अमावस्या स्नान" },
+    "from": "2026-10-19",
+    "to": "2026-10-19",
+    "places": ["brahma-sarovar", "sannihit-sarovar", "sthaneshwar", "bhishma-kund"],
+    "visitFactor": 1.6,
+    "travelFactor": 1.35,
+    "bias": { "sannihit-sarovar": 55, "brahma-sarovar": 45 },
+    "blurb": {
+      "en": "A new moon falling on a Monday — the day pilgrims bathe at Sannihit and Brahma Sarovar.",
+      "hi": "सोमवार को पड़ने वाली अमावस्या — इस दिन तीर्थयात्री सन्निहित और ब्रह्म सरोवर में स्नान करते हैं।"
+    },
+    "notice": {
+      "en": "The ghats are busiest between dawn and noon. Parking near the sarovars is closed to cars.",
+      "hi": "घाट भोर से दोपहर तक सबसे व्यस्त रहते हैं। सरोवरों के पास कारों की पार्किंग बंद रहती है।"
+    }
+  },
+  {
+    "id": "gita-mahotsav-2026",
+    "kind": "mela",
+    "name": { "en": "International Gita Mahotsav", "hi": "अंतर्राष्ट्रीय गीता महोत्सव" },
+    "from": "2026-12-10",
+    "to": "2026-12-20",
+    "places": ["brahma-sarovar", "sannihit-sarovar", "jyotisar", "krishna-museum", "dharohar"],
+    "visitFactor": 1.8,
+    "travelFactor": 1.4,
+    "bias": { "brahma-sarovar": 60, "jyotisar": 40 },
+    "blurb": {
+      "en": "Eleven days of aarti, shobha yatra and shilp mela on the Brahma Sarovar ghats.",
+      "hi": "ब्रह्म सरोवर के घाटों पर ग्यारह दिन की आरती, शोभायात्रा और शिल्प मेला।"
+    },
+    "notice": {
+      "en": "Expect heavy crowds and road diversions around Brahma Sarovar. Allow far longer than usual for every stop in the centre.",
+      "hi": "ब्रह्म सरोवर के आसपास भारी भीड़ और मार्ग परिवर्तन की संभावना। केंद्र के हर पड़ाव के लिए सामान्य से बहुत अधिक समय रखें।"
+    }
+  }
+]

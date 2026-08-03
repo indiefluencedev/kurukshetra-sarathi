@@ -9,8 +9,33 @@ import { Icon } from "@/shared/icons/Icon";
 import { Photo } from "@/shared/ui/Photo";
 import { StatusPill, Fcard } from "@/shared/ui/PlaceCard";
 import { ReelsRail } from "@/features/home/ReelsRail";
+import { eventsAt } from "@/data/events";
+import { isoToday } from "@/shared/lib/datetime";
+import { shortDate, planForEvent } from "@/features/planner/plan";
 import { FAC, DY, near, flipFav, addTo } from "./place-actions";
 import type { ReactNode } from "react";
+
+/**
+ * The fee as one word.
+ *
+ * `d.fee` is a full sentence — "No entry fee", "Ticketed; rates vary by day,
+ * book online", "Free; the tomb next door is ticketed". Useful, and far too
+ * long to set as a headline number, so the strip says which of the two things
+ * it is and the table below keeps every word.
+ */
+const feeShort = (fee?: { en: string; hi: string }): string => {
+  if (!fee) return "—";
+  const free = /^(free|no entry|no charge)/i.test(fee.en);
+  return nm(free ? { en: "Free", hi: "निःशुल्क" } : { en: "Ticketed", hi: "टिकट" });
+};
+
+/** Opening hours, minus the leading zeros. "00:00–23:59" means all day. */
+const hoursShort = (h?: { o: string; c: string }): string => {
+  if (!h) return "—";
+  if (h.o === "00:00" && h.c === "23:59") return nm({ en: "All day", hi: "पूरे दिन" });
+  const trim = (s: string) => s.replace(/^0/, "");
+  return trim(h.o) + "–" + trim(h.c);
+};
 
 export function Place() {
   const { id = "" } = useParams();
@@ -56,6 +81,18 @@ export function Place() {
             {t("photoBy")}: {cr.author} · {cr.licence}
           </span>
         )}
+
+        {/* The name belongs ON the photograph. 06-design-system.md asks for
+            "title inside image" over a bottom gradient and `.hero .grad` was
+            already drawing that gradient — the title just wasn't using it, so
+            the most photographic screen in the app opened on a cropped picture
+            followed by a heading floating on cream. */}
+        <div className="hero-cap">
+          <h1 lang={S.lang}>{S.lang === "hi" ? d.name.hi : d.name.en}</h1>
+          <div className="alt" lang={S.lang === "hi" ? "en" : "hi"}>
+            {S.lang === "hi" ? d.name.en : d.name.hi}
+          </div>
+        </div>
       </div>
 
       <div className="dtitle">
@@ -72,16 +109,8 @@ export function Place() {
               );
             })}
         </div>
-        <h1 lang={S.lang}>{S.lang === "hi" ? d.name.hi : d.name.en}</h1>
-        <div className="alt" lang={S.lang === "hi" ? "en" : "hi"}>
-          {S.lang === "hi" ? d.name.en : d.name.hi}
-        </div>
         <div className="dmeta">
           <StatusPill d={d} />
-          <span className="tag">
-            <Icon name="clock" />
-            {dur(d.visit.rec)}
-          </span>
           <span className="tag">
             <Icon name="pin" />
             {distTo(d)} {t("km")} {t("away")}
@@ -101,17 +130,67 @@ export function Place() {
         </div>
       </div>
 
-      <div className="card" style={{ padding: 13, display: "flex", gap: 12, alignItems: "flex-start", marginTop: 4 }}>
-        <span style={{ color: "var(--brass)", flex: "0 0 auto", marginTop: 1 }}>
-          <Icon name="surya" style={{ width: 19, height: 19 }} />
-        </span>
-        <span>
-          <b style={{ fontSize: "calc(13px*var(--ts))", display: "block" }}>{t("bestTime")}</b>
-          <span className="muted" style={{ fontSize: "calc(13px*var(--ts))" }}>
-            {nm(d.best)}
-          </span>
-        </span>
+      {/* An event at this place, near the top, because it changes everything
+          the rest of the page says — how long the visit takes, how the road
+          behaves, whether it is worth coming at all on that day. Tapping it
+          starts a plan built around it. */}
+      {eventsAt(id, isoToday()).map((e) => {
+        const live = e.from <= isoToday();
+        return (
+          <button key={e.id} className={"evcard" + (live ? " live" : "")} onClick={() => planForEvent(e)}>
+            <span className="ic">
+              <Icon name="diya" />
+            </span>
+            <span className="bd">
+              <b lang={S.lang}>{nm(e.name)}</b>
+              <i lang={S.lang}>
+                {live
+                  ? nm({ en: "Happening now · until " + shortDate(e.to), hi: "अभी चल रहा है · " + shortDate(e.to) + " तक" })
+                  : shortDate(e.from) + (e.from === e.to ? "" : " – " + shortDate(e.to))}
+              </i>
+              <span lang={S.lang}>{nm(e.notice)}</span>
+            </span>
+            <span className="go">
+              <Icon name="fwd" />
+            </span>
+          </button>
+        );
+      })}
+
+      {/* The three numbers that decide whether you go, and when.
+          They were scattered: how-long was a 13px grey pill in the tag row,
+          entry was row three of a seven-row table two screens down, and the
+          hours were row one of it. A visitor standing at the gate wants
+          exactly these, and they are the substance of the page — so they are
+          set like it. The full sentences ("Ticketed; rates vary by day, book
+          online") stay in the table below; this is the headline. */}
+      <div className="pfacts">
+        <div className="pf">
+          <b className="tnum">{dur(d.visit.rec)}</b>
+          {/* not t("howLong") — "How long to spend" wraps to two lines here and
+              leaves this cell taller than its neighbours */}
+          <span>{nm({ en: "How long", hi: "कितना समय" })}</span>
+        </div>
+        <div className="pf">
+          <b>{feeShort(d.fee)}</b>
+          <span>{t("entry")}</span>
+        </div>
+        <div className="pf">
+          <b className="tnum">{hoursShort(d.hours)}</b>
+          <span>{t("hours")}</span>
+        </div>
       </div>
+
+      {/* "Late afternoon into the evening aarti" — a time said as an event
+          rather than a clock reading, which is the most relatable line on the
+          page. It was a whole card; it only ever needed to be a sentence, and
+          it no longer repeats itself in the table below. */}
+      <p className="pbest" lang={S.lang}>
+        <Icon name="surya" />
+        <span>
+          <b>{t("bestTime")}:</b> {nm(d.best)}
+        </span>
+      </p>
 
       <div className="blk">
         <h2 lang={S.lang}>
@@ -170,7 +249,7 @@ export function Place() {
           {row(t("closedOn"), shut)}
           {row(t("entry"), nm(d.fee))}
           {row(t("howLong"), dur(d.visit.min) + " – " + dur(d.visit.max))}
-          {row(t("bestTime"), nm(d.best))}
+          {/* best time is said once, above, in words — not repeated here */}
           {row(t("parking"), nm(d.parking))}
           {row(t("access"), d.senior ? t("stepFree") : "—")}
         </dl>

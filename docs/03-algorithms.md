@@ -6,15 +6,21 @@ and can be read, tested, and debugged in isolation. `engine.ts` is only an
 
 ```
 features/planner/
-├── routing/      distances & times & (later) real paths   → see 05
+├── routing/      distances & times & real paths            → see 05
 │   ├── provider.ts   RoutingProvider interface + LatLng
-│   └── estimate.ts   haversine × roadFactor + speed table (offline default)
+│   ├── index.ts      picks the active provider — one line
+│   ├── cached.ts     the precomputed road matrix (active)
+│   ├── estimate.ts   haversine × roadFactor + speed table (the fallback)
+│   └── osrm.ts       live geometry for drawing, best-effort
 ├── rules/        the tunable "policy" — numbers & predicates, no control flow
 │   ├── hours.ts      opening-hours: openMin(), openAt(), isClosedDay()
 │   ├── scoring.ts    poiScore() + timeFit() (best time of day)
-│   └── budget.ts     usable/spendable minutes, meal & parking reserves
+│   ├── budget.ts     usable/spendable minutes, meal & parking reserves
+│   └── breaks.ts     which meals and rests a day earns, and when
 └── algorithms/   the "mechanism" — pure functions over a context
     ├── schedule.ts   simulate(order) → per-stop arrive/wait/depart + validity
+    │                 also visitMin()/legMin()/slow(): the ONLY two places a
+    │                 cost is computed, so events bend everything at once → 10
     ├── greedy.ts     prize-collecting construction under the time budget
     ├── twoOpt.ts     constrained 2-opt local search
     ├── suggest.ts    slack-based nearby-fit suggestions
@@ -122,4 +128,8 @@ save/share/ICS all keep working when internals move.
 - Wrong *which* places → `rules/scoring.ts`.
 - Wrong *order* → `algorithms/greedy.ts` then `twoOpt.ts`.
 - "Also fits" odd → `algorithms/suggest.ts` (check `slack` and marginal cost).
-- Distances/times off → `routing/estimate.ts` (Phase 2 swaps this out).
+- Distances/times off → `routing/cached.ts` for a pair of fixed places,
+  `routing/estimate.ts` for anything involving a hotel, a pin or a live fix.
+  `npm run check-matrix` says which one answered.
+- A festival day looks wrong → `data/events.ts` and `schedule.ts`'s
+  `visitMin`/`slow`. Nothing else in the engine knows events exist.

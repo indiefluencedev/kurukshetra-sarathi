@@ -4,6 +4,7 @@ import { t, nm } from "@/shared/i18n/i18n";
 import { clock, isoToday, isoDate, fromISO, isToday, nowM, addDays, daysBetween } from "@/shared/lib/datetime";
 import { openSheet, closeSheet } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
+import { activeEvent, eventsBetween } from "@/data/events";
 import { DYS, MONS, setDay, setStartClock, shortDate } from "./plan";
 
 /* ================= DAY: a month calendar that takes a range =================
@@ -105,22 +106,50 @@ function DateSheet() {
             const iso = isoDate(dt);
             const off = dt < today || dt > limit;
             const edge = iso === from || iso === to;
+            // A festival day is the single biggest thing that changes what a
+            // visit is like, and it was invisible here — the calendar is where
+            // the choice is actually made, so it has to be said here.
+            const fest = activeEvent(iso);
             const cls = [
               edge ? "on" : "",
               !edge && iso > from && iso < to ? "mid" : "",
               iso === isoToday() ? "today" : "",
               off ? "mut" : "",
+              fest ? "fest" : "",
             ]
               .filter(Boolean)
               .join(" ");
             return (
-              <button key={iso} className={cls} disabled={off} onClick={() => tap(iso)} aria-current={edge ? "date" : undefined}>
+              <button
+                key={iso}
+                className={cls}
+                disabled={off}
+                onClick={() => tap(iso)}
+                aria-current={edge ? "date" : undefined}
+                aria-label={fest ? dnum + " — " + nm(fest.name) : undefined}
+                title={fest ? nm(fest.name) : undefined}
+              >
                 {dnum}
+                {fest && <i className="festdot" aria-hidden="true" />}
               </button>
             );
           })}
         </div>
       </div>
+
+      {/* The dot on the grid is a marker, not a message — colour alone never
+          carries meaning in this app. Whatever the chosen range actually lands
+          on gets named, in words, before Done is pressed. */}
+      {eventsBetween(from, to).map((e) => (
+        <div className="note" key={e.id} style={{ marginTop: 12 }}>
+          <Icon name="diya" />
+          <span lang={S.lang}>
+            <b>{nm(e.name)}</b>
+            {" — "}
+            {e.from === e.to ? shortDate(e.from) : shortDate(e.from) + " – " + shortDate(e.to)}. {nm(e.blurb)}
+          </span>
+        </div>
+      ))}
 
       <button className="btn primary" style={{ marginTop: 14 }} onClick={done}>
         <Icon name="check" />

@@ -1,8 +1,12 @@
 # 10 · The planning engine, events, and data management
 
-The working spec for the next build. It supersedes the split between "current"
-and "proposed" in [09](09-proposed-architecture-review.md) — this is the single
-design, taking what already works and adding what is missing.
+The design of the engine as it now stands. All six steps of the build order in
+[§5](#5--build-order) have shipped; this document describes what was built and
+why, and is the place to start before changing any of it.
+
+Where an implementation detail differs from the plan this file originally set
+out, the difference is called out inline and the reason given — those are the
+paragraphs worth reading first.
 
 Four parts, in the order decisions have to be made:
 
@@ -65,23 +69,29 @@ where the time went (travel / visiting / waiting / parking / meals).
 ```
 ┌───────────────────────────────────────────────────────────────┐
 │  UI — React + TypeScript                                      │
-│  Home (EventRail ▸ new)  Planner  Route  Journey  Place  Map   │
+│  Home (EventRail)  Planner  Route  Journey  Place  Map         │
 ├───────────────────────────────────────────────────────────────┤
 │  Engine — synchronous, main thread, pure                      │
 │  engine.ts orchestrates:                                      │
-│    rules/      hours · scoring · budget · breaks · events ▸    │
+│    rules/      hours · scoring · budget · breaks               │
 │    algorithms/ greedy · twoOpt · schedule · suggest · multiday │
-│    routing/    provider ▸ cached ▸ estimate ▸ osrm             │
+│    routing/    provider · cached · estimate · osrm             │
 ├───────────────────────────────────────────────────────────────┤
 │  Static content — imported at build, ships in the bundle      │
 │  destinations.json  edges.json  themes.json  places-index.json │
-│  events.json ▸new    routing/matrix.<mode>.json ▸new           │
+│  events.json        matrix.json                                │
 ├───────────────────────────────────────────────────────────────┤
 │  IndexedDB — shared/lib/db.ts, zero dependencies              │
-│  user data only: draft · saved plans · prefs ▸new              │
+│  user data only: draft · saved plans · prefs                   │
 └───────────────────────────────────────────────────────────────┘
-                                              ▸ = to build
 ```
+
+**Where the event reader actually lives.** This file first proposed
+`planner/rules/events.ts`. It shipped as **`src/data/events.ts`**, because both
+the engine *and* the home rail read it, and a home-screen component importing
+out of `features/planner/rules/` is a dependency nobody would defend. It sits
+beside `data/graph.ts`, which is the same shape of thing for the same reason:
+static content plus the handful of queries everything asks of it.
 
 ### 2.2 The one rule that decides where data goes
 
@@ -108,20 +118,35 @@ first-run async race — to make a fast thing slower. Revisit if the pool passes
 |---|---|---|
 | Destinations | 36 (34 plannable, 2 `pending`) | ~180 KB with bilingual prose |
 | Place graph edges | 84 | ~14 KB |
-| Routing matrix | 34 × 34 × 2 arrays | **~28 KB per mode** |
-| Events | ~10–20 per year | ~8 KB |
+| Routing matrix | 42 × 42 × 2 arrays | **13 KB, all modes** |
+| Events | ~10–20 per year | ~4 KB |
 | Places index (start/end points) | 6, growing | ~2 KB |
 
 The matrix is stored as indexed arrays, not one row per pair:
 
 ```json
-{ "ids": ["brahma-sarovar", "jyotisar", "…"],
+{ "built": "2026-08-03",
+  "source": "OSRM public demo, driving profile",
+  "ids": ["brahma-sarovar", "jyotisar", "…", "stn-thc"],
   "min": [[0, 12, 18], [12, 0, 9], [18, 9, 0]],
   "km":  [[0, 5.2, 7.1], [5.2, 0, 2.3], [7.1, 2.3, 0]] }
 ```
 
-Same data as 1,156 `{fromId, toId, mode, durationMin, distanceKm}` records, at
+Same data as 1,764 `{fromId, toId, mode, durationMin, distanceKm}` records, at
 a fraction of the bytes, with O(1) lookup and no query engine.
+
+**One file, not one per mode.** This section first said "~28 KB per mode". It
+shipped as a single 13 KB file, because §2.4's probe is decisive: the public
+OSRM demo ignores the profile in the URL, so six per-mode files would be six
+byte-identical copies of the car's. What is kept instead is the road
+**distance**, which is mode-independent and genuinely measured; `CachedProvider`
+divides it by the mode's speed. Measured distance, estimated speed — the honest
+split, and it is why `travelMin` still answers for an e-rickshaw.
+
+**The index covers the start points too.** The matrix runs over the 36
+destinations *and* the 6 curated places-index entries, so "I am at Thanesar
+station" is an O(1) offline lookup rather than a haversine. A start point
+chosen from the list is matched by its `ref`, not its coordinates.
 
 ### 2.4 The routing stack
 
@@ -131,11 +156,19 @@ Everything that needs "how far / how long / what path" goes through the existing
 
 | Case | Source | Cost |
 |---|---|---|
-| Fixed place → fixed place | `matrix.<mode>.json` lookup | O(1), offline |
-| Arbitrary point (hotel, dropped pin) → anything | Live OSRM `/route`, memoised for the session | one call, cached |
-| Offline, or the call failed | `EstimateProvider` — haversine × 1.35 ÷ mode speed | always available |
+| Fixed place → fixed place, by car | `matrix.json` `min` lookup | O(1), offline |
+| Fixed place → fixed place, any other mode | `matrix.json` `km` ÷ mode speed | O(1), offline |
+| Arbitrary point (hotel, dropped pin, GPS fix) → anything | `EstimateProvider` — haversine × 1.35 ÷ mode speed | always available |
 | Walking between linked places | `edges.json` — the hand-verifiable figure | O(1), offline |
-| Drawing the road on the map | Live OSRM `/route` geometry, already built (`osrm.ts`) | best-effort, falls back to straight segments |
+| Drawing the road on the map | Live OSRM `/route` geometry (`osrm.ts`) | best-effort, falls back to straight segments |
+
+The arbitrary-point row was going to be a live, memoised OSRM `/route` call.
+It is not, and deliberately: the plan path must never touch the network, a
+pilgrim on rural data is the whole audience, and the estimate's 1.35 road
+factor turns out to be well chosen — measured against the real matrix, the
+median detour over 2 km is **1.32**. Spending a network round-trip to correct
+a 2% error on one leg is not a trade worth making. Revisit only if start
+points routinely sit outside the district.
 
 **Per-mode reality.** The public OSRM demo was probed: `/route/v1/foot/` returns
 byte-identical numbers to `/driving/` — it ignores the profile and serves car
@@ -147,27 +180,30 @@ profile if walking ever needs it.
 
 ### 2.5 Preferences — the "don't make me answer twice" store
 
-New IndexedDB record, `id: "prefs"`, written whenever a plan is built:
+IndexedDB record, `id: "prefs"`, written by `rememberAnswers()` whenever a plan
+is built. The fields that carry over are an **explicit list** in `persist.ts`,
+never a spread of the whole plan — adding a field to `Plan` must never start
+silently persisting it:
 
 ```ts
-interface Prefs {
-  id: "prefs";
-  startType: string;  start: GeoPoint;   // where they set off from last time
-  endType: string;    end: GeoPoint;
-  mode: string; modes: string[];
-  pace: string; who: string;
-  themes: string[];
-  opts: Record<string, boolean>;         // meal, free-only, indoor-only
-}
+const CARRY = ["startType", "start", "endType", "end", "endManual",
+               "mode", "modes", "pace", "who", "themes", "opts"];
 ```
 
-`newPlan()` seeds from `prefs` instead of from constants. The date always
-resets to today — a stale date is the one field that must never carry over,
-because it silently checks the route against the opening hours of a day that
-has passed.
+`newPlan()` spreads those over its constants. Everything describing *one visit*
+— `mins`, `label`, `date`, `startClock`, `days`, `step`, `res` — is assigned
+**after** the spread, so a mistake in `CARRY` still cannot resurrect it. The
+date is the one that matters most: a stale date silently checks the route
+against the opening hours of a day that has passed.
 
-This is a ~30-line change and it removes four taps from every plan after the
-first.
+Two things this touches that are easy to miss:
+
+- `state.ts` stays a dependency leaf. The seed is pushed in via `setCarried()`,
+  the same pattern `onBump` uses, rather than imported.
+- `listPlans()` filters out `prefs` as well as `draft`. Three kinds of record
+  share one table, and only one of them is a plan.
+
+~40 lines, and it removes four taps from every plan after the first.
 
 ### 2.6 Still on the main thread, deliberately
 
@@ -269,14 +305,19 @@ This is the complete list. Anything that changes an itinerary is here.
 | Bias map | Per-place nudge, used by alternatives and now by events | `scoring.ts` |
 | Filters | free-only, indoor-only — hard | `engine.ts` |
 
-**Events** ▸ new
+**Events**
 
 | Factor | Effect | Where |
 |---|---|---|
-| `visitFactor` | Crowds make the visit longer (Gita Mahotsav at Brahma Sarovar: ×1.8) | `rules/events.ts` ▸ |
-| `travelFactor` | Congestion and diversions slow every leg touching an affected place | `rules/events.ts` ▸ |
-| `bias` | Weights the event's places up so the plan reaches them | folds into the existing bias map |
-| Date match | An event applies only when the plan's date falls in its window | `rules/events.ts` ▸ |
+| `visitFactor` | Crowds make the visit longer (Gita Mahotsav at Brahma Sarovar: ×1.8) | `schedule.ts` `visitMin()` |
+| `travelFactor` | Congestion and diversions slow every leg touching an affected place, on foot as well as by road | `schedule.ts` `slow()` / `legMin()` |
+| `bias` | Weights the event's places up so the plan reaches them | folds into the existing bias map, `engine.ts` |
+| Date match | An event applies only when the plan's date falls in its window | `data/events.ts` `activeEvent()` |
+
+Both factors are applied in exactly two functions, and **every** algorithm goes
+through them — `greedy`, `schedule`, `suggest`. That is not tidiness, it is the
+correctness condition from §3.3: greedy must advance the clock exactly the way
+`simulate` will, or it picks a set the authoritative pass then throws away.
 
 **Shape of the trip**
 
@@ -497,35 +538,62 @@ automatically.
 | `blurb` | The slider card's line |
 | `notice` | The warning shown on the plan and the place page |
 
-**Authoring rule:** the two factors are calibration knobs, tuned against a real
-festival day, not reasoned about. Start at `1.5` / `1.3` and correct after
-watching one.
+**Authoring rules.**
 
-`rules/events.ts` (~25 lines) is the whole reader:
+1. The two factors are calibration knobs, tuned against a real festival day,
+   not reasoned about. Start at `1.5` / `1.3` and correct after watching one.
+2. **The dates are lunar, and nothing in the code computes them.** Gita
+   Jayanti moves with Mokshada Ekadashi; Somvati Amavasya is a new moon that
+   happens to fall on a Monday. They are re-entered from the panchang each
+   year, and the dates currently in the file are *placeholders that have not
+   been confirmed against the Board's calendar*. Confirm them before a release
+   that anyone plans a trip on.
+3. Event photos are optional. With no `img`, the rail wears the picture of
+   `places[0]` — the ghat the visitor will actually be standing on.
+
+`data/events.ts` is the whole reader:
 
 ```ts
 activeEvent(isoDate)              // the event covering that date, or null
+eventById(id)                     // back from the id an itinerary carries
 ongoing(today)                    // events happening now
 upcoming(today, withinDays = 120) // events soon, nearest first
+eventsBetween(from, to)           // everything overlapping a range — the calendar
+eventsAt(placeId, today)          // everything at one place — the place page
 affects(event, placeId)           // is this place touched
 ```
 
 ### 4.5 Wiring events into the engine
 
-Four small edits. No new architecture — the mechanisms all exist.
+No new architecture — the mechanisms all existed.
 
 | Where | Change |
 |---|---|
-| `rules/budget.ts` | Multiply `visitFactor` by the event's for affected places |
-| `algorithms/schedule.ts`, `greedy.ts` | Multiply travel by `travelFactor` when either end is affected |
+| `algorithms/schedule.ts` | `visitMin()` and `slow()`/`legMin()` — the two places any cost is computed, now event-aware |
+| `algorithms/greedy.ts`, `suggest.ts` | Call those instead of doing the arithmetic themselves |
 | `engine.ts` | Fold `event.bias` into the existing bias map — already how alternatives work |
-| `engine.ts` meta | Carry the active event through so the UI can badge stops |
+| `engine.ts` meta | Carry `event` (the id) and `eventStops` (which stops it touches) so the UI can badge them |
+| `algorithms/multiday.ts` | Each day gets its own date, so a stay running into the Mahotsav gets the crowds only on the days that have them |
 
 **The good behaviour is emergent.** Longer visits and slower travel make the
 feasibility arithmetic stricter, so the engine proposes fewer stops on a
 festival day *by itself*; and `timeFit` pulls the crowded place toward the
 morning *by itself*. No special-case code — the existing cost model does the
 right thing once the numbers are honest.
+
+Measured on a full day from the town centre, balanced pace, no theme:
+
+| Day | Event | Stops | Visiting |
+|---|---|---|---|
+| 26 Nov 2026 | — | 14 | 270 min |
+| 10 Dec 2026 | Gita Mahotsav | **7** | **327 min** |
+| 12 Oct 2026 | — | 13 | 245 min |
+| 19 Oct 2026 | Somvati Amavasya | **10** | 265 min |
+
+Half the stops, more time at each, and the plan still reaches the ghats the
+festival is happening on. `check-planner` asserts exactly this, so the day the
+wiring comes undone the assertion fails rather than the itinerary quietly
+getting optimistic.
 
 ### 4.6 The home page event slider
 
@@ -543,8 +611,17 @@ Home
 └── HowToCard
 ```
 
-Built on the same swipe/auto-advance/dots pattern `HeroRail` already
-implements — same interaction, same CSS family, no new mechanism.
+The swipe/auto-advance/dots mechanism was **lifted out of `HeroRail` into
+`useRail()`** rather than copied. Two rails, one implementation: a second copy
+is a second place for the auto-advance to keep running after the visitor has
+taken hold of the rail, which is the bug this interaction is actually about.
+The hook also measures its step from the distance between the first two cards
+instead of a width plus a hard-coded gap, so either rail can change its card
+size in CSS without the dots falling out of step.
+
+The event card is **16/10, not the hero's 4/5**. Two full-bleed 4/5 carousels
+stacked would push the themes grid — the thing a first-time visitor came for —
+below the fold on every phone.
 
 | Card state | Kicker | Action |
 |---|---|---|
@@ -562,35 +639,118 @@ on first touch, and the whole rail is reachable by swipe or by tapping the dots.
 
 | Surface | Treatment |
 |---|---|
-| Plan / route screen | Affected stops carry an event badge; the notice shows once, above the stop list |
-| Place page | An ongoing or upcoming event at that place shows as a card near the top |
-| Date picker | Festival dates marked, so choosing a date is an informed choice |
-| No-fit fallback | "The Mahotsav makes this window tight — start 40 minutes earlier, or plan for the 8th" |
+| Route screen | Affected stops carry an event badge; the notice shows once, above the timeline |
+| Place page | An ongoing or upcoming event at that place is a tappable card near the top — tapping it plans around the event |
+| Date picker | A dot on festival days, **and the event named in words** under the grid for whatever the chosen range lands on |
+| No-fit fallback | See §4.9 |
+
+**The badge and the notice are brass, not saffron.** Saffron is this app's
+action colour and nothing else ([06](06-design-system.md)); a badge explaining
+why a visit takes longer is not something you tap. The place-page card *is*
+tappable and earns an indigo arrow for it, not a louder background.
+
+**The calendar dot is never the only signal.** Colour alone carries no meaning
+in this app, so `eventsBetween(from, to)` names whatever the range overlaps, in
+words, in a note under the grid — and the dot sits at the *top* of the cell
+because the bottom already belongs to the "today" marker and a day can be both.
+
+### 4.9 The no-fit fallback
+
+"Nothing fits that window — try a longer window, fewer themes, or a brisker
+pace" is true and useless: three guesses handed back to the person with the
+least information. The engine can simply try them.
+
+When a build returns no stops, `suggestFix()` re-runs `build()` against a small
+set of remedies and returns the first that works, with the number of stops it
+would reach. The probes carry `probe: true`, which stops a failed probe going
+looking for a fix for the fix.
+
+Ordered by **how little it costs the visitor to accept**:
+
+| # | Remedy | Why in this position |
+|---|---|---|
+| 1 | Set off an hour earlier (never before 06:00) | Free. Costs a lie-in, nothing else |
+| 2 | Allow 50% longer | A real concession — this is time they said they did not have |
+| 3 | A different date — the day after the event ends if one is in the way, else tomorrow | Last resort: it moves the whole trip |
+
+The route screen then says the specific thing — *"Set off at 6:30pm instead —
+that fits 1 stop"* — with one button that applies it. `check-planner` asserts
+the promise holds: rebuilding with the patch must produce the number of stops
+the fix advertised. A button that apologises twice is worse than no button.
 
 ### 4.8 Content checks
 
 Every new data file gets an assertion, in the existing style — one runnable
 check that fails if the logic breaks, no framework:
 
-| Check | Adds |
+| Check | Asserts |
 |---|---|
 | `check-content` | events.json in the walk list → `{en,hi}` parity enforced free |
-| `check-content` | `places[]` ids exist in destinations; `from ≤ to`; factors within 1.0–3.0; no two events claim the same place on the same day |
-| `check-planner` | A festival-date plan takes longer per stop and returns fewer stops than the same plan a week earlier |
-| `check-graph` | Unchanged — already asserts the graph's invariants |
-| `check-matrix` ▸ | Matrix ids match destinations; every road time within a sane band of the haversine estimate (catches a swapped lat/lng) |
+| `check-content` | `places[]` and `bias` ids exist in destinations; `kind` known; dates are ISO and `from ≤ to`; factors within 1.0–3.0; no two events claim the same place on the same day |
+| `check-planner` | A festival plan fits fewer stops and spends longer at each than the same weekday a fortnight earlier, still reaches the festival's own places, and carries `event`/`eventStops` for the UI |
+| `check-planner` | An impossible window returns a fix; the fix delivers the stops it promised; a working plan carries none; a probe never recurses |
+| `check-graph` | The graph's invariants, and that a themed day is **driven** by its theme (see below) |
+| `check-matrix` | Every pin inside the Kurukshetra box; no pair over 60 km; detour ratios and implied speeds believable; and the provider actually reads the file, including by `ref` |
+
+Two of these were rewritten rather than added, and both for the same reason —
+they were measuring a proxy that stopped tracking the thing it stood for:
+
+**`check-graph`'s theme test.** It asserted that at least half the stops on a
+Mahabharata day were on-theme. Once real road distances landed, a day came back
+with 5 on and 6 off and "failed" — but all four *driven* stops were on-theme,
+and the six off-theme ones were 1–7 minute walks from a car park already paid
+for. Counting every stop equally scored the museum sixty metres away the same
+as a sixteen-minute drive to Jyotisar. A pocket stop is nearly free *by
+construction* (§3.3 stage 2); that is the entire point of pockets. The test now
+asserts on driven stops, which is the thing that must never go wrong.
+
+**`check-matrix`'s ratio band.** A ×3.2 ceiling on road-versus-straight-line
+rejected 59 pairs on the first run. They were all real: Rantuk Yaksh to Pipli
+Zoo is 0.9 km apart, 9.4 km by road one way and 3.0 km back, because NH-44 runs
+between them and you cannot turn across it; and below ~1 km the figure is
+dominated by OSRM snapping each pin to the nearest way — some road distances
+come out *shorter* than the great circle. Measured over this data the ratio only
+settles above 2 km (1.05–2.94), so the band applies there and nowhere else. The
+check that actually catches a swapped lat/lng is the **bounding box**, which
+catches it exactly rather than statistically: transpose 29.96/76.83 and the
+place lands in the Indian Ocean.
 
 ---
 
 ## 5 · Build order
 
-| # | Work | Files | Size | Why first |
-|---|---|---|---|---|
-| 1 | **Event data + engine wiring** | `events.json`, `rules/events.ts`, 4 edits | ~90 lines | The only missing capability, and the Mahotsav is *the* Kurukshetra event |
-| 2 | **Home event slider** | `EventRail.tsx`, `Home.tsx`, CSS, i18n | ~120 lines | The feature the visitor actually sees |
-| 3 | **Routing matrix** | `build-matrix.mjs`, `routing/cached.ts`, `index.ts` | ~80 lines | Real road times; closes Phase 2; makes the plan instant |
-| 4 | **Prefs store** | `persist.ts`, `state.ts` | ~30 lines | Removes four taps from every plan after the first |
-| 5 | **Event surfaces** | Route, Place, date picker badges | ~60 lines | Completes the loop |
-| 6 | **No-fit fallback** | `engine.ts` | ~20 lines | Turns a dead end into a re-plan |
+All six shipped, each with its check (§4.8), each leaving the app buildable.
 
-Each step lands with its check (§4.8) and leaves the app shippable.
+| # | Work | Files | Status |
+|---|---|---|---|
+| 1 | **Event data + engine wiring** | `events.json`, `data/events.ts`, `schedule.ts`, `greedy.ts`, `suggest.ts`, `engine.ts`, `multiday.ts` | done |
+| 2 | **Home event slider** | `EventRail.tsx`, `useRail.ts`, `HeroRail.tsx`, `Home.tsx`, CSS | done |
+| 3 | **Routing matrix** | `build-matrix.mjs`, `check-matrix.mjs`, `routing/cached.ts`, `routing/index.ts` | done |
+| 4 | **Prefs store** | `persist.ts`, `state.ts`, `plan.ts` | done |
+| 5 | **Event surfaces** | `RouteResult.tsx`, `Place.tsx`, `DateTimeSheets.tsx`, CSS | done |
+| 6 | **No-fit fallback** | `engine.ts`, `plan.ts`, `RouteResult.tsx` | done |
+
+Run before committing anything that touches the engine or the content:
+
+```
+npm run check-content    # {en,hi} parity, events, the places index
+npm run check-graph      # walk pockets, parking, the themed-day rule
+npm run check-planner    # breaks, event effects, the no-fit fallback
+npm run check-matrix     # the road matrix and the provider reading it
+npm run check-corridor
+```
+
+`npm run build-matrix` is the only thing here that needs the network, and it is
+only run when a place is added, moved, or verified.
+
+## 6 · What is not built
+
+Recorded so nobody goes looking for it:
+
+| Not built | Why | Reconsider when |
+|---|---|---|
+| Real foot routing | The OSRM demo has no foot profile; every walk in this app is a sub-300 m hop priced from the hand-checked `edges.json` | Walking between distant places becomes a real mode. OpenRouteService (free key, 2k/day) is the path |
+| Curated bus / e-rickshaw data | `public` is still distance ÷ 15 km/h | Someone gathers the routes — see [05](05-routing-phase2.md) |
+| Live OSRM for arbitrary start points | §2.4: the plan path must never touch the network, and the estimate's error is ~2% | Start points routinely sit outside the district |
+| Recurring events (the daily evening aarti) | `from`/`to` describe one span. The aarti is already carried by `bestKey: "evening"`, which is the right mechanism for a thing that happens every day | A genuinely recurring *dated* event appears |
+| Event images | The rail falls back to `places[0]`'s photo | The Board supplies them; set `img` and nothing else changes |

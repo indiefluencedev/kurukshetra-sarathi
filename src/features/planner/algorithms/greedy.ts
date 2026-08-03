@@ -13,7 +13,7 @@ import { openAt, openMin, isClosedDay } from "../rules/hours";
 import { timeFit } from "../rules/scoring";
 import { linked, walkMin, sameComplex } from "@/data/graph";
 import { takeDueBreaks, type TakenBreak } from "../rules/breaks";
-import type { RouteCtx, Leg } from "./schedule";
+import { slow, legMin, visitMin, type RouteCtx, type Leg } from "./schedule";
 import type { Destination, GeoPoint, Stop } from "@/shared/types";
 
 const wrap = (m: number) => ((m % 1440) + 1440) % 1440;
@@ -91,18 +91,19 @@ export function greedy(pool: Destination[], score: Record<string, number>, ctx: 
         // town one short hop at a time — Sannihit → Nabha House → Panorama →
         // … → Brahma Sarovar, eleven stops and two kilometres on foot, every
         // hop individually short and the whole thing absurd.
-        const back = walkMin(d.id, anchorId);
-        if (back == null) continue; // not within walking distance of the car
+        const rawBack = walkMin(d.id, anchorId);
+        if (rawBack == null) continue; // not within walking distance of the car
+        const back = slow(rawBack, d.id, anchorId, ctx);
         // the walk out may chain from where we are standing; that part is real
-        const out = walkMin(footId, d.id) ?? back;
+        const out = slow(walkMin(footId, d.id) ?? rawBack, footId, d.id, ctx);
         if (walked + out + back > POCKET_MAX) continue;
-        const visit = Math.round(d.visit.rec * ctx.visitFactor);
+        const visit = visitMin(d, ctx);
         const wait = waitFor(d, clock + out);
         const arrive = clock + out + wait;
         if (!openThrough(d, ctx.weekday, arrive, visit)) continue;
         // marginal cost: the extra walk out, the visit, and the longer way back
         const extra = out + wait + visit + (back - owed);
-        const backToEnd = routing.travelMin(d, ctx.end, ctx.mode);
+        const backToEnd = legMin(d, ctx.end, ctx);
         if (used + extra + ctx.parking + backToEnd > spendable) continue;
         // Walking to something you are already parked beside is the cheapest
         // minute in the app, so being there at all is worth real points. A
@@ -122,7 +123,7 @@ export function greedy(pool: Destination[], score: Record<string, number>, ctx: 
       }
       if (bestI >= 0 && bestV > 0) {
         const d = left[bestI];
-        const visit = Math.round(d.visit.rec * ctx.visitFactor);
+        const visit = visitMin(d, ctx);
         const arrive = clock + bestOut + bestWait;
         stops.push({
           d, travel: bestOut, km: routing.roadKm(cur, d), wait: bestWait,
@@ -154,12 +155,12 @@ export function greedy(pool: Destination[], score: Record<string, number>, ctx: 
     for (let i = 0; i < left.length; i++) {
       const d = left[i];
       if (isClosedDay(d, ctx.weekday)) continue;
-      const t = routing.travelMin(from, d, ctx.mode);
-      const visit = Math.round(d.visit.rec * ctx.visitFactor);
+      const t = legMin(from, d, ctx);
+      const visit = visitMin(d, ctx);
       const wait = waitFor(d, clock + t);
       const arrive = clock + t + wait;
       if (!openThrough(d, ctx.weekday, arrive, visit)) continue;
-      const back = routing.travelMin(d, ctx.end, ctx.mode);
+      const back = legMin(d, ctx.end, ctx);
       if (used + t + wait + visit + ctx.parking + back > spendable) continue;
       const v = score[d.id] + timeFit(d, arrive) - t * 1.6 - wait * 1.3;
       if (v > bv) {
@@ -172,7 +173,7 @@ export function greedy(pool: Destination[], score: Record<string, number>, ctx: 
     }
     if (!best) break;
 
-    const visit = Math.round(best.visit.rec * ctx.visitFactor),
+    const visit = visitMin(best, ctx),
       arrive = clock + bt + bw;
     stops.push({ d: best, travel: bt, km: routing.roadKm(from, best), wait: bw, arrive, visit, depart: arrive + visit } as Stop);
     legs.push({ d: best });

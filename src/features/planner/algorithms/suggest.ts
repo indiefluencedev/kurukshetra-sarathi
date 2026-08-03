@@ -2,9 +2,8 @@
 // nearby places whose cheapest insertion cost fits the leftover time. Drawn
 // from ALL valid places (not just the chosen theme) so a themed route can still
 // surface a close-by extra. See docs/03.
-import { routing } from "../routing";
 import { isClosedDay } from "../rules/hours";
-import type { RouteCtx } from "./schedule";
+import { legMin, visitMin, type RouteCtx } from "./schedule";
 import type { Destination, Stop } from "@/shared/types";
 
 export interface Suggestion {
@@ -30,12 +29,12 @@ export function suggestNearby(
   for (const d of pool) {
     if (chosen.has(d.id)) continue;
     if (isClosedDay(d, ctx.weekday)) continue;
-    const visit = Math.round(d.visit.rec * ctx.visitFactor);
+    const visit = visitMin(d, ctx);
     let bestExtra = Infinity;
     for (let g = 0; g < seq.length - 1; g++) {
       const a = seq[g],
         b = seq[g + 1];
-      const detour = routing.travelMin(a, d, ctx.mode) + routing.travelMin(d, b, ctx.mode) - routing.travelMin(a, b, ctx.mode);
+      const detour = legMin(a, d, ctx) + legMin(d, b, ctx) - legMin(a, b, ctx);
       const extra = detour + visit + ctx.parking;
       if (extra < bestExtra) bestExtra = extra;
     }

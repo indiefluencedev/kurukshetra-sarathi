@@ -14,6 +14,10 @@ import { StatusPill, Pcard } from "@/shared/ui/PlaceCard";
 import { Photo } from "@/shared/ui/Photo";
 import { Icon } from "@/shared/icons/Icon";
 import { askLoc } from "@/features/location/location";
+import { PlaceDeck } from "./PlaceDeck";
+import { roadGeometry } from "@/features/planner/routing/osrm";
+import { startGo } from "@/features/route/route-actions";
+import type { Destination } from "@/shared/types";
 
 /**
  * Leaflet wants a literal, so read the colour off its token at draw time.
@@ -29,53 +33,9 @@ const mapPts = () =>
 /** ~4.5 km from the town centre — what counts as "in Kurukshetra" for framing. */
 const CORE_DEG = 0.045;
 
-function tapMap(id: string) {
-  const d = byId(id);
-  if (!d) return;
-  openSheet(
-    <>
-      <style>{`.sheet .ph{width:86px;height:86px;border-radius:12px;flex:0 0 auto}`}</style>
-      <div style={{ display: "flex", gap: 13 }}>
-        <Photo d={d} />
-        <div style={{ minWidth: 0 }}>
-          <h2 className="display" style={{ fontSize: "calc(18px*var(--ts))" }} lang={S.lang}>
-            {nm(d.name)}
-          </h2>
-          <div className="wrap" style={{ margin: "7px 0" }}>
-            <StatusPill d={d} />
-            <span className="tag">{dur(d.visit.rec)}</span>
-            <span className="tag">
-              {distTo(d)} {t("km")}
-            </span>
-          </div>
-        </div>
-      </div>
-      <p className="muted" style={{ fontSize: "calc(13.5px*var(--ts))", margin: "11px 0 8px" }}>
-        {nm(d.short)}
-      </p>
-      <div className="note" style={{ marginBottom: 14 }}>
-        <Icon name="surya" />
-        <span>{nm(d.best)}</span>
-      </div>
-      <div style={{ display: "flex", gap: 9 }}>
-        <button className="btn nav" style={{ flex: 1 }} onClick={() => navTo(id)}>
-          <Icon name="navigate" />
-          {t("navigate")}
-        </button>
-        <button
-          className="btn primary"
-          style={{ flex: 1 }}
-          onClick={() => {
-            closeSheet();
-            go("/place/" + id);
-          }}
-        >
-          {t("details")}
-        </button>
-      </div>
-    </>,
-  );
-}
+/* `tapMap` used to open a full bottom sheet here. It covered the map it was
+   opened from, so comparing two pins was open-read-dismiss, three times over.
+   The same content is now a deck inside the map — see PlaceDeck. */
 
 /**
  * Real slippy map — OpenStreetMap tiles via Leaflet, every tirtha pinned, the
@@ -91,6 +51,24 @@ export function MapView() {
   // was only ever illustrating.
   const [list, setList] = useState(false);
   const [tilesDown, setTilesDown] = useState(false);
+  const [sel, setSel] = useState<Destination | null>(null);
+  // The planned day drawn over the pins is the point of this screen most of
+  // the time, and squarely in the way the rest of it — when you are looking for
+  // somewhere the plan does not go. So it is a switch, not a given.
+  const [showPlan, setShowPlan] = useState(true);
+  // The road the route actually takes, same as the route screen's map. Without
+  // it this map drew dashes between the stops — a straight line through fields
+  // and across the NH-44 central reservation, which is exactly the impression
+  // a map is supposed to correct.
+  const [road, setRoad] = useState<[number, number][]>([]);
+  /* drawMap is re-created every render, but it is also called from a 220ms
+     setTimeout in the mount effect and from Leaflet callbacks — both of which
+     hold whichever closure existed when they were scheduled. When the road
+     geometry was already cached it arrived BEFORE that timeout, drew correctly,
+     and was then overwritten by the stale closure redrawing the straight line.
+     A ref has no version, so there is nothing to go stale. */
+  const roadRef = useRef<[number, number][]>([]);
+  roadRef.current = road;
   const tileErrs = useRef(0);
 
   // create the map once
@@ -151,7 +129,7 @@ export function MapView() {
   useEffect(() => {
     drawMap(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tick]);
+  }, [tick, showPlan]);
 
   function drawMap(fit: boolean) {
     const map = mapRef.current,
@@ -161,7 +139,7 @@ export function MapView() {
       layer.clearLayers();
       const pts = mapPts();
       const bounds: [number, number][] = [];
-      const plan = S.plan;
+      const plan = showPlan ? S.plan : null;
       pts.forEach((p) => {
         const inR = !!(plan && plan.res && (plan.res.stops as any[]).some((x) => x.d.id === p.id));
         const ic = (theme(p.themes[0]) || { icon: "pin" }).icon;
@@ -173,18 +151,43 @@ export function MapView() {
           icon: L.divIcon({ html, className: "lmk-wrap", iconSize: [30, 30], iconAnchor: [15, 15] }),
           title: nm(p.name),
         });
-        m.on("click", () => tapMap(p.id));
+        m.on("click", () => setSel(p));
         m.addTo(layer);
         bounds.push([p.lat, p.lng]);
       });
       if (plan && plan.res && plan.res.stops.length) {
-        const line = (plan.res.stops as any[]).map((x) => [x.d.lat, x.d.lng] as [number, number]);
-        L.polyline(line, { color: navColour(), weight: 3, opacity: 0.85, dashArray: "2 7", lineCap: "round" }).addTo(layer);
+        const straight = [
+          ...(plan.start?.label ? [[plan.start.lat, plan.start.lng] as [number, number]] : []),
+          ...(plan.res.stops as any[]).map((x) => [x.d.lat, x.d.lng] as [number, number]),
+        ];
+        // solid where we know the road, dashes where we are still guessing —
+        // the same two states the route screen's map uses, and the dashes are
+        // the honest one
+        const drawn = roadRef.current;
+        L.polyline(drawn.length ? drawn : straight, {
+          color: navColour(),
+          weight: drawn.length ? 5 : 3,
+          opacity: drawn.length ? 0.85 : 0.7,
+          dashArray: drawn.length ? undefined : "2 7",
+          lineCap: "round",
+          lineJoin: "round",
+        }).addTo(layer);
+        // where the day begins, so the line has a head and not just a first stop
+        if (plan.start?.label)
+          L.marker([plan.start.lat, plan.start.lng], {
+            icon: L.divIcon({ html: '<span class="rmk start">A</span>', className: "lmk-wrap", iconSize: [26, 26], iconAnchor: [13, 13] }),
+            title: plan.start.label,
+          }).addTo(layer);
+        // the number badges were interactive:false, so the one part of the map
+        // a visitor most wants to ask about — "what is stop 4?" — was the one
+        // part that ignored a tap
         (plan.res.stops as any[]).forEach((x, n) => {
           L.marker([x.d.lat, x.d.lng], {
             icon: L.divIcon({ html: '<span class="lnum">' + (n + 1) + "</span>", className: "lmk-wrap", iconSize: [22, 22], iconAnchor: [-4, 20] }),
-            interactive: false,
-          }).addTo(layer);
+            title: nm(x.d.name),
+          })
+            .on("click", () => setSel(x.d))
+            .addTo(layer);
         });
       }
       if (S.userLoc) {
@@ -226,6 +229,46 @@ export function MapView() {
     }
   }
 
+  // Fetch the real road for the drawn day. Keyed on the stop ids and the start
+  // point, so switching day on a multi-day plan refetches and nothing else does.
+  const planKey = (() => {
+    const pl = S.plan;
+    if (!showPlan || !pl?.res?.stops?.length) return "";
+    return (
+      (pl.start ? pl.start.lat.toFixed(4) + "," + pl.start.lng.toFixed(4) : "") +
+      "|" + (pl.res.stops as any[]).map((x) => x.d.id).join(",")
+    );
+  })();
+
+  useEffect(() => {
+    if (!planKey) {
+      setRoad([]);
+      return;
+    }
+    const pl = S.plan!;
+    const via = [
+      ...(pl.start?.label ? [{ lat: pl.start.lat, lng: pl.start.lng }] : []),
+      ...(pl.res!.stops as any[]).map((x) => ({ lat: x.d.lat, lng: x.d.lng })),
+    ];
+    let dead = false;
+    const ac = new AbortController();
+    roadGeometry(via, ac.signal).then((geo) => {
+      // same guard as RouteMap's: roadGeometry resolves even when aborted
+      if (!dead && geo.length > via.length) setRoad(geo);
+    });
+    return () => {
+      dead = true;
+      ac.abort();
+    };
+  }, [planKey]);
+
+  // redraw once the road arrives
+  useEffect(() => {
+    drawMap(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [road]);
+
+
   // Leaflet measured itself against a hidden container while the list was up.
   useEffect(() => {
     if (!list) setTimeout(() => mapRef.current?.invalidateSize(false), 60);
@@ -233,6 +276,41 @@ export function MapView() {
 
   const plan = S.plan;
   const multi = plan?.multi;
+
+  /**
+   * Which theme chips to offer.
+   *
+   * All eight, unfiltered, is the right answer when the map is a directory of
+   * the district. With a day drawn on it the map is about THAT day, and eight
+   * chips — six of which filter to places the plan never goes near — is a
+   * choice nobody on a trip is trying to make. So the row narrows to the themes
+   * the plan's own stops carry. "All" is always there to widen it again.
+   */
+  const planThemes = (() => {
+    if (!showPlan || !plan?.res?.stops?.length) return THEMES;
+    const has = new Set<string>();
+    (plan.res.stops as any[]).forEach((x) => x.d.themes.forEach((th: string) => has.add(th)));
+    const narrowed = THEMES.filter((th) => has.has(th.id));
+    return narrowed.length ? narrowed : THEMES;
+  })();
+
+  // Narrowing the row can strand the current selection on a chip that is no
+  // longer shown — the filter would keep applying with nothing on screen to
+  // turn it off. Fall back to "All".
+  useEffect(() => {
+    if (S.mapTheme !== "all" && !planThemes.some((th) => th.id === S.mapTheme)) {
+      S.mapTheme = "all";
+      bump();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planThemes.length]);
+
+  /** the place's number on the drawn route, if it is on it */
+  const stopNo = (id: string): number | undefined => {
+    if (!showPlan || !plan?.res) return undefined;
+    const i = (plan.res.stops as any[]).findIndex((x) => x.d.id === id);
+    return i < 0 ? undefined : i + 1;
+  };
 
   const setTheme = (id: string) => {
     S.mapTheme = id;
@@ -264,13 +342,36 @@ export function MapView() {
           the route screen to do it. */}
       {plan?.res?.stops?.length ? (
         <div className="mapplan">
-          <span className="mp-line" lang={S.lang}>
-            <Icon name="route" />
-            {multi
-              ? nm({ en: `Your plan · day ${(plan.day || 0) + 1} of ${multi.days.length}`, hi: `आपकी योजना · दिन ${(plan.day || 0) + 1} / ${multi.days.length}` })
-              : nm({ en: "Your plan, drawn in order", hi: "आपकी योजना, क्रम से" })}
-          </span>
-          {multi && (
+          <div className="mp-head">
+            <span className="mp-line" lang={S.lang}>
+              <Icon name="route" />
+              {multi
+                ? nm({ en: `Your plan · day ${(plan.day || 0) + 1} of ${multi.days.length}`, hi: `आपकी योजना · दिन ${(plan.day || 0) + 1} / ${multi.days.length}` })
+                : nm({ en: "Your plan, drawn in order", hi: "आपकी योजना, क्रम से" })}
+            </span>
+            {/* The route drawn over every pin is what this screen is for most of
+                the time, and squarely in the way the rest of it — when the
+                visitor is looking for somewhere the plan does not go. */}
+            <label className="mp-toggle">
+              <span lang={S.lang}>{nm({ en: "Show", hi: "दिखाएँ" })}</span>
+              <input
+                type="checkbox"
+                className="sw"
+                checked={showPlan}
+                onChange={(e) => setShowPlan(e.target.checked)}
+                aria-label={nm({ en: "Show my plan on the map", hi: "नक्शे पर मेरी योजना दिखाएँ" })}
+              />
+            </label>
+          </div>
+          {/* The map is where a visitor decides they are actually going. Until
+              now starting the day meant navigating back to the route screen to
+              find the button. Same startGo() — it primes speech inside this tap,
+              which is the only place iOS will allow it. */}
+          <button className="btn primary mp-start" onClick={startGo}>
+            <Icon name="play" />
+            {nm({ en: "Start the trip", hi: "यात्रा शुरू करें" })}
+          </button>
+          {multi && showPlan && (
             <div className="daytabs" role="tablist">
               {multi.days.map((dd, i) => (
                 <button
@@ -297,7 +398,7 @@ export function MapView() {
         <button className={"chip" + (S.mapTheme === "all" ? " on warm" : "")} aria-pressed={S.mapTheme === "all"} style={{ flex: "0 0 auto" }} onClick={() => setTheme("all")}>
           {t("all")}
         </button>
-        {THEMES.map((th) => (
+        {planThemes.map((th) => (
           <button
             key={th.id}
             className={"chip" + (S.mapTheme === th.id ? " on warm" : "")}
@@ -321,8 +422,9 @@ export function MapView() {
           </span>
         </div>
       )}
-      <div className="mapwrap" hidden={list}>
+      <div className="mapwrap mapdeck-host" hidden={list}>
         <div id="leaf" ref={hostRef} />
+        {sel && <PlaceDeck d={sel} n={stopNo(sel.id)} onClose={() => setSel(null)} />}
       </div>
       {list && (
         <div className="plist stagger">

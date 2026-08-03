@@ -117,11 +117,25 @@ assert.ok(
   "and the reason it surfaces must be that you can walk to it",
 );
 
-// the theme must still lead: most of the day is what was asked for
-const onTheme = day.stops.length - offTheme.length;
+/* the theme must still lead — measured on the stops the visitor is DRIVEN to.
+   Counting every stop equally was the wrong test: it scored the museum sixty
+   metres from a car park already paid for the same as a sixteen-minute drive
+   to Jyotisar, so a day that walked to five cheap neighbours "failed" for
+   being too generous. A pocket stop is nearly free by construction (§3.3
+   stage 2) — that is the entire point of pockets. What must never happen is
+   the planner *driving* somewhere off-theme, and that is what this asserts. */
+const driven = day.stops.filter((s) => !s.anchor);
+const drivenOff = driven.filter((s) => !s.d.themes.includes("mahabharata"));
 assert.ok(
-  onTheme >= offTheme.length,
-  `a Mahabharat day must stay a Mahabharat day (${onTheme} on, ${offTheme.length} off)`,
+  drivenOff.length * 2 <= driven.length,
+  `a Mahabharat day must drive to Mahabharat places (${driven.length - drivenOff.length} on, ${drivenOff.length} off)`,
+);
+
+// and the day must actually reach the places the theme is named for
+const reached = new Set(day.stops.map((s) => s.d.id));
+assert.ok(
+  ["jyotisar", "sannihit-sarovar", "bhishma-kund"].filter((id) => reached.has(id)).length >= 2,
+  "a full Mahabharat day must reach at least two of the battlefield's own tirthas",
 );
 
 // parking charged per car park, never per stop

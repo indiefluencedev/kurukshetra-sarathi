@@ -11,7 +11,12 @@ import { addTo } from "@/features/place/place-actions";
 import { roadGeometry } from "@/features/planner/routing/osrm";
 import { passingPlaces, progressAlong, type Passing } from "./corridor";
 import { due, markSaid, speak, resetGuide, voiceOn, setVoiceOn, speechAvailable } from "./guide";
-import type { Stop } from "@/shared/types";
+/** Either end of a leg: a stop, or the point the day starts from. */
+export interface GuidePoint {
+  lat: number;
+  lng: number;
+  id?: string;
+}
 
 /**
  * The drive guide.
@@ -30,7 +35,7 @@ import type { Stop } from "@/shared/types";
  *  · nothing here ever requires a tap while moving — the offer stays until
  *    the next stop
  */
-export function DriveGuide({ stop, next }: { stop: Stop; next?: Stop }) {
+export function DriveGuide({ from, to }: { from?: GuidePoint; to?: GuidePoint }) {
   const [line, setLine] = useState<{ lat: number; lng: number }[]>([]);
   const [ahead, setAhead] = useState<Passing[]>([]);
   const [card, setCard] = useState<Passing | null>(null);
@@ -38,15 +43,17 @@ export function DriveGuide({ stop, next }: { stop: Stop; next?: Stop }) {
   const [denied, setDenied] = useState(false);
   const wake = useRef<any>(null);
 
-  const from = stop.d;
-  const to = next?.d;
-
   /* ---- the road we are actually on, and what sits beside it ---- */
   useEffect(() => {
     resetGuide();
     setCard(null);
-    if (!to) {
+    // A leg needs two different ends. When they are the same place the line has
+    // no length, `passingPlaces` returns nothing, and the guide is silent —
+    // which is exactly what used to happen on the FIRST leg, where the caller
+    // had no previous stop to hand and passed the current one twice.
+    if (!from || !to || (from.lat === to.lat && from.lng === to.lng)) {
       setAhead([]);
+      setLine([]);
       return;
     }
     let live = true;
@@ -56,14 +63,14 @@ export function DriveGuide({ stop, next }: { stop: Stop; next?: Stop }) {
       const pts = geo.map(([lat, lng]) => ({ lat, lng }));
       setLine(pts);
       // never announce somewhere the day is already taking you
-      const onRoute = new Set(D.filter((d) => d.id === from.id || d.id === to.id).map((d) => d.id));
+      const onRoute = new Set([from.id, to.id].filter(Boolean) as string[]);
       setAhead(passingPlaces(pts, D, onRoute));
     });
     return () => {
       live = false;
       ac.abort();
     };
-  }, [from.id, to?.id]);
+  }, [from?.id, from?.lat, to?.id, to?.lat]);
 
   /* ---- follow the car ---- */
   useEffect(() => {
@@ -90,10 +97,14 @@ export function DriveGuide({ stop, next }: { stop: Stop; next?: Stop }) {
           const d = byId(p.id);
           if (!d) continue;
           markSaid(p.id, now);
+          // The name AND what it is. "On your left is Nabha House" tells a
+          // visitor nothing they can act on; the one-line description is
+          // already written for every place and is the whole difference
+          // between a label being read out and a guide.
           speak(
             nm({
-              en: `On your ${p.side} is ${d.name.en}.`,
-              hi: `आपकी ${p.side === "left" ? "बाईं" : "दाईं"} ओर ${d.name.hi} है।`,
+              en: `On your ${p.side} is ${d.name.en}. ${d.short.en}`,
+              hi: `आपकी ${p.side === "left" ? "बाईं" : "दाईं"} ओर ${d.name.hi} है। ${d.short.hi}`,
             }),
           );
           setCard(p);
@@ -114,7 +125,7 @@ export function DriveGuide({ stop, next }: { stop: Stop; next?: Stop }) {
     };
   }, [line, ahead]);
 
-  if (!to) return null;
+  if (!from || !to || !ahead.length) return null;
 
   const flipVoice = () => {
     setVoiceOn(!voice);

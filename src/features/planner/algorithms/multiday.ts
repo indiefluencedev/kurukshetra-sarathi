@@ -2,10 +2,28 @@
 // days, never repeating a place across days. Takes the engine's `build` as a
 // parameter to avoid an import cycle. See docs/03.
 import { D } from "@/data/destinations";
+import { addDays } from "@/shared/lib/datetime";
 import type { Itinerary } from "@/shared/types";
 
 export const DAY_MAX = 9 * 60; // most active minutes in one day
-export const DAY_START = 9 * 60; // each day starts at 09:00
+export const DAY_START = 9 * 60; // the morning hour days 2..n fall back to
+export const DAY_END = 18 * 60; // when a day of sightseeing is over (09:00 + DAY_MAX)
+
+/**
+ * When day `n` sets off.
+ *
+ * Day 1 starts when the visitor said they would start — this used to be
+ * hardcoded to DAY_START, so a stay of two days or more silently threw the
+ * answer to "what time do you begin?" away and every itinerary opened at
+ * 9:00am no matter what had been chosen.
+ *
+ * Later days have no stated time — the visitor is waking up in a hotel, not
+ * arriving — so they fall back to the morning hour. An early riser keeps their
+ * hour, though: someone who set off at 07:00 on day 1 is not made to wait
+ * until 09:00 on day 2.
+ */
+export const dayStart = (n: number, chosen?: number | null): number =>
+  n === 0 ? (chosen ?? DAY_START) : Math.min(chosen ?? DAY_START, DAY_START);
 
 type BuildFn = (o: any) => Itinerary;
 
@@ -19,11 +37,18 @@ export function buildDays(o: any, build: BuildFn) {
     if (leftMin <= 45) break;
     const pool = D.filter((d) => !used[d.id]).map((d) => d.id);
     if (!pool.length) break;
+    const start = dayStart(n, o.startClock);
     const day = build(
       Object.assign({}, o, {
-        budgetMin: Math.min(DAY_MAX, leftMin),
-        startClock: DAY_START,
+        // a late start shortens the first day rather than running it past
+        // closing time — the window is "until the places shut", not "nine hours
+        // from whenever you happened to begin"
+        budgetMin: Math.min(DAY_MAX, leftMin, DAY_END - start),
+        startClock: start,
         weekday: (o.weekday + n) % 7,
+        // each day is its own date, so a stay that runs into the Mahotsav gets
+        // the festival's crowds on those days and not on the ones before it
+        date: o.date ? addDays(o.date, n) : undefined,
         onlyIds: pool,
       }),
     );

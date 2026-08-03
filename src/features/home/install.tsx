@@ -1,7 +1,7 @@
 import { bump } from "@/app/state";
 import { S } from "@/app/state";
 import { track } from "@/app/nav";
-import { t } from "@/shared/i18n/i18n";
+import { t, nm } from "@/shared/i18n/i18n";
 import { openSheet, closeSheet, toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 
@@ -95,6 +95,58 @@ function howToInstall() {
         {t("gotIt")}
       </button>
     </>,
+  );
+}
+
+/**
+ * The install prompt, where someone will actually meet it.
+ *
+ * Everything needed to install has existed since the port — the
+ * `beforeinstallprompt` capture above, the iOS Add-to-Home-Screen steps, the
+ * card — but all of it lived on the Settings screen, which a visitor reaches
+ * by tapping a sliders glyph in the corner of the header. In other words the
+ * app was installable and never said so. This is the same `installApp()`, on
+ * Home, as one slim line.
+ *
+ * It sits below the "how long do you have?" plate rather than above it: being
+ * an app is not what anyone opened this to do. Dismissal is permanent, because
+ * a banner that returns after being refused is an advert.
+ */
+const DISMISSED = "k_install_off";
+
+export function dismissInstall() {
+  try {
+    localStorage.setItem(DISMISSED, "1");
+  } catch {
+    /* private mode — the bar simply comes back next launch */
+  }
+  bump();
+}
+
+export function InstallBar() {
+  if (isStandalone()) return null;
+  try {
+    if (localStorage.getItem(DISMISSED)) return null;
+  } catch {
+    /* ignore — show it */
+  }
+  return (
+    <div className="installbar">
+      <span className="ic">
+        <Icon name="download" />
+      </span>
+      {/* dlSub / dlBtn are the full-sentence strings the Settings card uses;
+          in a 34px-tall strip they wrapped to four lines. A bar gets bar copy. */}
+      <span className="tx" lang={S.lang}>
+        {nm({ en: "Install it — works without a signal", hi: "इंस्टॉल करें — बिना नेटवर्क चलता है" })}
+      </span>
+      <button className="go" onClick={installApp} lang={S.lang}>
+        {nm({ en: "Install", hi: "इंस्टॉल" })}
+      </button>
+      <button className="x" onClick={dismissInstall} aria-label={nm({ en: "Dismiss", hi: "हटाएँ" })}>
+        <Icon name="close" />
+      </button>
+    </div>
   );
 }
 

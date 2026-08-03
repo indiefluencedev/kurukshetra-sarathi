@@ -111,11 +111,17 @@ export const setLangStay = (l: Lang) => {
 };
 export const flipLang = () => setLangStay(S.lang === "hi" ? "en" : "hi");
 
+/* ---- answers carried over from the last plan ----
+   Filled by the persistence layer at boot. It is pushed in rather than
+   imported because state.ts has to stay a dependency leaf — the same reason
+   onBump exists. See docs/10 §2.5. */
+let carried: Partial<Plan> = {};
+export const setCarried = (p: Partial<Plan>) => {
+  carried = p;
+};
+
 /* ---- a fresh plan (was newPlan) ---- */
 export const newPlan = (): Plan => ({
-  step: 0,
-  mins: null,
-  label: "",
   // No start pre-selected: "my location" is permission-gated, so it must be an
   // explicit choice, not a default that implies a fix we don't have.
   startType: "",
@@ -128,6 +134,18 @@ export const newPlan = (): Plan => ({
   pace: "balanced",
   who: "family",
   opts: { meal: true },
+  // Where they set off from last time, how they travel, who with, at what pace.
+  // Answering the same four questions on every visit is the thing this app was
+  // built to stop doing.
+  ...carried,
+  // Never carried, whatever ends up in the record — these sit after the spread
+  // so a field added to Prefs by mistake still cannot resurrect them. The
+  // length of *this* visit is the question the planner opens with, and a stale
+  // date silently checks the route against the opening hours of a day that has
+  // already gone.
+  step: 0,
+  mins: null,
+  label: "",
   res: null,
   alts: [],
   startClock: null,

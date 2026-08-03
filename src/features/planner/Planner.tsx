@@ -120,8 +120,11 @@ function StepTime() {
   // A length that matches no preset is, by definition, a custom one — so the
   // panel is open because of the answer, not because of a remembered tap.
   const [asked, setAsked] = useState(false);
-  const custom = p.days === 1 && p.mins != null && !preset;
+  const multi = p.days > 1;
+  const custom = !multi && p.mins != null && !preset;
   const showCustom = custom || asked;
+  const tod = isToday(p.date);
+  const startsAt = clock(p.startClock != null ? p.startClock : tod ? nowM() : 9 * 60);
 
   return (
     <>
@@ -135,51 +138,90 @@ function StepTime() {
 
       <div className="qsplit" />
 
-      <h2 className="q" lang={S.lang}>
-        {t("q_time")}
-      </h2>
-      <p className="qs">{t("q_time_s")}</p>
-      <div className="tgrid">
-        {WINDOWS.map((w) => {
-          const l = typeof w.lb === "string" ? w.lb : nm(w.lb);
-          return (
-            <button
-              key={l}
-              className={"chip warm" + (preset === w ? " on" : "")}
-              aria-pressed={preset === w}
-              onClick={() => {
-                setAsked(false);
-                setWin(w.mins, w.lb, w.days);
-              }}
-            >
-              {l}
-            </button>
-          );
-        })}
-        <button
-          className={"chip warm" + (showCustom ? " on" : "")}
-          aria-pressed={showCustom}
-          onClick={() => {
-            setAsked(true);
-            if (!custom) setWin(240, dur(240), 1); // open on 4h — the gap the presets leave
-          }}
-        >
-          {nm({ en: "Custom", hi: "अन्य" })}
-        </button>
-      </div>
-
-      {showCustom && p.days === 1 && <CustomLength mins={p.mins || 240} />}
-
-      {p.days > 1 && (
-        <div className="note" style={{ marginTop: 12 }}>
-          <Icon name="cal" />
-          <span lang={S.lang}>
-            {nm({
-              en: `${p.days} days — ${longDate(p.date)} to ${longDate(lastDay(p))}. Tap the day above to change either end.`,
-              hi: `${p.days} दिन — ${longDate(p.date)} से ${longDate(lastDay(p))} तक। बदलने के लिए ऊपर दिनांक दबाएँ।`,
-            })}
+      {/* A stay of more than one day HAS no "how long do you have" — the stay is
+          the window. Asking it anyway offered "1h" against a three-day trip and
+          left an answered question looking unanswered. So the whole block goes,
+          and its place is taken by what the dates already decided. */}
+      {multi ? (
+        <div className="answered">
+          <span className="ic">
+            <Icon name="cal" />
+          </span>
+          <span>
+            <b lang={S.lang}>
+              {nm({ en: `${p.days} days in Kurukshetra`, hi: `कुरुक्षेत्र में ${p.days} दिन` })}
+            </b>
+            <span className="sub" lang={S.lang}>
+              {nm({
+                en: `${longDate(p.date)} to ${longDate(lastDay(p))}. Each day is planned from ${startsAt}. Tap the dates above to change either end.`,
+                hi: `${longDate(p.date)} से ${longDate(lastDay(p))} तक। हर दिन ${startsAt} से नियोजित। बदलने के लिए ऊपर दिनांक दबाएँ।`,
+              })}
+            </span>
           </span>
         </div>
+      ) : (
+        <>
+          <h2 className="q" lang={S.lang}>
+            {t("q_time")}
+          </h2>
+          <p className="qs">{t("q_time_s")}</p>
+          <div className="tgrid">
+            {WINDOWS.map((w) => {
+              const l = typeof w.lb === "string" ? w.lb : nm(w.lb);
+              return (
+                <button
+                  key={l}
+                  className={"chip warm" + (preset === w ? " on" : "")}
+                  aria-pressed={preset === w}
+                  onClick={() => {
+                    setAsked(false);
+                    setWin(w.mins, w.lb, w.days);
+                  }}
+                >
+                  {l}
+                </button>
+              );
+            })}
+            <button
+              className={"chip warm" + (showCustom ? " on" : "")}
+              aria-pressed={showCustom}
+              onClick={() => {
+                setAsked(true);
+                if (!custom) setWin(240, dur(240), 1); // open on 4h — the gap the presets leave
+              }}
+            >
+              {nm({ en: "Custom", hi: "अन्य" })}
+            </button>
+          </div>
+
+          {showCustom && <CustomLength mins={p.mins || 240} />}
+
+          {/* The multi-day branch above has always confirmed itself in words.
+              A single day answered nothing back, so the chosen length, the date
+              and the hour lived in three different places on the screen and
+              never in one sentence. */}
+          {p.mins != null && (
+            <div className="answered">
+              <span className="ic">
+                <Icon name="clock" />
+              </span>
+              <span>
+                <b lang={S.lang}>
+                  {nm({
+                    en: `${dur(p.mins)} on ${longDate(p.date)}`,
+                    hi: `${longDate(p.date)} को ${dur(p.mins)}`,
+                  })}
+                </b>
+                <span className="sub" lang={S.lang}>
+                  {nm({
+                    en: `Starting at ${startsAt}. Everything suggested will fit inside this window.`,
+                    hi: `${startsAt} से शुरू। सुझाया गया सब कुछ इसी अवधि में समाएगा।`,
+                  })}
+                </span>
+              </span>
+            </div>
+          )}
+        </>
       )}
     </>
   );
@@ -425,20 +467,45 @@ function StepHow() {
   // This step used to be one unbroken wall of chips — four questions with only
   // a label between them. Each question is its own plate now, so the eye can
   // tell where one ends, and a half-finished step is obvious at a glance.
+  // The pick-one / pick-any hint sits ON the heading line rather than under it.
+  // As its own paragraph it was a fourth repeated brass line down the step,
+  // which read as decoration; beside the question it reads as part of it.
   const QCard = ({
     lb, hint, one, children,
   }: { lb: string; hint?: string; one?: boolean; children: React.ReactNode }) => (
     <section className="qcard">
-      <h3 lang={S.lang}>{lb}</h3>
-      <p className="qc-hint" lang={S.lang}>
-        <span className="pick">{one ? nm({ en: "Pick one", hi: "एक चुनें" }) : nm({ en: "Pick any", hi: "जो भी लागू हों" })}</span>
-        {hint ? " · " + hint : ""}
-      </p>
+      <h3 lang={S.lang}>
+        {lb}
+        <span className="pick">
+          {one ? nm({ en: "one", hi: "एक" }) : nm({ en: "any", hi: "कोई भी" })}
+        </span>
+      </h3>
+      {hint && (
+        <p className="qc-hint" lang={S.lang}>
+          {hint}
+        </p>
+      )}
       <div className="wrap" role={one ? "radiogroup" : undefined} aria-label={lb}>
         {children}
       </div>
     </section>
   );
+
+  /** The four answers as one sentence — the same closing move as step 1. */
+  const chosenThemes = p.themes.length
+    ? p.themes.map((id) => nm(theme(id) || { en: id, hi: id })).join(", ")
+    : "";
+  const MODE_LB: Record<string, string> = {
+    car: t("car"), taxi: t("taxi"), twowheeler: t("twowheeler"),
+    erickshaw: nm({ en: "E-rickshaw", hi: "ई-रिक्शा" }),
+    public: t("public"), walking: t("walking"),
+  };
+  const summary = [
+    chosenThemes,
+    p.modes.map((m) => MODE_LB[m] || m).join(" + "),
+    t(p.pace),
+    t(p.who),
+  ].filter(Boolean).join(" · ");
 
   return (
     <>
@@ -489,6 +556,23 @@ function StepHow() {
           {chk("access", t("optAccess"))}
         </div>
       </details>
+
+      {/* Four questions answered across four plates, said back as one line —
+          the last thing read before "Build the route", so what is about to be
+          built is legible without scrolling back up through all of it. */}
+      {p.themes.length > 0 && (
+        <div className="answered">
+          <span className="ic">
+            <Icon name="route" />
+          </span>
+          <span>
+            <b lang={S.lang}>{nm({ en: "Your day", hi: "आपका दिन" })}</b>
+            <span className="sub" lang={S.lang}>
+              {summary}
+            </span>
+          </span>
+        </div>
+      )}
     </>
   );
 }

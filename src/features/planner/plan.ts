@@ -6,7 +6,8 @@ import { toast } from "@/shared/ui/overlays";
 import { CONFIG } from "@/data/config";
 import { Engine } from "@/features/planner/engine";
 import { askLoc } from "@/features/location/location";
-import { savePlan } from "./persist";
+import { savePlan, rememberAnswers } from "./persist";
+import type { EventDef } from "@/data/events";
 import type { Loc, GeoPoint } from "@/shared/types";
 
 /** One active day of sightseeing. A multi-day stay is this × the number of days. */
@@ -74,6 +75,48 @@ export const quickTheme = (id: string) => {
   S.plan.themes = [id];
   go("/plan");
 };
+
+/**
+ * Start from a named route — a length AND a set of themes in one tap.
+ *
+ * `quick()` pre-answers only the length and `quickTheme()` only the themes,
+ * so Home could never offer "the Gita trail, half a day" as one thing. That
+ * gap is why the front page could only ever show a database ("Temples · 23
+ * places") and never a recommendation. Still lands on step 1 rather than
+ * building immediately: the day and the start hour are the visitor's to
+ * confirm, and a route built before they are asked is a route built on
+ * guesses.
+ */
+export const quickRoute = (themes: string[], mins: number, label: string | Loc) => {
+  const keep = S.plan && S.plan.date;
+  S.plan = newPlan();
+  if (keep) S.plan.date = keep;
+  S.plan.themes = themes.slice();
+  S.plan.mins = mins;
+  S.plan.label = label;
+  S.plan.step = 0;
+  track("plan_start", { route: themes.join("+") });
+  go("/plan");
+};
+
+/**
+ * Plan a day around an event — the one tap from "there is a festival" to
+ * "here is my day at it".
+ *
+ * All this sets is the date. Everything else follows from it: the engine looks
+ * the date up in events.json, weights the festival's places up and charges the
+ * crowds, so there is nothing here to keep in step with the event data.
+ */
+export function planForEvent(e: EventDef) {
+  const today = isoToday();
+  S.plan = newPlan();
+  S.plan.date = e.from > today ? e.from : today;
+  // "now" only means anything today; a future date needs a stated start hour
+  if (S.plan.date !== today) S.plan.startClock = 9 * 60;
+  S.plan.step = 0;
+  track("plan_start", { event: e.id });
+  go("/plan");
+}
 
 export const homeDate = () => {
   if (!S.plan) S.plan = newPlan();
@@ -262,6 +305,31 @@ export function flipTheme(id: string) {
   bump();
 }
 
+/**
+ * Take the engine up on the way out it found.
+ *
+ * `fix` comes straight from the build that failed, and every field in its
+ * patch is one the planner already owns — so applying it is assignment, not a
+ * second code path that could disagree with what the visitor was promised.
+ */
+export function applyFix(fix: { key: string; patch: Record<string, number | string> }) {
+  const p = S.plan!;
+  const q = fix.patch;
+  if (typeof q.startClock === "number") p.startClock = q.startClock;
+  if (typeof q.budgetMin === "number") {
+    p.mins = q.budgetMin;
+    p.label = ""; // falls back to the duration, so the title stays honest
+    p.days = 1;
+  }
+  if (typeof q.date === "string") {
+    p.date = q.date;
+    // a future day has no "now" to start from
+    if (!isToday(p.date) && p.startClock == null) p.startClock = 9 * 60;
+  }
+  track("nofit_fix", { key: fix.key });
+  buildRoute();
+}
+
 export function buildRoute() {
   const p = S.plan!;
   const sc = p.startClock != null ? p.startClock : nowM() < 9 * 60 ? 9 * 60 : nowM();
@@ -276,6 +344,7 @@ export function buildRoute() {
     who: p.who,
     startClock: sc,
     weekday: planWeekday(),
+    date: p.date,
     filters: { free: !!p.opts.free, indoor: !!p.opts.indoor, meal: !!p.opts.meal },
   };
   const multi = p.mins! > Engine.DAY_MAX ? Engine.buildDays(opts) : null;
@@ -300,5 +369,7 @@ export function buildRoute() {
   savePlan(p).catch(() => {
     /* private mode / no quota — the route still works, it just won't come back */
   });
+  // and remember how it was answered, so the next plan starts four taps in
+  rememberAnswers(p);
   go("/route");
 }

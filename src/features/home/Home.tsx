@@ -7,11 +7,33 @@ import { D } from "@/data/destinations";
 import { imgUrl } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { loadWeather } from "@/features/weather/weather";
-import { WeatherChip } from "@/features/weather/WeatherChip";
+import { HomeHero } from "./HomeHero";
+import { TodayStrip } from "./TodayStrip";
 import { TimeBlock } from "./TimeBlock";
-import { HeroRail } from "./HeroRail";
+import { StartHere } from "./StartHere";
+import { EventRail } from "./EventRail";
 import { HowToCard } from "./HowToCard";
+import { InstallBar } from "./install";
 
+/**
+ * Home, in the order a visit actually happens.
+ *
+ * The old order opened on a form — "How long do you have in Kurukshetra?" with
+ * six pills — then stacked two carousels on top of a theme grid. It was the
+ * right question asked before any reason to answer it, and two carousels is
+ * roughly seven swipes of decoration between the visitor and what they came for.
+ *
+ *   1  one photograph of Kurukshetra today          — why you came
+ *   2  the question, overlapping it                 — the app's one job
+ *   3  today: date, heat, when the light goes       — where you are standing
+ *   4  what is on, only when something is           — news, if there is news
+ *   5  three routes a guide would suggest           — the recommendation
+ *   6  browse by theme                              — the escape hatch
+ *
+ * The plate at (2) sits half on the photograph deliberately: the image earns
+ * the screen, and the primary action still lands above the fold on a small
+ * phone. Someone standing at a bus stand must not have to scroll to plan.
+ */
 export function Home() {
   useEffect(() => {
     loadWeather();
@@ -19,19 +41,18 @@ export function Home() {
 
   return (
     <>
-      <TimeBlock />
-
-      {/* Search reads as the field it leads to, not as a 21px icon in the
-          header. The weather + clock sit beside it — one row, both large. */}
-      <div className="homerow">
-        <button className="searchrow" onClick={() => go("/search")}>
-          <Icon name="search" />
-          <span lang={S.lang}>{nm({ en: "Search places", hi: "स्थान खोजें" })}</span>
-        </button>
-        <WeatherChip />
+      <div className="hh-wrap">
+        <HomeHero />
+        <TimeBlock />
       </div>
 
-      <HeroRail />
+      <TodayStrip />
+
+      {/* Only inside three weeks. An event 77 days out is not news, and a rail
+          announcing one is a rail announcing nothing. */}
+      <EventRail withinDays={21} />
+
+      <StartHere />
 
       <div className="sec">
         <div className="sec-head">
@@ -63,20 +84,10 @@ export function Home() {
         </div>
       </div>
 
-      {/* Reels are contextual — they live on the place they were filmed at, not
-          here. The install prompt lives in Settings. The walkthrough shows only
-          until the visitor has built their first route. */}
-      {!store.routes.length && <HowToCard />}
-
-      <div className="note" style={{ marginBottom: 10, alignItems: "center" }}>
-        <Icon name="info" />
-        <span>
-          {t("estimates")}{" "}
-          <button className="link" onClick={() => go("/credits")}>
-            {t("srcHead")}
-          </button>
-        </span>
-      </div>
+      {/* The walkthrough shows only until the visitor has built their first
+          route; the install bar shows only once they have, because that is the
+          moment the app has proved it is worth a home-screen slot. */}
+      {store.routes.length ? <InstallBar /> : <HowToCard />}
     </>
   );
 }

@@ -5,6 +5,8 @@
 // plan) keeps working.
 import { D } from "@/data/destinations";
 import { THEMES } from "@/data/config";
+import { activeEvent, affects } from "@/data/events";
+import { addDays, fromISO } from "@/shared/lib/datetime";
 import { routing } from "./routing";
 import { openAt } from "./rules/hours";
 import { poiScore, timeFit } from "./rules/scoring";
@@ -13,13 +15,57 @@ import { greedy } from "./algorithms/greedy";
 import { reorder } from "./algorithms/twoOpt";
 import { suggestNearby } from "./algorithms/suggest";
 import { buildDays, DAY_MAX } from "./algorithms/multiday";
-import { simulate, type RouteCtx } from "./algorithms/schedule";
+import { simulate, legMin, type RouteCtx } from "./algorithms/schedule";
 
 /* How far behind an off-theme place starts. Big enough that it never beats
    a theme match at equal cost; small enough that "you are already parked
    sixty metres away" can still carry it. Tune with a real itinerary, not
    by reasoning about the number. */
 const OFF_THEME = 18;
+
+/* Nobody sets off before six. */
+const MIN_START = 6 * 60;
+
+/**
+ * When nothing fits, work out what would.
+ *
+ * "Nothing fits that window — try a longer window, fewer themes, or a brisker
+ * pace" is true and useless: it is three guesses handed back to the person who
+ * has the least information. The engine can simply try them. Each probe is one
+ * more `build()` — a couple of thousand operations — and it turns the one
+ * screen in the app a visitor cannot act on into a single tap.
+ *
+ * Ordered by how little it costs the visitor to accept: leaving earlier is
+ * free, a longer day is a real concession, changing the date is the last
+ * resort. First one that actually works wins. See docs/10 §5 step 6.
+ */
+function suggestFix(o) {
+  const tries = [];
+
+  const earlier = Math.max(MIN_START, (o.startClock || 9 * 60) - 60);
+  if (earlier < o.startClock) tries.push({ key: "earlier", patch: { startClock: earlier } });
+
+  tries.push({ key: "longer", patch: { budgetMin: Math.round(o.budgetMin * 1.5) } });
+
+  if (o.date) {
+    // If a festival is what made the day impossible, the useful alternative is
+    // the day after it ends — not tomorrow, which is still the festival.
+    const ev = activeEvent(o.date);
+    const alt = ev ? addDays(ev.to, 1) : addDays(o.date, 1);
+    tries.push({
+      key: ev ? "afterEvent" : "otherDay",
+      patch: { date: alt, weekday: fromISO(alt).getDay() },
+    });
+  }
+
+  for (const t of tries) {
+    // `probe` stops this recursing: a failed probe must not go looking for a
+    // fix for the fix.
+    const it = build(Object.assign({}, o, t.patch, { probe: true }));
+    if (it.stops.length) return Object.assign({ stops: it.stops.length }, t);
+  }
+  return null;
+}
 
 function build(o) {
   const mode = o.mode || "car",
@@ -31,6 +77,12 @@ function build(o) {
   const budget = computeBudget(o.budgetMin, o.startClock, pace, { meal: f.meal, who: o.who });
   const spendable = budget.spendable;
 
+  // The event covering this date, if any. It bends the plan through the ordinary
+  // cost model — longer visits, slower legs — plus a score nudge so the day
+  // actually reaches it. Nothing about it is a special case. See docs/10 §4.5.
+  const ev = activeEvent(o.date);
+  const bias = ev?.bias ? { ...(o.bias || {}), ...ev.bias } : o.bias;
+
   const ctx: RouteCtx = {
     start: o.start,
     end: o.end,
@@ -40,6 +92,7 @@ function build(o) {
     startClock: o.startClock,
     parking: PARKING,
     breaks: budget.breaks,
+    ev,
   };
 
   // 1) candidates — hard filters only.
@@ -62,7 +115,7 @@ function build(o) {
   // 2) score each candidate
   const score = {};
   pool.forEach((d) => {
-    const s = poiScore(d, interests, wantAll, o.bias);
+    const s = poiScore(d, interests, wantAll, bias);
     const off = !wantAll && !o.onlyIds && !d.themes.some((t) => interests.indexOf(t) >= 0);
     // Off-theme places start well behind and can only win on cheapness — a
     // few minutes' walk from a stop already chosen. They can never outrank a
@@ -85,7 +138,7 @@ function build(o) {
   const breaks = sim.valid ? sim.breaks : [];
   const cur = stops.length ? stops[stops.length - 1].d : o.start;
 
-  const closeT = stops.length ? routing.travelMin(cur, o.end, mode) : 0;
+  const closeT = stops.length ? legMin(cur, o.end, ctx) : 0;
 
   // 5) "left out" — the next-best unreached candidates, with a reason
   const dropped = [];
@@ -152,35 +205,36 @@ function build(o) {
       contingency: budget.contingency,
       at: Date.now(),
       liveTraffic: false,
+      date: o.date,
+      // the id, not the object — meta is JSON-cloned into saved plans
+      event: ev ? ev.id : null,
+      /** which of these stops the event touches, so the UI can badge them */
+      eventStops: ev ? stops.filter((s) => affects(ev, s.d.id)).map((s) => s.d.id) : [],
     },
     warn: stops.length ? [] : ["nofit"],
+    // what would work instead — computed only on the real build, never inside
+    // a probe, and only when there is nothing to show
+    fix: stops.length || o.probe ? null : suggestFix(o),
   };
 }
 
+/**
+ * The plan for a set of answers.
+ *
+ * This used to also build two alternatives — the same day at a relaxed pace,
+ * and the same day biased towards a theme the visitor had not asked for — and
+ * offer them at the bottom of the route screen under "Other ways".
+ *
+ * They are gone, and with them two extra full builds per plan. The visitor
+ * asked four questions' worth of preferences; answering them and then
+ * presenting two ways of ignoring one of the answers is not a choice, it is a
+ * hedge. Everything the alternatives offered is still reachable and is now
+ * honest about being a change of mind: pace and themes are one tap back in the
+ * planner, and the no-fit fallback still proposes concrete remedies when a day
+ * genuinely will not fit.
+ */
 function generate(o) {
-  const primary = build(o),
-    alts = [];
-  if (o.pace !== "relaxed") alts.push({ tag: "relaxed", it: build(Object.assign({}, o, { pace: "relaxed" })) });
-  const other = THEMES.find((t) => (o.interests || []).indexOf(t.id) < 0);
-  if (other) {
-    const b = {};
-    D.forEach((d) => {
-      if (d.themes.indexOf(other.id) >= 0) b[d.id] = 42;
-    });
-    alts.push({ tag: other.id, it: build(Object.assign({}, o, { bias: b })) });
-  }
-  const key = (it) => it.stops.map((s) => s.d.id).join(">");
-  const seen = {};
-  seen[key(primary)] = 1;
-  const uniq = [];
-  alts.forEach((a) => {
-    const k = key(a.it);
-    if (!seen[k] && a.it.stops.length) {
-      seen[k] = 1;
-      uniq.push(a);
-    }
-  });
-  return { primary, alts: uniq.slice(0, 2) };
+  return { primary: build(o), alts: [] };
 }
 
 function recalc(it, from, fromClock, ids) {
@@ -194,6 +248,7 @@ function recalc(it, from, fromClock, ids) {
     pace: m.pace,
     startClock: fromClock,
     weekday: m.weekday,
+    date: m.date,
     filters: {},
     onlyIds: ids,
   });

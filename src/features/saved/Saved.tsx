@@ -6,7 +6,7 @@ import { byId } from "@/shared/lib/geo";
 import { toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 import { Pcard } from "@/shared/ui/PlaceCard";
-import { store } from "@/app/state";
+import { store, bump } from "@/app/state";
 import { listPlans, deletePlan, openPlan, type SavedPlan } from "@/features/planner/persist";
 import { buildRoute, longDate, lastDay } from "@/features/planner/plan";
 
@@ -18,6 +18,25 @@ import { buildRoute, longDate, lastDay } from "@/features/planner/plan";
 async function reopen(id: string) {
   const p = await openPlan(id);
   if (p) buildRoute(); // navigates to /route itself
+}
+
+/**
+ * Open the saved answers in the planner instead of rebuilding from them.
+ *
+ * `openPlan` already restores every answer — the day, the start and end, the
+ * themes, the pace, the company — it was just being handed straight to
+ * `buildRoute()`, so a saved plan could only ever be re-run exactly as it was.
+ * Changing one thing about a trip you had already described meant answering
+ * all four steps again from scratch. Landing on step 1 with the answers in
+ * place is the same call, one line apart.
+ */
+async function editPlan(id: string) {
+  const p = await openPlan(id);
+  if (!p) return;
+  S.plan!.step = 0;
+  S.plan!.res = null;
+  bump();
+  go("/plan");
 }
 
 function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
@@ -40,9 +59,13 @@ function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
           <b className="display" style={{ fontSize: "calc(15px*var(--ts))" }}>
             {r.title}
           </b>
-          <div className="muted" style={{ fontSize: "calc(13px*var(--ts))" }}>
-            {ns.length} {t("stops")} ·{" "}
-            {new Date(r.at).toLocaleDateString(S.lang === "hi" ? "hi-IN" : "en-IN")}
+          {/* just the count. The saved-on date used to sit here as a raw
+              toLocaleDateString — "3/8/2026" — directly above a chip spelling
+              out "Monday, 3 August 2026". Two dates, one of them ambiguous
+              between British and American order, and neither of them the one
+              that matters. */}
+          <div className="muted" style={{ fontSize: "calc(12.5px*var(--ts))" }}>
+            {ns.length} {t("stops")}
           </div>
         </div>
         <button
@@ -68,13 +91,30 @@ function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
         )}
       </div>
 
-      <div className="muted" style={{ fontSize: "calc(13px*var(--ts))", marginTop: 9, lineHeight: 1.65 }}>
-        {ns.map((n, i) => i + 1 + ". " + n).join(" · ")}
+      {/* The first three, then a count. Every stop numbered and run together
+          into one paragraph was fifteen place names as a wall of prose — too
+          much to read and too little to act on, and it made a saved plan taller
+          than the screen. Three names say what KIND of day this was, which is
+          the only thing a saved-plan card has to answer. */}
+      <p className="sv-list">
+        {ns.slice(0, 3).join(" · ")}
+        {ns.length > 3 && (
+          <span className="sv-more">
+            {" "}
+            {nm({ en: `+ ${ns.length - 3} more`, hi: `+ ${ns.length - 3} और` })}
+          </span>
+        )}
+      </p>
+      <div className="sv-acts">
+        <button className="btn primary sm" onClick={() => reopen(r.id)}>
+          <Icon name="route" />
+          {nm({ en: "Open this plan", hi: "यह योजना खोलें" })}
+        </button>
+        <button className="btn ghost sm" onClick={() => editPlan(r.id)}>
+          <Icon name="gear" />
+          {nm({ en: "Edit", hi: "बदलें" })}
+        </button>
       </div>
-      <button className="btn ghost sm" style={{ marginTop: 11 }} onClick={() => reopen(r.id)}>
-        <Icon name="route" />
-        {nm({ en: "Open this plan", hi: "यह योजना खोलें" })}
-      </button>
     </div>
   );
 }

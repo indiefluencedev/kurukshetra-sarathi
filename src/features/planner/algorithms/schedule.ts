@@ -12,6 +12,7 @@
 import { routing } from "../routing";
 import { openAt, openMin, isClosedDay } from "../rules/hours";
 import { walkMin } from "@/data/graph";
+import { affects, type EventDef } from "@/data/events";
 import { takeDueBreaks, type BreakDef, type TakenBreak } from "../rules/breaks";
 import type { Destination, GeoPoint, Stop } from "@/shared/types";
 
@@ -27,7 +28,38 @@ export interface RouteCtx {
   parking: number;
   /** meals and rests to place on the clock; their minutes are already budgeted */
   breaks?: BreakDef[];
+  /** the event covering this plan's date, if any — see docs/10 §4.5 */
+  ev?: EventDef | null;
 }
+
+/* ---- event factors ----
+   The two knobs from events.json, applied in the only two places any cost is
+   computed. Every algorithm goes through these, so a festival day is stricter
+   arithmetic rather than a special case: fewer stops fit, and the crowded
+   place drifts toward the morning on its own. See docs/10 §4.5. */
+
+const idOf = (x: unknown): string =>
+  (typeof x === "string" ? x : (x as { id?: string })?.id) || "";
+
+const touched = (x: unknown, ev: EventDef | null | undefined) => affects(ev, idOf(x));
+
+/** Slow a leg when the event touches either end. `a`/`b` may be ids or places. */
+export function slow(min: number, a: unknown, b: unknown, ctx: RouteCtx): number {
+  if (!ctx.ev) return min;
+  return touched(a, ctx.ev) || touched(b, ctx.ev) ? Math.round(min * ctx.ev.travelFactor) : min;
+}
+
+/** Travel minutes a→b: the provider's figure, slowed by any event. */
+export const legMin = (
+  a: GeoPoint | Destination,
+  b: GeoPoint | Destination,
+  ctx: RouteCtx,
+  mode = ctx.mode,
+): number => slow(routing.travelMin(a, b, mode), a, b, ctx);
+
+/** How long a visit takes here: the recommended stay, scaled by pace then crowds. */
+export const visitMin = (d: Destination, ctx: RouteCtx): number =>
+  Math.round(d.visit.rec * ctx.visitFactor * (affects(ctx.ev, d.id) ? ctx.ev!.visitFactor : 1));
 
 /** One place in a proposed order; `anchor` marks it as walked-to from that stop. */
 export interface Leg {
@@ -55,17 +87,19 @@ export interface Sim {
  * A walk uses the graph's own figure — the only number here measured rather
  * than inferred from a straight line.
  */
-function leg(from: GeoPoint | Destination, d: Destination, anchor: string | undefined, mode: string) {
+function leg(from: GeoPoint | Destination, d: Destination, anchor: string | undefined, ctx: RouteCtx) {
   if (anchor) {
     const fromId = (from as Destination).id;
     const w = fromId ? walkMin(fromId, d.id) : undefined;
     // A pocket can chain (A→B→C on foot). If B and C have no edge of their own
     // we fall back to the anchor's, and failing that to the walking estimate —
     // never to the driving mode, because the car is parked.
-    const m = w ?? walkMin(anchor, d.id) ?? routing.travelMin(from, d, "walking");
+    const raw = w ?? walkMin(anchor, d.id) ?? routing.travelMin(from, d, "walking");
+    // a crowd slows feet too — crossing a mela ground is not a stroll
+    const m = slow(raw, from, d, ctx);
     return { t: m, km: routing.roadKm(from, d), walk: m };
   }
-  return { t: routing.travelMin(from, d, mode), km: routing.roadKm(from, d), walk: 0 };
+  return { t: legMin(from, d, ctx), km: routing.roadKm(from, d), walk: 0 };
 }
 
 /** Simulate visiting `order` in sequence from ctx.start. */
@@ -92,7 +126,7 @@ export function simulate(order: (Destination | Leg)[], ctx: RouteCtx): Sim {
     let back = 0;
     if (!anchor && legs[i - 1]?.anchor) {
       const prev = legs[i - 1].d;
-      back = walkMin(prev.id, (carAt as Destination).id || "") ?? routing.travelMin(prev, carAt, "walking");
+      back = slow(walkMin(prev.id, (carAt as Destination).id || "") ?? routing.travelMin(prev, carAt, "walking"), prev, carAt, ctx);
       clock += back;
       used += back;
       travel += back;
@@ -100,8 +134,8 @@ export function simulate(order: (Destination | Leg)[], ctx: RouteCtx): Sim {
       cur = carAt;
     }
 
-    const { t, km, walk: w } = leg(cur, d, anchor, ctx.mode);
-    const visit = Math.round(d.visit.rec * ctx.visitFactor);
+    const { t, km, walk: w } = leg(cur, d, anchor, ctx);
+    const visit = visitMin(d, ctx);
     let arrive = clock + t,
       wait = 0;
     if (d.hours) {
@@ -134,7 +168,7 @@ export function simulate(order: (Destination | Leg)[], ctx: RouteCtx): Sim {
   // finishing inside a pocket still means walking back to the car
   if (legs.length && legs[legs.length - 1].anchor) {
     const last = legs[legs.length - 1].d;
-    const b = walkMin(last.id, (carAt as Destination).id || "") ?? routing.travelMin(last, carAt, "walking");
+    const b = slow(walkMin(last.id, (carAt as Destination).id || "") ?? routing.travelMin(last, carAt, "walking"), last, carAt, ctx);
     clock += b;
     used += b;
     travel += b;
