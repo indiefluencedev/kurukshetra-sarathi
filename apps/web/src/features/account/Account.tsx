@@ -186,6 +186,12 @@ export function Account() {
           {err && (
             <div className="msg bad" role="alert" style={{ marginTop: 12 }}>
               {err}
+              {/* The server cannot say "no such account" — answering that
+                  differently from "wrong password" tells a stranger which
+                  addresses are registered. So the hint goes here instead,
+                  where it costs nothing and covers the commonest case: a
+                  first-time visitor who landed on the sign-in form. */}
+              {mode === "in" && <span className="msg-hint">{t("signInHint")}</span>}
             </div>
           )}
 

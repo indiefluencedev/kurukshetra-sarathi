@@ -253,5 +253,6 @@
  "showPassword": "Show",
  "hidePassword": "Hide",
  "forgotPassword": "Forgotten your password?",
- "forgotHelp": "Password reset by email is not available yet. Ask the Board to reset it for you."
+ "forgotHelp": "Password reset by email is not available yet. Ask the Board to reset it for you.",
+ "signInHint": "If you have not made an account yet, tap “Create an account” below."
 }

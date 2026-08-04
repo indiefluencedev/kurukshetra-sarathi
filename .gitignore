@@ -50,3 +50,7 @@ apps/api/.dev.vars
 
 # drizzle studio introspection output — regenerate with `npm run db:pull`
 apps/api/drizzle/meta/
+
+# production snapshot for Drizzle Studio — regenerate with `npm run db:snapshot`
+apps/api/.prod.sqlite
+apps/api/.prod-dump.sql

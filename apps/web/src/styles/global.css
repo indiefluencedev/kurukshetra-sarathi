@@ -2240,3 +2240,6 @@ a.btn:hover{text-decoration:none}
      taller hit area would overflow the field it belongs to */
   min-height:34px}
 :lang(hi) .pwtoggle{font-family:var(--deva)}
+/* the follow-on line inside an error: quieter than the error itself, because
+   it is guidance rather than the failure */
+.msg-hint{display:block;margin-top:6px;font-size:calc(12.5px*var(--ts));opacity:.85}

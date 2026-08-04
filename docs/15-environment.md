@@ -62,7 +62,24 @@ Read from your shell, only by `drizzle-kit`, only for `npm run db:remote`:
 | `CLOUDFLARE_ACCOUNT_ID` | `4768790aa47814f60dd70c187c7a7bd9` — in `wrangler.toml`, not a secret |
 | `CLOUDFLARE_D1_TOKEN` | **you create it**: dashboard → My Profile → API Tokens → Custom → Account → D1 → Edit |
 
-`npm run db` (local) needs neither.
+`npm run db` (local) needs neither. Nor does `npm run db:prod`, below.
+
+### Seeing production rows without creating a token
+
+```bash
+cd apps/api
+npm run db:prod        # export production → .prod.sqlite → Studio on port 4984
+```
+
+`wrangler d1 export` runs over the wrangler login you already have, so this
+needs no new credential at all. The file is rebuilt each time.
+
+It is a **snapshot, not a connection**: read it, do not edit it — changes go
+nowhere and are overwritten by the next run. Ports differ on purpose (local
+`4983`, production snapshot `4984`) so two Studio tabs cannot be confused for
+each other.
+
+For live, editable production rows, `db:remote` and the token above.
 
 ---
 
