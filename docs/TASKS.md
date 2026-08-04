@@ -4,7 +4,7 @@ Living document. Every other file in `docs/` describes how something *works*;
 this one is the only place that says what is **finished**. If they disagree,
 this file is wrong — fix it here.
 
-Last updated: **4 August 2026**
+Last updated: **4 August 2026** (second pass)
 
 ---
 
@@ -64,6 +64,11 @@ would hit.
 - [x] Session loaded at boot, never awaited before first paint
 - [x] Places read from D1 with the bundled copy as the floor
 - [x] New UI strings in both `en.json` and `hi.json`
+- [x] Push notifications: permission card on first visit, subscribe, Settings toggle
+- [x] Service-worker push + notificationclick (`public/push-sw.js`)
+- [x] `GET /config` — the app learns what the deployment can actually do
+- [x] Change password, requiring the current one, revoking other sessions
+- [x] Rate limiting in D1, keyed per client IP
 
 ---
 
@@ -73,7 +78,8 @@ Ordered by what hurts a real visitor first.
 
 - [ ] **Change the admin password.** `anuragmishra262000@gmail.com` was created
       with the placeholder `change-this-password-now`. A known password on an
-      admin account of a live system. Do this first.
+      admin account of a live system. Do this first — the app can now do it:
+      hamburger → Account → Change password.
 - [ ] **`VAPID_SUBJECT` is still `mailto:REPLACE@example.org`.** Push services
       may reject a token whose subject is not a real address, so the first
       notification can fail. One line in `wrangler.toml` + redeploy.
@@ -86,8 +92,6 @@ Ordered by what hurts a real visitor first.
 - [ ] **Saved plans still do not sync.** The account currently buys the user
       nothing — plans live in IndexedDB on one device. This is the entire
       reason login exists, and it is not built.
-- [ ] **Rate limiting on auth routes.** Sign-in is unthrottled, so password
-      guessing is free. Cloudflare Rate Limiting rules, no code.
 - [ ] **Custom domain.** `pages.dev` + `workers.dev` are different sites, which
       is why sessions use bearer tokens in localStorage. One domain with the
       Worker on `/api/*` makes cookies first-party and is strictly better.
@@ -103,9 +107,16 @@ Ordered by what hurts a real visitor first.
 - [ ] **Admin dashboard cannot edit places yet.** The API accepts it
       (`PUT /admin/content/places`); the HTML in `admin.ts` only has an events
       form.
-- [ ] **Google sign-in** — coded and dormant. Needs a Google Cloud OAuth client
-      with `…workers.dev/api/auth/callback/google` as the redirect URI, then
-      two `wrangler secret put`s.
+- [ ] **Google sign-in** — coded and dormant, and now correctly *hidden* until
+      the server reports credentials. Needs a Google Cloud OAuth client with
+      `https://kuk-saarthi-api.indiefluence-in-media.workers.dev/api/auth/callback/google`
+      as the authorised redirect URI, then:
+      `npx wrangler secret put GOOGLE_CLIENT_ID`, same for
+      `GOOGLE_CLIENT_SECRET`, then `npm run deploy`. Nothing else to change —
+      the button appears on its own once `/config` says `google: true`.
+- [ ] **Nothing has been pushed yet.** The cron fires every 15 minutes and the
+      encryption is unit-tested, but no real notification has reached a real
+      phone. It cannot until `VAPID_SUBJECT` is a real address.
 - [ ] **Promoting an admin is a raw SQL statement.** Fine for three people,
       not a process.
 - [ ] `npm run build-matrix` after any new place, or its travel times stay estimated.
