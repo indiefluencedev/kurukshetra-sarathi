@@ -27,7 +27,7 @@ Verified live at deploy time:
 |---|---|
 | `GET /content/events.json` | 200 · 4 events · `cache-control: max-age=300` |
 | `GET /vapid` | 200 · serves the public key |
-| `GET /admin` | **403** · refuses, because Access is not configured yet |
+| `GET /admin` | 200 · the sign-in shell; every route it calls is guarded |
 | `POST /subscribe` (bad body) | 400 |
 | `GET /nope` | 404 |
 
@@ -44,11 +44,8 @@ went in clean and `window` / `corridor` JSON round-trips through D1 intact.
 
 ## Still to do
 
-- [ ] **Attach a Cloudflare Access policy to `/admin*`.** Zero Trust → Access →
-      Applications → Self-hosted, path `admin*`, allow the Board's emails.
-      Until then the dashboard is *unreachable*: the Worker returns 403 when the
-      identity header is missing rather than accepting an anonymous edit. That
-      403 is the safety net, not a bug.
+The full list lives in [TASKS.md](TASKS.md). What is specific to *deployment*:
+
 - [ ] **`VAPID_SUBJECT`** — a real `mailto:`. Push services may reject a token
       whose subject is not a valid address, so this one must be set before the
       first push. Still `REPLACE@example.org`; waiting on the Board's contact
@@ -141,7 +138,11 @@ npx wrangler secret list          # names only, never values
 npx wrangler secret delete NAME
 ```
 
-Currently set: `VAPID_PUBLIC`, `VAPID_PRIVATE`.
+Currently set: `VAPID_PUBLIC`, `VAPID_PRIVATE`, `AUTH_SECRET`.
+
+`AUTH_SECRET` signs every session — rotating it logs everyone out. Generate it
+with `openssl rand -base64 32 | npx wrangler secret put AUTH_SECRET`, and never
+reuse the value from `.dev.vars`.
 
 **Adding a new one:**
 
@@ -165,17 +166,27 @@ to its bundled calendar — see `apps/web/src/content/live.ts` and docs/11.
 ## Deploying, in order
 
 ```bash
-cd apps/api
-npm install
+npm install                              # from the repo root — it is a workspace
 
+cd apps/api
 npx wrangler d1 list                     # ids for wrangler.toml
 npm run inspect -- --remote              # LOOK FIRST — see below
 npm run migrate                          # runs inspect again and refuses on a clash
 npm run seed                             # optional: the bundled calendar as a start
+npm run import                           # places into D1 — see docs/13
 
+openssl rand -base64 32 | npx wrangler secret put AUTH_SECRET
 npx wrangler secret put VAPID_PUBLIC     # client should own the private key
 npx wrangler secret put VAPID_PRIVATE
 npm run deploy
+```
+
+Then promote the first admin, because `role` cannot be granted by signing up
+(docs/14) — sign up through the app first, then:
+
+```bash
+npx wrangler d1 execute discover_kurukshetra --remote \
+  --command "update user set role='admin' where email='you@example.org'"
 ```
 
 Then the app itself, from the repo root. `npm run build` reads
@@ -249,37 +260,32 @@ This is the only endpoint the app reads. If it is right and the app still
 shows old events, the problem is the app's IndexedDB cache or a stale build,
 not the backend — see docs/11.
 
-### The dashboard, before Access exists
+### The dashboard
 
-`/admin` returns 403 to everyone until Cloudflare Access is attached, and that
-is on purpose (`who()` in `index.ts` refuses rather than accepting an
-anonymous edit). To see the page before then, run it locally and supply the
-identity header yourself:
+`/admin` needs a signed-in user whose role is `admin` — see
+[14](14-accounts-and-roles.md). The page itself is public (it is a sign-in
+form); everything it calls is guarded.
 
 ```bash
-cd apps/api
-npx wrangler d1 execute discover_kurukshetra --local --file=migrations/0001_init.sql
-npx wrangler d1 execute discover_kurukshetra --local --file=seed.sql
-npx wrangler dev --port 8788
+# sign in and keep the token
+TOKEN=$(curl -s -D- -o /dev/null -X POST \
+  -H 'content-type: application/json' \
+  -d '{"email":"you@example.org","password":"…"}' \
+  https://kuk-saarthi-api.indiefluence-in-media.workers.dev/api/auth/sign-in/email \
+  | tr -d '\r' | awk -F': ' 'tolower($1)=="set-auth-token"{print $2}')
 
-curl -s -H 'cf-access-authenticated-user-email: you@example.org' \
-  http://127.0.0.1:8788/admin/events | jq
+curl -s -H "Authorization: Bearer $TOKEN" \
+  https://kuk-saarthi-api.indiefluence-in-media.workers.dev/admin/content/places | jq
 ```
 
-Verified 4 Aug: no header → 403, header → 200 and the four seeded events with
-`"you": "board@example.org"` echoed back.
+`403` means the account exists but is not an admin. Promote it with the SQL in
+[14](14-accounts-and-roles.md#roles).
 
-For the *page* rather than the JSON, a browser cannot add that header on its
-own — use a header-injection extension (ModHeader and friends) scoped to
-`127.0.0.1:8788`, or just attach Access and use the real thing. Once Access is
-on, Cloudflare adds the header after login and `/admin` simply works in a
-browser.
-
-**`--remote` will not work for this.** Cloudflare strips inbound `cf-*`
-headers at the edge, so a spoofed `cf-access-authenticated-user-email` never
-reaches the Worker and you get a 403 that looks like a bug. Confirmed here:
-identical curl, 403 through `--remote`, 200 through local `wrangler dev`. That
-stripping is the reason trusting the header is safe in the first place.
+> **Historical note, kept because it cost an afternoon.** This used to be a
+> Cloudflare Access header, and testing it through `wrangler dev --remote` was
+> impossible: Cloudflare strips inbound `cf-*` headers at the edge, so a
+> spoofed identity never reached the Worker and the 403 looked like a bug.
+> Bearer tokens have no such problem — they work identically local and remote.
 
 ---
 
