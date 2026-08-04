@@ -19,6 +19,7 @@ import { Search } from "./features/search/Search";
 import { Settings } from "./features/settings/Settings";
 import { Credits } from "./features/settings/Credits";
 import { Place } from "./features/place/Place";
+import { Account } from "./features/account/Account";
 
 export function App() {
   useApp(); // re-render on language / state changes
@@ -48,6 +49,7 @@ export function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/credits" element={<Credits />} />
+          <Route path="/account" element={<Account />} />
           <Route path="/place/:id" element={<Place />} />
         </Route>
         <Route path="*" element={<Navigate to={hasLang ? "/home" : "/start"} replace />} />

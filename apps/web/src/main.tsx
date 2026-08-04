@@ -5,6 +5,7 @@ import { App } from "./App";
 import { onBump } from "./app/state";
 import { bootPersistence, saveDraft } from "./features/planner/persist";
 import { refreshContent } from "./content/live";
+import { loadSession } from "./features/account/auth";
 import "./styles/global.css";
 
 // Dev-only: warn if any content is half-translated or UI keys drift (see docs/04).
@@ -23,6 +24,11 @@ bootPersistence().finally(() => {
   // render; a fresher one arrives when it arrives, and on a rural signal it may
   // never arrive at all. Nothing on the first paint waits for a network.
   refreshContent();
+  // Same rule as the content: not awaited. Every screen works signed out, so
+  // the session resolving late costs nothing, and blocking the first paint on
+  // an auth round trip would be the one network dependency this app refuses
+  // to have.
+  loadSession();
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       <HashRouter>

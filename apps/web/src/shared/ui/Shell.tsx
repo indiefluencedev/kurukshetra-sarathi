@@ -5,6 +5,7 @@ import { t } from "@/shared/i18n/i18n";
 import { CONFIG } from "@/data/config";
 import { LOGO_SM } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
+import { openMenu } from "@/features/account/Menu";
 
 // Four tabs. Browsing (explore / a theme) belongs to Home — it is the same
 // job, "find somewhere to go", so it no longer takes a tab of its own.
@@ -62,8 +63,14 @@ export function Shell() {
           <button className="langbtn" onClick={flipLang} aria-label={S.lang === "hi" ? "Switch to English" : "हिन्दी में बदलें"}>
             {S.lang === "hi" ? "हिन्दी" : "ENG"}
           </button>
-          <button className="iconbtn" onClick={() => go("/settings")} aria-label="Settings">
-            <Icon name="gear" />
+          {/* One button, not two. Settings used to sit here on its own; now it
+              is one row inside the menu alongside the account, so adding a
+              destination later costs a row rather than another icon competing
+              in a bar that only has room for three. Language keeps its own
+              button because it is a *switch*, not a destination — burying a
+              one-tap toggle two taps deep in a bilingual app is a downgrade. */}
+          <button className="iconbtn" onClick={openMenu} aria-label={t("menu")} aria-haspopup="dialog">
+            <Icon name="menu" />
           </button>
         </div>
       </header>

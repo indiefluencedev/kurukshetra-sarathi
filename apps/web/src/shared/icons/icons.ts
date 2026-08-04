@@ -68,6 +68,10 @@ users:'<circle cx="9" cy="8" r="2.6"/><path d="M3.8 19.4v-1.8a4 4 0 0 1 4-4h2.4a
 cal:'<rect x="3.6" y="5.4" width="16.8" height="15" rx="2.2"/><path d="M3.6 10h16.8M8.4 3.6v3.6M15.6 3.6v3.6"/>',
 minus:'<path d="M5.5 12h13"/>',
 plus:'<path d="M5.5 12h13M12 5.5v13"/>',
-lock:'<rect x="5" y="10.4" width="14" height="9.6" rx="2"/><path d="M8.2 10.4V7.6a3.8 3.8 0 0 1 7.6 0v2.8"/>'
+lock:'<rect x="5" y="10.4" width="14" height="9.6" rx="2"/><path d="M8.2 10.4V7.6a3.8 3.8 0 0 1 7.6 0v2.8"/>',
+/* ---- menu / account ---- */
+menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',
+user:'<circle cx="12" cy="8.2" r="3.4"/><path d="M5.4 19.6v-1a4.6 4.6 0 0 1 4.6-4.6h4a4.6 4.6 0 0 1 4.6 4.6v1"/>',
+chev:'<path d="m9.5 5.5 6.4 6.5-6.4 6.5"/>'
 };
 
