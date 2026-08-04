@@ -50,6 +50,14 @@ export const ADMIN_HTML = `<!doctype html>
    background:#EFF1DF;color:var(--ok);border-radius:99px;padding:2px 8px;margin-left:6px}
  .pill.ov{background:#F9EAE3;color:var(--bad)}
  .aud{font-size:12px;color:var(--muted);max-height:220px;overflow:auto}
+ /* Must come before anything that sets a display value. The gate is
+    display:grid, and an AUTHOR rule beats the user-agent's
+    [hidden]{display:none} — so setting .hidden on the gate set the attribute
+    and changed nothing on screen. The
+    dashboard was rendering underneath, covered by a full-screen overlay still
+    reading "Signing in…", with no error anywhere because nothing had failed.
+    Every "nothing happens when I sign in" report was this one line. */
+ [hidden]{display:none!important}
  .gate{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:20px;z-index:20}
  .gbox{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px;width:100%;max-width:360px}
  .gbox h1{font-size:19px;margin:0 0 4px}
