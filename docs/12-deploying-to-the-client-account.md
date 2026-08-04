@@ -8,7 +8,8 @@ the subscriber list and the bill — and it decides how deployment works.
 
 ## What is live right now
 
-Deployed 3 Aug 2026. Nothing here is a secret; identifiers are not credentials.
+Deployed 3 Aug 2026, app added 4 Aug 2026. Nothing here is a secret;
+identifiers are not credentials.
 
 | | |
 |---|---|
@@ -17,6 +18,7 @@ Deployed 3 Aug 2026. Nothing here is a secret; identifiers are not credentials.
 | URL | `https://kuk-saarthi-api.indiefluence-in-media.workers.dev` |
 | D1 | `discover_kurukshetra` — `43389d66-b722-40bc-ae9f-ea5c194a6edf` |
 | Cron | `*/15 * * * *` |
+| App (Pages) | `kuk-saarthi` — `https://kuk-saarthi.pages.dev` |
 | Access granted by | member invite; wrangler runs as your own login |
 
 Verified live at deploy time:
@@ -29,8 +31,11 @@ Verified live at deploy time:
 | `POST /subscribe` (bad body) | 400 |
 | `GET /nope` | 404 |
 
-The app was built with `VITE_CONTENT_URL` pointing at the Worker and confirmed
-end to end: fetched 200, cached in IndexedDB as `rev 1785754690314-4`, 4 items.
+Re-verified 4 Aug after setting `APP_URL`: same five results, plus
+`https://kuk-saarthi.pages.dev/` and its `manifest.webmanifest` and `sw.js` at
+200. The app was built with `VITE_CONTENT_URL` pointing at the Worker and
+confirmed end to end: fetched 200, cached in IndexedDB as `rev
+1785754690314-4`, 4 items.
 
 The database was **empty** (`num_tables: 0`) when we found it, so the migration
 went in clean and `window` / `corridor` JSON round-trips through D1 intact.
@@ -44,13 +49,20 @@ went in clean and `window` / `corridor` JSON round-trips through D1 intact.
       Until then the dashboard is *unreachable*: the Worker returns 403 when the
       identity header is missing rather than accepting an anonymous edit. That
       403 is the safety net, not a bug.
-- [ ] **`APP_URL`** — where the PWA is served. Only used for the notification's
-      click-through, so nothing breaks before the app has a home.
 - [ ] **`VAPID_SUBJECT`** — a real `mailto:`. Push services may reject a token
       whose subject is not a valid address, so this one must be set before the
-      first push.
-- [ ] Decide where `VITE_CONTENT_URL` lives for the app build — Pages build
-      settings rather than a committed `.env.production` is the cleaner half.
+      first push. Still `REPLACE@example.org`; waiting on the Board's contact
+      address. One line in `wrangler.toml` and a redeploy.
+
+Done since:
+
+- [x] **`APP_URL`** — `https://kuk-saarthi.pages.dev/`, live.
+- [x] **Where `VITE_CONTENT_URL` lives.** It stays in the committed
+      `.env.production`. Pages *build settings* would be the cleaner half only
+      for a git-connected project that builds on Cloudflare; we upload `dist`
+      directly with `wrangler pages deploy`, so Cloudflare never runs the
+      build and a build variable set there would do nothing. The value is a
+      public URL, not a secret.
 
 ---
 
@@ -166,11 +178,18 @@ npx wrangler secret put VAPID_PRIVATE
 npm run deploy
 ```
 
-Rebuild the app whenever the Worker URL changes:
+Then the app itself, from the repo root. `npm run build` reads
+`.env.production`, so the Worker URL only needs naming when it changes:
 
 ```bash
-VITE_CONTENT_URL=https://…workers.dev npm run build
+npm run build
+npx wrangler pages deploy dist --project-name=kuk-saarthi --branch=main
 ```
+
+`--branch=main` is what makes it the production deployment behind
+`kuk-saarthi.pages.dev`; leave it off and you get a preview URL nobody is
+looking at. The project was created once with
+`npx wrangler pages project create kuk-saarthi --production-branch=main`.
 
 ### Why `inspect` exists, and why `migrate` will not run without it
 

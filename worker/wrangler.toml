@@ -17,7 +17,7 @@ database_id = "43389d66-b722-40bc-ae9f-ea5c194a6edf"
 
 [vars]
 # The app's origin, for the notification's click-through.
-APP_URL = "https://REPLACE.pages.dev/"
+APP_URL = "https://kuk-saarthi.pages.dev/"
 # mailto: address Web Push requires as the JWT subject.
 VAPID_SUBJECT = "mailto:REPLACE@example.org"
 
