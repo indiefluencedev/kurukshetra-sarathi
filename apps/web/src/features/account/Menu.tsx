@@ -53,7 +53,7 @@ function MenuBody() {
           : item("user", t("signIn"), "/account", t("accountWhy")))}
 
       {item("gear", t("settings"), "/settings")}
-      {item("search", t("search"), "/search")}
+      {item("search", t("search"), "/explore")}
       {item("info", t("credits"), "/credits")}
     </div>
   );

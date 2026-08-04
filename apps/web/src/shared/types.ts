@@ -57,6 +57,8 @@ export interface Destination {
 
 export interface HeroItem {
   id: string;
+  /** which town it belongs to — see data/cities.ts. Absent means Kurukshetra. */
+  city?: string;
   img: string;
   fact: Loc;
 }

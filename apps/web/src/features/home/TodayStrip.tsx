@@ -55,7 +55,7 @@ export function TodayStrip() {
       </button>
       <button
         className="tdy-search"
-        onClick={() => go("/search")}
+        onClick={() => go("/explore")}
         aria-label={nm({ en: "Search places", hi: "स्थान खोजें" })}
       >
         <Icon name="search" />

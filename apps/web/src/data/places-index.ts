@@ -1,4 +1,5 @@
 import data from "@/content/data/places-index.json";
+import { register } from "@/content/live";
 import type { Loc } from "@/shared/types";
 
 // Curated start/end points for the planner (stations, bus stands, stays).
@@ -7,6 +8,8 @@ export type PlaceKind = "station" | "busstand" | "hotel" | "dharamshala";
 export interface IndexPlace {
   id: string;
   kind: PlaceKind;
+  /** which town it serves — see data/cities.ts. Absent means Kurukshetra. */
+  city?: string;
   name: Loc;
   lat: number;
   lng: number;
@@ -21,7 +24,20 @@ export interface IndexPlace {
   verified?: boolean;
 }
 
-export const PLACES_INDEX = data as unknown as IndexPlace[];
+/**
+ * `let`, not `const`, for the same reason as D and EVENTS: a bus stand that
+ * moves to a new site, or a yatri niwas that changes its phone number, should
+ * not need a release. The bundled copy is the floor — it renders first and
+ * stays in force if the network never answers. See content/live.ts.
+ */
+export let PLACES_INDEX = data as unknown as IndexPlace[];
+register<IndexPlace>("startpoints", (items) => {
+  // Same guard as the places feed: an endpoint answering with half the list is
+  // a half-finished import, and quietly shrinking the start points a visitor
+  // can pick from is worse than ignoring the update.
+  if (items.length < (data as unknown as IndexPlace[]).length / 2) return;
+  PLACES_INDEX = items;
+});
 
 export const byIndexId = (id?: string): IndexPlace | undefined =>
   id ? PLACES_INDEX.find((p) => p.id === id) : undefined;

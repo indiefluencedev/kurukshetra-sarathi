@@ -39,10 +39,14 @@ const AREA = 3601942848;
 // Community-run and frequently at capacity — the main interpreter answered 504
 // twice in a row while this file was being written, which silently dropped
 // hotels and stations from the harvest. Try the mirrors in turn instead.
+// Mirrors first, main last: overpass-api.de answers a busy query with HTTP 200
+// and an HTML error page, so "it worked" and "it failed" look the same until
+// the JSON parse throws. The mirrors are quieter and answer in JSON or not at
+// all, which is the failure mode worth having.
 const MIRRORS = [
-  "https://overpass-api.de/api/interpreter",
   "https://overpass.kumi.systems/api/interpreter",
-  "https://overpass.osm.jp/api/interpreter",
+  "https://overpass.private.coffee/api/interpreter",
+  "https://overpass-api.de/api/interpreter",
 ];
 
 const KINDS = {
@@ -50,7 +54,7 @@ const KINDS = {
   hotel: ['"tourism"="hotel"', '"tourism"="motel"', '"tourism"="guest_house"'],
   // Dharamshalas are barely tagged as such. `amenity=shelter` is the closest
   // indexed signal; the name sweep below is what actually finds them.
-  dharamshala: ['"amenity"="shelter"', '"amenity"="place_of_worship"["tourism"="guest_house"]'],
+  dharamshala: ['"amenity"="shelter"'],
   station: ['"railway"="station"', '"railway"="halt"'],
   busstand: ['"amenity"="bus_station"'],
 };
@@ -65,6 +69,22 @@ const NAME_SWEEP = {
   busstand: ["bus stand Pehowa", "bus stand Kurukshetra", "bus stand Pipli"],
 };
 
+/* A name scan of the two built-up areas, for the places OSM has under a name
+   but not under a useful tag — a dharamshala mapped as `building=yes` is
+   invisible to every query above. An unindexed regex is only affordable
+   because these boxes are a few kilometres across; do NOT widen them to the
+   district or Overpass will time out at 47s the way the app's own query did.
+   Boxes are (south, west, north, east): Thanesar–Pipli, then Pehowa town. */
+const NAME_BOXES = ["29.90,76.75,30.02,76.92", "29.93,76.52,30.03,76.64"];
+const NAME_RE =
+  "dharam|dharm|niwas|nivas|sarai|ashram|bhawan|bhavan|hotel|guest|resort|lodge|inn|yatri|धर्मशाला|निवास";
+
+/* How far from a town centre a stay may be and still be that town's. Stations
+   are exempt: Shahabad Markanda is 24km north and Pehowa Road 11km south, and
+   both are where people actually get off the train for these towns. A hotel
+   24km away is not a Kurukshetra hotel, it is an Ambala one. */
+const STAY_KM = 12;
+
 // Nominatim can't take a polygon, so it gets the district's bounding box and
 // every result is then checked against the district it reports.
 const BOX = "76.40,30.25,77.15,29.60";
@@ -77,7 +97,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function overpass(tags) {
   const body = tags.flatMap((t) => [`node[${t}](area.k);`, `way[${t}](area.k);`]).join("");
-  const q = `[out:json][timeout:90];area(${AREA})->.k;(${body});out center 200;`;
+  return ask(`[out:json][timeout:90];area(${AREA})->.k;(${body});out center 200;`);
+}
+
+/** Anything NAMED like a stay, inside the two town boxes, whatever its tags. */
+async function overpassByName() {
+  const body = NAME_BOXES.map((b) => `nwr["name"~"${NAME_RE}",i](${b});`).join("");
+  return ask(`[out:json][timeout:120];(${body});out center 300;`);
+}
+
+async function ask(q) {
   let last;
   for (const url of MIRRORS) {
     try {
@@ -97,7 +126,7 @@ async function overpass(tags) {
       if (j.remark) throw new Error("Overpass: " + j.remark);
       return j.elements || [];
     } catch (e) {
-      last = e;
+      last = new Error(new URL(url).host + ": " + e.message);
       await sleep(1500);
     }
   }
@@ -124,26 +153,41 @@ const slug = (s) =>
    district is nearer one than the other by a wide margin, so a great-circle
    refinement would change no answer. Pipli is 6km from Thanesar and correctly
    lands in Kurukshetra — it is a locality of that town, not a third one. */
+const KM_PER_DEG = 111.32;
 const nearestCity = (lat, lng) =>
   CITIES.reduce((best, c) => {
-    const d = (c.centre.lat - lat) ** 2 + (c.centre.lng - lng) ** 2;
-    return !best || d < best.d ? { id: c.id, d } : best;
-  }, null).id;
+    const dy = c.centre.lat - lat;
+    const dx = (c.centre.lng - lng) * Math.cos((lat * Math.PI) / 180);
+    const km = Math.sqrt(dy * dy + dx * dx) * KM_PER_DEG;
+    return !best || km < best.km ? { id: c.id, km } : best;
+  }, null);
 
 const existing = JSON.parse(readFileSync(INDEX, "utf8"));
-const known = new Set(existing.map((p) => p.name.en.toLowerCase().trim()));
+/* Match on id as well as name. A curated entry usually gets its name tidied —
+   OSM's bare "Jyotisar" becomes "Jyotisar Halt" — and matching on the name
+   alone put it straight back in the review file as a fresh candidate, which is
+   the one thing this file must not do. */
+const known = new Set(existing.flatMap((p) => [p.name.en.toLowerCase().trim(), "#" + p.id]));
 
 const rows = [];
 const push = (kind, name, lat, lng, t, src) => {
   name = (name || "").trim();
   if (!name || lat == null || lng == null) return false;
-  if (known.has(name.toLowerCase())) return false; // already curated, or already seen
+  const id = `${ID_PREFIX[kind]}-${slug(name)}`;
+  if (known.has(name.toLowerCase()) || known.has("#" + id)) return false; // already curated, or already seen
+  const near = nearestCity(+lat, +lng);
+  // A stay half a district away is not this town's stay, however cleanly it
+  // geocoded. Overpass handed back a Best Western 30km north and a banquet
+  // hall in Ambala on the first run, both labelled "kurukshetra" by proximity
+  // alone, and both would have been rows a reviewer had to know to throw out.
+  if (kind !== "station" && near.km > STAY_KM) return false;
   known.add(name.toLowerCase());
   const a = t.address || {};
   rows.push({
-    id: `${ID_PREFIX[kind]}-${slug(name)}`,
+    id,
     kind,
-    city: nearestCity(+lat, +lng),
+    city: near.id,
+    _km: +near.km.toFixed(1),
     name: { en: name, hi: t["name:hi"] || "" }, // blank hi = still needs a human
     lat: +Number(lat).toFixed(6),
     lng: +Number(lng).toFixed(6),
@@ -184,6 +228,26 @@ for (const [kind, tags] of Object.entries(KINDS)) {
   }
   console.log(`${added} new`);
   await sleep(1500); // Overpass is community-run; be polite
+}
+
+/* The name scan runs last and files everything as `dharamshala`, because that
+   is the kind OSM under-tags and the kind a reviewer has to reclassify anyway.
+   A row that turns out to be a hotel costs one word to fix; a dharamshala that
+   never appeared costs a phone call to find. */
+process.stdout.write("  named (town boxes)… ");
+try {
+  let added = 0;
+  for (const el of await overpassByName()) {
+    const t = el.tags || {};
+    // things that merely mention a hotel — an institute of hotel management,
+    // a bus stop named after one — are not places to sleep
+    if (t.office || t.leisure || t.amenity === "place_of_worship" || t.highway) continue;
+    if (push("dharamshala", t.name, el.lat ?? el.center?.lat, el.lon ?? el.center?.lon, t, `https://www.openstreetmap.org/${el.type}/${el.id}`))
+      added++;
+  }
+  console.log(`${added} new`);
+} catch (e) {
+  console.log(`failed (${e.message})`);
 }
 
 rows.sort(

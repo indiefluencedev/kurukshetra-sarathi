@@ -1,6 +1,7 @@
 [
  {
   "id": "brahma-sarovar",
+  "city": "kurukshetra",
   "img": "h-brahma-sarovar",
   "fact": {
    "en": "Abul Fazl, in Akbar's court, looked at this tank and called it a small sea.",
@@ -9,6 +10,7 @@
  },
  {
   "id": "jyotisar",
+  "city": "kurukshetra",
   "img": "h-jyotisar",
   "fact": {
    "en": "After dark, 3D projection turns this fifty-foot bronze into the Virat Swaroop itself.",
@@ -17,6 +19,7 @@
  },
  {
   "id": "anubhav-kendra",
+  "city": "kurukshetra",
   "img": "h-anubhav-kendra",
   "fact": {
    "en": "Not a museum of objects — domed screens, holograms and a VR chariot put you inside the epic.",
@@ -25,6 +28,7 @@
  },
  {
   "id": "panorama",
+  "city": "kurukshetra",
   "img": "h-panorama",
   "fact": {
    "en": "Inside this drum, a painted 360° battlefield stands you in the middle of all eighteen days.",
@@ -33,6 +37,7 @@
  },
  {
   "id": "bhadrakali",
+  "city": "kurukshetra",
   "img": "h-bhadrakali",
   "fact": {
    "en": "Have a wish granted here and you leave a small horse — as the Pandavas left theirs after the war.",
@@ -41,6 +46,7 @@
  },
  {
   "id": "gurudwara-chhevin",
+  "city": "kurukshetra",
   "img": "h-gurudwara-chhevin",
   "fact": {
    "en": "Guru Hargobind Sahib halted here on the sarovar bank; the langar has not stopped since.",
@@ -49,6 +55,7 @@
  },
  {
   "id": "harsh-ka-tila",
+  "city": "kurukshetra",
   "img": "h-harsh-ka-tila",
   "fact": {
    "en": "Layer upon layer, this mound holds Thanesar's living record from the Kushana age to the Mughals.",
@@ -57,10 +64,74 @@
  },
  {
   "id": "krishna-museum",
+  "city": "kurukshetra",
   "img": "h-krishna-museum",
   "fact": {
    "en": "The only museum in the country given wholly to Krishna, across seven galleries.",
    "hi": "देश का एकमात्र संग्रहालय जो पूर्णतः श्रीकृष्ण को समर्पित है, सात दीर्घाओं में।"
+  }
+ },
+ {
+  "id": "p-saraswati-tirth",
+  "city": "pehowa",
+  "img": "h-p-saraswati-tirth",
+  "fact": {
+   "en": "Pehowa's purohits keep handwritten family registers three and four hundred years deep.",
+   "hi": "पिहोवा के तीर्थ पुरोहितों के पास 300-400 वर्ष पुरानी हस्तलिखित वंशावलियाँ सुरक्षित हैं।"
+  }
+ },
+ {
+  "id": "p-prithudak",
+  "city": "pehowa",
+  "img": "h-p-prithudak",
+  "fact": {
+   "en": "Raja Prithu offered udak to his father here — Prithu plus udak gave the town its old name.",
+   "hi": "राजा पृथु ने यहाँ पिता को उदक अर्पित किया — पृथु + उदक से नगर का प्राचीन नाम बना।"
+  }
+ },
+ {
+  "id": "p-kartikeya",
+  "city": "pehowa",
+  "img": "h-p-kartikeya",
+  "fact": {
+   "en": "A rare northern shrine to Kartikeya, anointed with mustard oil and sindoor.",
+   "hi": "कार्तिकेय का दुर्लभ उत्तर भारतीय धाम, सरसों के तेल और सिंदूर से अभिषेक।"
+  }
+ },
+ {
+  "id": "p-vashishtha-prachi",
+  "city": "pehowa",
+  "img": "h-p-vashishtha-prachi",
+  "fact": {
+   "en": "The Saraswati turned east at this bank to carry Vasishtha clear — a rare eastward flow.",
+   "hi": "वशिष्ठ की रक्षा हेतु सरस्वती इसी तट पर पूर्व की ओर मुड़ीं — दुर्लभ प्राची प्रवाह।"
+  }
+ },
+ {
+  "id": "p-bauli-sahib",
+  "city": "pehowa",
+  "img": "h-p-bauli-sahib",
+  "fact": {
+   "en": "Three Sikh Gurus set foot here; the baoli built in their memory names the gurudwara.",
+   "hi": "तीन सिख गुरु साहिबान की चरण-छोह; उनकी स्मृति में बनी बाउली से गुरुद्वारे का नाम पड़ा।"
+  }
+ },
+ {
+  "id": "p-sangameshwar",
+  "city": "pehowa",
+  "img": "h-p-sangameshwar",
+  "fact": {
+   "en": "Where the Saraswati met the Aruna, and Shiva is said to have risen in lingam form.",
+   "hi": "जहाँ सरस्वती और अरुणा का संगम हुआ, और शिव लिंग रूप में प्रकट हुए।"
+  }
+ },
+ {
+  "id": "p-saraswati-van",
+  "city": "pehowa",
+  "img": "h-p-saraswati-van",
+  "fact": {
+   "en": "Eleven thousand acres of dry deciduous forest — Haryana's second largest after Kalesar.",
+   "hi": "ग्यारह हज़ार एकड़ शुष्क पर्णपाती वन — कलेसर के बाद हरियाणा का दूसरा सबसे बड़ा।"
   }
  }
 ]

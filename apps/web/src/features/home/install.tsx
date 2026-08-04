@@ -1,7 +1,7 @@
 import { bump } from "@/app/state";
 import { S } from "@/app/state";
 import { track } from "@/app/nav";
-import { t, nm } from "@/shared/i18n/i18n";
+import { t } from "@/shared/i18n/i18n";
 import { openSheet, closeSheet, toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 
@@ -12,12 +12,44 @@ window.addEventListener("beforeinstallprompt", (e) => {
   installEvt = e;
 });
 
+/**
+ * Remembered once the browser tells us the install went through.
+ *
+ * `isStandalone()` alone is not enough to answer "is it on their home screen".
+ * It reports how THIS window was opened, so someone who installs the app and
+ * then goes on browsing in the tab they installed from — which is exactly what
+ * happens — reads as not installed, and would be asked to install it again.
+ * The `appinstalled` event says it happened; localStorage is what carries that
+ * answer into every later tab visit.
+ */
+const INSTALLED = "k_installed";
+
+window.addEventListener("appinstalled", () => {
+  try {
+    localStorage.setItem(INSTALLED, "1");
+  } catch {
+    /* private mode — standalone detection still covers the launched app */
+  }
+  installEvt = null;
+  bump();
+});
+
 export function isStandalone(): boolean {
   try {
     return (
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as any).standalone === true
     );
+  } catch {
+    return false;
+  }
+}
+
+/** On their home screen — launched from it, or seen to be installed earlier. */
+export function isInstalled(): boolean {
+  if (isStandalone()) return true;
+  try {
+    return localStorage.getItem(INSTALLED) === "1";
   } catch {
     return false;
   }
@@ -99,59 +131,25 @@ function howToInstall() {
 }
 
 /**
- * The install prompt, where someone will actually meet it.
+ * The install offer, as a card.
  *
- * Everything needed to install has existed since the port — the
- * `beforeinstallprompt` capture above, the iOS Add-to-Home-Screen steps, the
- * card — but all of it lived on the Settings screen, which a visitor reaches
- * by tapping a sliders glyph in the corner of the header. In other words the
- * app was installable and never said so. This is the same `installApp()`, on
- * Home, as one slim line.
+ * This existed, styled and finished, from the port onwards — and was rendered
+ * nowhere. The only install surface that ever reached Home was a slim bar,
+ * behind `store.routes.length`, i.e. only after someone had already built and
+ * saved a route. A first-time visitor standing at the bus stand on a rural
+ * signal — the exact person a PWA is for — was never told the app could be
+ * installed at all.
  *
- * It sits below the "how long do you have?" plate rather than above it: being
- * an app is not what anyone opened this to do. Dismissal is permanent, because
- * a banner that returns after being refused is an advert.
+ * So it shows from the first visit, and it does not go away for any reason
+ * except the one that makes it pointless: the app being on their home screen.
+ * There is no dismiss. That is a deliberate reversal — it had a "not now", and
+ * a "not now" on the one control that makes this app work on a dead signal is
+ * a tap that costs the visitor the offline copy and gives them nothing. The
+ * card is small, it is below the fold, and it stops the moment `isInstalled()`
+ * says it should.
  */
-const DISMISSED = "k_install_off";
-
-export function dismissInstall() {
-  try {
-    localStorage.setItem(DISMISSED, "1");
-  } catch {
-    /* private mode — the bar simply comes back next launch */
-  }
-  bump();
-}
-
-export function InstallBar() {
-  if (isStandalone()) return null;
-  try {
-    if (localStorage.getItem(DISMISSED)) return null;
-  } catch {
-    /* ignore — show it */
-  }
-  return (
-    <div className="installbar">
-      <span className="ic">
-        <Icon name="download" />
-      </span>
-      {/* dlSub / dlBtn are the full-sentence strings the Settings card uses;
-          in a 34px-tall strip they wrapped to four lines. A bar gets bar copy. */}
-      <span className="tx" lang={S.lang}>
-        {nm({ en: "Install it — works without a signal", hi: "इंस्टॉल करें — बिना नेटवर्क चलता है" })}
-      </span>
-      <button className="go" onClick={installApp} lang={S.lang}>
-        {nm({ en: "Install", hi: "इंस्टॉल" })}
-      </button>
-      <button className="x" onClick={dismissInstall} aria-label={nm({ en: "Dismiss", hi: "हटाएँ" })}>
-        <Icon name="close" />
-      </button>
-    </div>
-  );
-}
-
 export function InstallCard() {
-  if (isStandalone()) return null;
+  if (isInstalled()) return null;
   return (
     <div className="dl">
       <div className="row">

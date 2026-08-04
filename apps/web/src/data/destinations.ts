@@ -1,8 +1,9 @@
 import data from "@/content/data/destinations.json";
 import { register } from "@/content/live";
 import { S } from "@/app/state";
-import { cityOf } from "@/data/cities";
-import type { Destination } from "@/shared/types";
+import { cityOf, isAll, nearestCityTo } from "@/data/cities";
+import { THEMES } from "@/data/config";
+import type { Destination, ThemeDef } from "@/shared/types";
 
 /**
  * The 57 tirthas of the two towns. Source of truth:
@@ -40,4 +41,40 @@ register<Destination>("places", (items) => {
  * itself stays available for the few things that are genuinely cross-town
  * (resolving a saved id, counting what is saved elsewhere).
  */
-export const DC = (): Destination[] => D.filter((d) => cityOf(d) === S.city);
+export const DC = (): Destination[] =>
+  isAll(S.city) ? D.slice() : D.filter((d) => cityOf(d) === S.city);
+
+/**
+ * The places a ROUTE may draw from, given where it sets off.
+ *
+ * Browsing both towns is a browsing decision; it is not a claim that a single
+ * day can hold both. Thanesar and Pehowa are 25 km and fifty minutes apart, so
+ * a pool spanning them lets the planner spend two hours of an eight-hour day
+ * driving between two halves of an itinerary nobody asked to split. When a
+ * town is chosen, that town is the pool. When both are, the START decides —
+ * a day is built around where it begins.
+ */
+export const DP = (from: { lat: number; lng: number }): Destination[] => {
+  if (!isAll(S.city)) return DC();
+  const id = nearestCityTo(from).id;
+  return D.filter((d) => cityOf(d) === id);
+};
+
+/**
+ * The themes that actually have places in the town on screen, with counts.
+ *
+ * The grid used to render all of THEMES unconditionally, and once there were
+ * two towns that put a full-bleed photograph on Home captioned "Nature ·
+ * 0 places" — a tile that looks like every other tile and opens an empty
+ * screen. A theme is a way into the catalogue; one with nothing behind it is
+ * not a way into anything, so it is not offered.
+ *
+ * The count comes back with the theme because every caller needs both and
+ * recomputing it is the kind of thing that drifts.
+ */
+export const themesHere = (): { th: ThemeDef; n: number }[] => {
+  const here = DC();
+  return THEMES.map((th) => ({ th, n: here.filter((d) => d.themes.indexOf(th.id) >= 0).length })).filter(
+    (x) => x.n > 0,
+  );
+};

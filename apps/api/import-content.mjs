@@ -28,6 +28,7 @@ const DATA = join(HERE, "..", "web", "src", "content", "data");
 /** content kind → the bundled file it mirrors. Must match CONTENT_KINDS. */
 const FEEDS = {
   places: "destinations.json",
+  startpoints: "places-index.json",
   hotels: "hotels.json",
   erickshaw: "erickshaw.json",
 };

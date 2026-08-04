@@ -44,11 +44,23 @@ M.ids.forEach((id) => {
   );
 });
 
-// and nothing in a district 45 km across is a two-hour drive away
+/* and nothing here is a half-day's drive away.
+
+   The bar was 60 km, on the reasoning that the district is 45 km across. That
+   held while every pin was within a few kilometres of Thanesar. It stopped
+   holding the day Pehowa's tirthas and the stations that serve them joined the
+   matrix: Shahabad Markanda sits at the district's northern edge and Pehowa
+   Road at its south-western one, and the road between them is 62 km because it
+   goes round Thanesar rather than through the fields. Corner to corner is a
+   real journey, and the four pairs that make it are all corner to corner.
+
+   90 km is still far below anything a coordinate error produces — a pin that
+   lands in the next state is hundreds of kilometres out, which is the mistake
+   this is here to catch. */
 const far = [];
 for (let i = 0; i < n; i++)
   for (let j = 0; j < n; j++) {
-    if (M.km[i][j] != null && M.km[i][j] > 60) far.push(`${M.ids[i]} → ${M.ids[j]}: ${M.km[i][j]} km`);
+    if (M.km[i][j] != null && M.km[i][j] > 90) far.push(`${M.ids[i]} → ${M.ids[j]}: ${M.km[i][j]} km`);
   }
 assert.deepEqual(far, [], "a pair this far apart is not in the same district");
 
@@ -62,7 +74,14 @@ assert.deepEqual(far, [], "a pair this far apart is not in the same district");
 
 const MIN_STRAIGHT = 2;
 const LOW = 1.0; // a road is never shorter than the great circle
-const HIGH = 3.5; // observed worst is 2.94 — this is headroom, not a guess
+/* Observed worst is 3.97 — bus-new → Pipli Zoo, 2.96 km apart and 11.74 km by
+   road — and the reverse of that pair is 3.8 km. That is the NH-44 effect
+   described above, now showing up above the 2 km threshold because the
+   terminals sit on the highway itself: the bus stand and the zoo are on
+   opposite carriageways with no turn between them, so one direction runs to
+   the next interchange and back. Was 3.5, on a data set whose worst was 2.94.
+   4.5 is headroom over a measured number, not a guess. */
+const HIGH = 4.5;
 const bad = [];
 let worst = { ratio: 0 };
 

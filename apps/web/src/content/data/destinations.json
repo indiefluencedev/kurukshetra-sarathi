@@ -1727,7 +1727,8 @@
    "hi": "पिपली मिनी चिड़ियाघर"
   },
   "themes": [
-   "museums"
+   "museums",
+   "nature"
   ],
   "lat": 29.9845829,
   "lng": 76.8926162,
@@ -1803,7 +1804,8 @@
    "mahabharata",
    "heritage",
    "spiritual",
-   "sarovar"
+   "sarovar",
+   "nature"
   ],
   "lat": 29.9817514,
   "lng": 76.8835886,

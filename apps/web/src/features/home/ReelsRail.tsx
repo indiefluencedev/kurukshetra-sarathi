@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { S } from "@/app/state";
 import { track } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
-import { REELS } from "@/data/reels-hero";
+import { REELS, reelsFor } from "@/data/reels-hero";
 import { imgUrl } from "@/data/images";
 import { byId } from "@/shared/lib/geo";
 import { Icon } from "@/shared/icons/Icon";
@@ -26,7 +26,9 @@ function openReel(id: string) {
  * `pid` limits to one place's reels (used on the place page); null shows all.
  */
 export function ReelsRail({ pid }: { pid?: string | null }) {
-  const list = pid ? REELS.filter((r) => r.place === pid) : REELS;
+  // On a place page, that place's reels. On Home, the town's — a reel filmed at
+  // Brahma Sarovar under a Pehowa header is the same mismatch as the hero.
+  const list = pid ? REELS.filter((r) => r.place === pid) : reelsFor();
   const trackRef = useRef<HTMLDivElement>(null);
   const hold = useRef(false);
 

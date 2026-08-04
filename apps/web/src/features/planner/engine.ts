@@ -3,7 +3,7 @@
 // algorithms (algorithms/) into an Itinerary. See docs/03. The public `Engine`
 // facade is unchanged, so every caller (geo, place-actions, Saved, Journey,
 // plan) keeps working.
-import { DC } from "@/data/destinations";
+import { DP } from "@/data/destinations";
 import { THEMES } from "@/data/config";
 import { activeEvent, affects } from "@/data/events";
 import { addDays, fromISO } from "@/shared/lib/datetime";
@@ -104,7 +104,7 @@ function build(o) {
   // A theme is a strong preference, not a wall. It is worth a large score
   // bonus (see poiScore) and off-theme places stay in the pool where the
   // cost model can decide whether they are nearly free.
-  const pool = DC().filter((d) => {
+  const pool = DP(o.start).filter((d) => {
     if (d.pending) return false; // coordinates not yet verified
     if (o.onlyIds && o.onlyIds.indexOf(d.id) < 0) return false;
     if (f.free && !d.free) return false;
@@ -169,7 +169,7 @@ function build(o) {
 
   // 7) nearby-fit suggestions from ALL valid places (not just the theme pool)
   const slack = spendable - (travel + visitT + waitT + park);
-  const suggestPool = DC().filter((d) => {
+  const suggestPool = DP(o.start).filter((d) => {
     if (d.pending) return false;
     if (f.free && !d.free) return false;
     if (f.indoor && !d.indoor) return false;

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { CITIES, cityById } from "@/data/cities";
+import { ALL, CITIES, cityById, isAll } from "@/data/cities";
 import { isoToday } from "@/shared/lib/datetime";
 import type { Plan, Journey, Lang } from "@/shared/types";
 
@@ -66,8 +66,8 @@ export interface WeatherState {
 
 export const S = {
   lang: (store.lang || "en") as Lang,
-  /** which town every list, route and forecast is scoped to */
-  city: cityById(store.city).id,
+  /** which town every list, route and forecast is scoped to — or ALL for both */
+  city: isAll(store.city) ? ALL : cityById(store.city).id,
   plan: null as Plan | null,
   journey: null as Journey | null,
   userLoc: null as { lat: number; lng: number } | null,
@@ -120,8 +120,16 @@ export const setLangStay = (l: Lang) => {
 export const flipLang = () => setLangStay(S.lang === "hi" ? "en" : "hi");
 
 /* ---- the town ---- */
-/** The active town. Never null — an unknown stored id falls back to the first. */
+/**
+ * The town anything with a coordinate should use — the map's opening view, the
+ * forecast, a plan's default start. Never null: an unknown stored id, and the
+ * "both towns" scope, both fall through to the first town. Browsing both is a
+ * scope, not a location; the forecast has to be somewhere.
+ */
 export const city = () => cityById(S.city);
+
+/** True when the visitor is browsing both towns at once. */
+export const allTowns = () => isAll(S.city);
 
 /**
  * Switch town. The forecast is dropped (it is a different place's weather) and
@@ -131,7 +139,8 @@ export const city = () => cityById(S.city);
  * date is the one answer that survives, since it is about the visitor.
  */
 export function setCity(id: string) {
-  if (!CITIES.some((c) => c.id === id) || id === S.city) return;
+  if (!isAll(id) && !CITIES.some((c) => c.id === id)) return;
+  if (id === S.city) return;
   S.city = id;
   store.city = id;
   S.wx = null;
@@ -147,6 +156,9 @@ export function setCity(id: string) {
 /** Follow a place into its own town, without the plan reset — used when a link
  *  or a search result opens a place that is not in the town on screen. */
 export function setCityQuiet(id: string) {
+  // Browsing both already includes wherever they have landed, so following a
+  // place into its town would narrow the scope they deliberately widened.
+  if (isAll(S.city)) return;
   if (!CITIES.some((c) => c.id === id) || id === S.city) return;
   S.city = id;
   store.city = id;

@@ -1,5 +1,5 @@
 import { S } from "@/app/state";
-import { nm } from "@/shared/i18n/i18n";
+import { t, nm } from "@/shared/i18n/i18n";
 import { isoToday } from "@/shared/lib/datetime";
 import { Icon } from "@/shared/icons/Icon";
 import { quick, homeDate, dayLabel, setDay, WINDOWS, go2plan } from "@/features/planner/plan";
@@ -28,7 +28,7 @@ export function TimeBlock() {
     <section className="tblock">
       <div className="tb-head">
         <h1 className="display" lang={S.lang}>
-          {nm({ en: "How long do you have in Kurukshetra?", hi: "कुरुक्षेत्र में आपके पास कितना समय है?" })}
+          {t("greeting")}
         </h1>
         <label className="daypick">
           <Icon name="cal" />

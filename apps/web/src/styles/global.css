@@ -218,18 +218,33 @@ header{
   display:grid;place-items:center;color:var(--ink-2);cursor:pointer;transition:background var(--t-fast) var(--ease)}
 .iconbtn:active{background:rgba(26,24,20,.06)}
 .iconbtn svg{width:21px;height:21px}
-.langbtn{border:1px solid var(--stone-2);background:var(--surface);border-radius:999px;height:var(--tap);
-  min-width:52px;padding:0 12px;font-weight:700;font-size:calc(13px*var(--ts));color:var(--ink-2);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;letter-spacing:.03em}
-/* The town chip. Same pill as the language toggle so the two read as one pair
-   of switches, and its label is allowed to shrink before the wordmark does —
-   "Kurukshetra" in Devanagari is wide, and on a 320px screen something has to
-   give. It gives here rather than truncating the app's own name. */
-.citybtn{border:1px solid var(--stone-2);background:var(--surface);border-radius:999px;height:var(--tap);
-  padding:0 11px 0 8px;gap:4px;font-weight:650;font-size:calc(13px*var(--ts));color:var(--ink-2);cursor:pointer;
-  display:flex;align-items:center;min-width:0;flex:0 1 auto}
+/* ---------- the header control group ----------
+   One pill holding the scope, the language and the menu. The border and the
+   shadow belong to the GROUP, not to each control, which is what stops three
+   small outlines from competing with the masthead beside them. Hairlines
+   separate the targets; each is still its own button at its own full height,
+   so nothing about the tap target changed. */
+.hgroup{display:flex;align-items:stretch;flex:0 1 auto;min-width:0;
+  background:var(--surface);border:1px solid var(--stone-2);border-radius:999px;
+  box-shadow:0 1px 2px rgba(26,24,20,.05);overflow:hidden}
+.hsep{width:1px;flex:0 0 auto;background:var(--stone);margin:8px 0}
+/* The scope never shrinks. It is the one control whose LABEL is the
+   information — a truncated "Kurukshet…" is a control that has stopped
+   answering the question it was put there to answer. The masthead beside it
+   gives way first, and below 400px hands over to the seal entirely. */
+.citybtn{flex:0 0 auto;border:0;background:none;border-radius:0;height:var(--tap);
+  padding:0 12px 0 11px;gap:5px;font-weight:650;font-size:calc(13px*var(--ts));color:var(--ink-2);
+  cursor:pointer;display:flex;align-items:center;font-family:inherit;white-space:nowrap}
 .citybtn svg{width:15px;height:15px;flex:0 0 auto;color:var(--brass-deep)}
-.citybtn span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.citybtn:active{background:var(--brass-wash)}
+.langbtn{border:0;background:none;border-radius:0;height:var(--tap);
+  min-width:52px;padding:0 12px;font-weight:700;font-size:calc(13px*var(--ts));color:var(--ink-2);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;letter-spacing:.03em;font-family:inherit}
+.langbtn:active{background:var(--brass-wash)}
+.hgroup .iconbtn{border-radius:0}
+@media (max-width:400px){
+  .hbar .wordmark{display:none}
+}
 
 /* ---------- layout ---------- */
 main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
@@ -1363,9 +1378,9 @@ header .seal{border-color:var(--brass-soft);background:var(--surface);
   box-shadow:0 0 0 1px rgba(143,132,73,.18)}
 /* the language toggle is a primary control here, not an afterthought:
    half this app's users will reach for it before anything else */
-header .langbtn{background:var(--surface);border:1.5px solid var(--brass);
-  color:var(--brass-deep);font-size:calc(13.5px*var(--ts));min-width:62px}
-header .langbtn:active{background:var(--brass-wash)}
+header .hgroup{background:var(--surface);border-color:var(--brass-soft)}
+header .langbtn{color:var(--brass-deep);font-size:calc(13.5px*var(--ts));min-width:60px}
+header .langbtn:active,header .citybtn:active{background:var(--brass-wash)}
 
 /* ---- cream chrome: the floating tab bar, in glass ----
    Real translucency: the page must be visibly moving underneath, or it is a
@@ -1845,21 +1860,6 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
    Quiet paper container, one orange button. Installing IS an action, so the
    button earns the action colour; the bar around it does not. An earlier pass
    made the whole strip deep red and it read as an error message. */
-.installbar{display:flex;align-items:center;gap:10px;margin:12px 0 0;padding:7px 8px 7px 10px;
-  border-radius:var(--r);background:var(--surface-2);border:1px solid var(--stone)}
-.installbar .ic{flex:0 0 auto;width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
-  background:var(--brass-wash);border:1px solid var(--brass-soft);color:var(--brass-deep)}
-.installbar .ic svg{width:15px;height:15px}
-.installbar .tx{flex:1;min-width:0;font-size:calc(12.5px*var(--ts));line-height:1.35;
-  color:var(--ink-2);font-weight:650}
-.installbar .go{flex:0 0 auto;border:0;cursor:pointer;font-family:inherit;font-weight:700;
-  font-size:calc(12.5px*var(--ts));color:#fff;border-radius:999px;padding:0 13px;min-height:34px;
-  background:linear-gradient(180deg,#E06D0D,var(--accent-deep));box-shadow:var(--shadow-accent)}
-.installbar .go:active{background:var(--accent-deep);box-shadow:none}
-.installbar .x{flex:0 0 auto;border:0;background:none;cursor:pointer;color:var(--muted);
-  width:30px;height:30px;display:grid;place-items:center;border-radius:8px;padding:0}
-.installbar .x svg{width:14px;height:14px}
-.installbar .x:active{background:rgba(36,31,22,.07)}
 
 /* Glyphs that are information, not navigation. --nav went from a cool indigo
    to a deep red with the palette change, and a red magnifier or a red rain
@@ -2252,3 +2252,45 @@ a.btn:hover{text-decoration:none}
 /* the follow-on line inside an error: quieter than the error itself, because
    it is guidance rather than the failure */
 .msg-hint{display:block;margin-top:6px;font-size:calc(12.5px*var(--ts));opacity:.85}
+
+/* ---------- Explore: scope line, chip counts, quick-add ---------- */
+
+/* Which town's list this is, and how long it is. It sits under the title
+   rather than in it, because "All places" is the heading whichever scope is
+   on, and the scope is the thing that changed. */
+.scopeline{margin:-6px 2px 10px;font-size:calc(12.5px*var(--ts));color:var(--muted);font-weight:600}
+
+/* The count inside a theme chip. A chip that says "Temples" makes you tap it
+   to find out whether it is worth tapping; one that says "Temples 19" does
+   not. Tabular figures so the chips do not jitter as the scope changes. */
+.chip .cn{font-style:normal;font-variant-numeric:tabular-nums;font-weight:700;
+  font-size:calc(12px*var(--ts));color:var(--muted);margin-left:-2px}
+.chip.on .cn{color:rgba(247,244,238,.65)}
+
+/* The filter row is a second, quieter rank than the theme row above it —
+   same pill, less weight, so the eye reads "themes, then refinements". */
+.chip.sm{min-height:38px;padding:0 14px;font-size:calc(12.5px*var(--ts));font-weight:600;
+  box-shadow:none;background:var(--surface-2)}
+.chip.sm.on{background:var(--ink);color:var(--bone)}
+
+.exnote{margin:12px 0 2px;align-items:center}
+.exnote svg{margin-top:0}
+
+/* The plus on a card. Its own tap target, top-right, clear of the two lines of
+   text it sits beside — and 44px square, because the people this is built for
+   should not have to aim. `.on` is a filled state rather than a different
+   glyph alone: at arm's length the colour reads before the shape does. */
+.qadd{position:absolute;top:9px;right:9px;width:var(--tap);height:var(--tap);border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;flex:0 0 auto;
+  background:var(--surface-2);border:1px solid var(--stone-2);color:var(--ink-2);
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),
+             border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
+.qadd svg{width:19px;height:19px}
+.qadd:active{transform:scale(.9)}
+.qadd.on{background:var(--clay);border-color:var(--clay);color:#fff}
+.pcard{position:relative}
+/* keep the text clear of the button */
+.pcard .body{padding-right:38px}
+
+/* The town a place is in, shown only when both towns are listed together. */
+.tag.town{background:var(--brass-wash);color:var(--brass-deep);border-color:transparent}

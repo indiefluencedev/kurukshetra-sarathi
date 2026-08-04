@@ -15,7 +15,6 @@ import { RouteResult } from "./features/route/RouteResult";
 import { Journey } from "./features/journey/Journey";
 import { MapView } from "./features/map/MapView";
 import { Saved } from "./features/saved/Saved";
-import { Search } from "./features/search/Search";
 import { Settings } from "./features/settings/Settings";
 import { Credits } from "./features/settings/Credits";
 import { Place } from "./features/place/Place";
@@ -46,7 +45,11 @@ export function App() {
           <Route path="/go" element={<Journey />} />
           <Route path="/map" element={<MapView />} />
           <Route path="/saved" element={<Saved />} />
-          <Route path="/search" element={<Search />} />
+          {/* Search was a second screen rendering the same list off the same
+              data. Explore is that screen now — the box and the filters live
+              there — and this keeps every existing link, bookmark and back
+              button landing somewhere real. */}
+          <Route path="/search" element={<Navigate to="/explore" replace />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/credits" element={<Credits />} />
           <Route path="/account" element={<Account />} />

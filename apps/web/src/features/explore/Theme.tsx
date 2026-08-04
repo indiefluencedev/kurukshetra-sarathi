@@ -1,45 +1,21 @@
 import { useParams } from "react-router-dom";
-import { S } from "@/app/state";
-import { t, nm, nPlaces } from "@/shared/i18n/i18n";
-import { DC } from "@/data/destinations";
 import { theme } from "@/data/config";
-import { Pcard } from "@/shared/ui/PlaceCard";
-import { Icon } from "@/shared/icons/Icon";
-import { quickTheme } from "@/features/planner/plan";
 import { Explore } from "./Explore";
 
-/** One interest group's places, ranked, with a "plan a visit" call to action. */
+/**
+ * One interest group's places.
+ *
+ * It is Explore with a theme already chosen — the same list, the same chips,
+ * the same search box, the same plus on every card. It used to be its own
+ * screen with its own copy of the list and its own "plan a day around this"
+ * button, which meant a fix to one never reached the other.
+ *
+ * An unknown theme, or one this scope cannot fill, lands on Explore unfiltered
+ * rather than on an empty page: Nature has one place in Pehowa and two in
+ * Kurukshetra, so a theme that exists in one town may not in the other, and
+ * switching town with a theme open must not strand anyone.
+ */
 export function Theme() {
   const { id = "" } = useParams();
-  const th = theme(id);
-  if (!th) return <Explore />;
-  const list = DC().filter((d) => d.themes.indexOf(id) >= 0).sort((a, b) => (b.rank || 0) - (a.rank || 0));
-  return (
-    <>
-      <div className="phead">
-        <button className="back" onClick={() => history.back()} aria-label={t("back")}>
-          <Icon name="back" />
-        </button>
-        <h1 className="display" lang={S.lang}>
-          {nm(th)}
-        </h1>
-      </div>
-      {/* The call to action sits ABOVE the list. Someone who has opened a
-          theme has already decided they are interested in it; making them
-          scroll past twelve cards before they can act on that is the wrong
-          order, and on a long theme the button was simply never seen. */}
-      <button className="btn primary" style={{ marginBottom: 6 }} onClick={() => quickTheme(id)}>
-        <Icon name="route" />
-        {nm({ en: "Plan a day around this", hi: "इसी के आसपास दिन बनाएँ" })}
-      </button>
-      <p className="themecount" lang={S.lang}>
-        {nPlaces(list.length)}
-      </p>
-      <div className="plist stagger">
-        {list.map((d) => (
-          <Pcard key={d.id} d={d} />
-        ))}
-      </div>
-    </>
-  );
+  return <Explore theme={theme(id) ? id : undefined} />;
 }

@@ -64,28 +64,36 @@ export function Shell() {
             </span>
           </button>
           <span className="hspace" />
-          {/* Three targets, not five. Search and the weather/clock moved onto
-              Home, where they can be full-width and labelled instead of being
-              two more small icons competing in the bar.
+          {/* Three controls, in ONE object.
+              They used to float as three separate pills of three different
+              shapes, which is what made the bar read as unfinished — and
+              because each sized itself independently, the two that carried
+              words both ran out of room and truncated: "Kurukshetra Saar…"
+              beside "Kurukshet…", so the one thing the chip exists to tell you
+              was the thing it cut off. Grouped, they share one border and one
+              shadow, the separators do the work three outlines were doing, and
+              the scope chip is the member that never shrinks.
 
-              The town chip is the fourth, and it earns it the same way the
-              language button does: it is a switch, not a destination, and it
-              also *states* something — which of the two towns the list you are
-              reading belongs to. Buried in the menu, "where is Jyotisar" has
-              no answer on screen. */}
-          <CityChip />
-          <button className="langbtn" onClick={flipLang} aria-label={S.lang === "hi" ? "Switch to English" : "हिन्दी में बदलें"}>
-            {S.lang === "hi" ? "हिन्दी" : "ENG"}
-          </button>
-          {/* One button, not two. Settings used to sit here on its own; now it
-              is one row inside the menu alongside the account, so adding a
-              destination later costs a row rather than another icon competing
-              in a bar that only has room for three. Language keeps its own
-              button because it is a *switch*, not a destination — burying a
-              one-tap toggle two taps deep in a bilingual app is a downgrade. */}
-          <button className="iconbtn" onClick={openMenu} aria-label={t("menu")} aria-haspopup="dialog">
-            <Icon name="menu" />
-          </button>
+              What is in the group: the scope, the language, the menu. The
+              first two are switches rather than destinations — burying a
+              one-tap toggle two taps deep in a bilingual app is a downgrade,
+              and a scope buried in a menu leaves "why can't I find Jyotisar"
+              with no answer on screen. */}
+          <div className="hgroup">
+            <CityChip />
+            <span className="hsep" aria-hidden="true" />
+            <button
+              className="langbtn"
+              onClick={flipLang}
+              aria-label={S.lang === "hi" ? "Switch to English" : "हिन्दी में बदलें"}
+            >
+              {S.lang === "hi" ? "हिन्दी" : "ENG"}
+            </button>
+            <span className="hsep" aria-hidden="true" />
+            <button className="iconbtn" onClick={openMenu} aria-label={t("menu")} aria-haspopup="dialog">
+              <Icon name="menu" />
+            </button>
+          </div>
         </div>
       </header>
       <main className="screen">

@@ -36,18 +36,6 @@
   "_check": "https://www.google.com/maps/dir/29.9612781,76.7688638/29.9615995,76.7697201/data=!4m2!4m1!3e2"
  },
  {
-  "a": "ban-ganga",
-  "b": "bhishma-kund",
-  "rel": "walkable",
-  "m": 159,
-  "min": {
-   "walking": 3
-  },
-  "verified": false,
-  "_names": "Baan Ganga, Dayalpur ↔ Bhishma Kund, Narkatari",
-  "_check": "https://www.google.com/maps/dir/29.9375417,76.8136975/29.9386322,76.8126273/data=!4m2!4m1!3e2"
- },
- {
   "a": "bhadrakali",
   "b": "sheikh-chilli",
   "rel": "walkable",
@@ -70,18 +58,6 @@
   "verified": false,
   "_names": "Devikoop Bhadrakali Shaktipeeth ↔ Sthaneshwar Mahadev Tirtha",
   "_check": "https://www.google.com/maps/dir/29.9792032,76.8320469/29.9814274,76.8279468/data=!4m2!4m1!3e2"
- },
- {
-  "a": "bhadrakali",
-  "b": "stn-kkde",
-  "rel": "walkable",
-  "m": 292,
-  "min": {
-   "walking": 5
-  },
-  "verified": false,
-  "_names": "Devikoop Bhadrakali Shaktipeeth ↔ Kurukshetra Junction",
-  "_check": "https://www.google.com/maps/dir/29.9792032,76.8320469/29.9772,76.834/data=!4m2!4m1!3e2"
  },
  {
   "a": "birla-mandir",
@@ -123,13 +99,13 @@
   "a": "birla-mandir",
   "b": "gurudwara-dasvin",
   "rel": "walkable",
-  "m": 441,
+  "m": 446,
   "min": {
    "walking": 7
   },
   "verified": false,
   "_names": "Birla Mandir ↔ Gurudwara Dasvin Patshahi",
-  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9614,76.8286/data=!4m2!4m1!3e2"
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.964913,76.822426/data=!4m2!4m1!3e2"
  },
  {
   "a": "birla-mandir",
@@ -145,18 +121,6 @@
  },
  {
   "a": "birla-mandir",
-  "b": "kali-kamli",
-  "rel": "walkable",
-  "m": 441,
-  "min": {
-   "walking": 7
-  },
-  "verified": false,
-  "_names": "Birla Mandir ↔ Baba Kali Kamli Wale",
-  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9614,76.8286/data=!4m2!4m1!3e2"
- },
- {
-  "a": "birla-mandir",
   "b": "stay-neelkanthi",
   "rel": "walkable",
   "m": 304,
@@ -166,6 +130,18 @@
   "verified": false,
   "_names": "Birla Mandir ↔ Neelkanthi Krishna Dham Yatri Niwas",
   "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "birla-mandir",
+  "b": "stn-thc",
+  "rel": "walkable",
+  "m": 289,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Birla Mandir ↔ Thanesar City",
+  "_check": "https://www.google.com/maps/dir/29.9651357,76.8270519/29.9669,76.82485/data=!4m2!4m1!3e2"
  },
  {
   "a": "brahma-sarovar",
@@ -193,18 +169,6 @@
  },
  {
   "a": "brahma-sarovar",
-  "b": "gurudwara-dasvin",
-  "rel": "same-complex",
-  "m": 7,
-  "min": {
-   "walking": 1
-  },
-  "verified": false,
-  "_names": "Brahma Sarovar ↔ Gurudwara Dasvin Patshahi",
-  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9614,76.8286/data=!4m2!4m1!3e2"
- },
- {
-  "a": "brahma-sarovar",
   "b": "jairam",
   "rel": "walkable",
   "m": 352,
@@ -214,18 +178,6 @@
   "verified": false,
   "_names": "Brahma Sarovar ↔ Shri Jairam Vidyapeeth",
   "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9640579,76.8304651/data=!4m2!4m1!3e2"
- },
- {
-  "a": "brahma-sarovar",
-  "b": "kali-kamli",
-  "rel": "same-complex",
-  "m": 7,
-  "min": {
-   "walking": 1
-  },
-  "verified": false,
-  "_names": "Brahma Sarovar ↔ Baba Kali Kamli Wale",
-  "_check": "https://www.google.com/maps/dir/29.9613554,76.8285533/29.9614,76.8286/data=!4m2!4m1!3e2"
  },
  {
   "a": "brahma-sarovar",
@@ -265,6 +217,18 @@
  },
  {
   "a": "buddha-stupa",
+  "b": "gurudwara-dasvin",
+  "rel": "walkable",
+  "m": 212,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Buddhist Stupa, Thanesar ↔ Gurudwara Dasvin Patshahi",
+  "_check": "https://www.google.com/maps/dir/29.963246,76.821349/29.964913,76.822426/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "buddha-stupa",
   "b": "stay-neelkanthi",
   "rel": "walkable",
   "m": 475,
@@ -289,18 +253,6 @@
  },
  {
   "a": "gaudiya-math",
-  "b": "gurudwara-dasvin",
-  "rel": "walkable",
-  "m": 372,
-  "min": {
-   "walking": 6
-  },
-  "verified": false,
-  "_names": "Shri Vyas Gaudiya Math ↔ Gurudwara Dasvin Patshahi",
-  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9614,76.8286/data=!4m2!4m1!3e2"
- },
- {
-  "a": "gaudiya-math",
   "b": "jairam",
   "rel": "same-complex",
   "m": 109,
@@ -315,13 +267,13 @@
   "a": "gaudiya-math",
   "b": "kali-kamli",
   "rel": "walkable",
-  "m": 372,
+  "m": 189,
   "min": {
-   "walking": 6
+   "walking": 3
   },
   "verified": false,
   "_names": "Shri Vyas Gaudiya Math ↔ Baba Kali Kamli Wale",
-  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.9614,76.8286/data=!4m2!4m1!3e2"
+  "_check": "https://www.google.com/maps/dir/29.9636279,76.8314856/29.964299,76.833283/data=!4m2!4m1!3e2"
  },
  {
   "a": "gaudiya-math",
@@ -397,18 +349,6 @@
  },
  {
   "a": "gita-bhawan",
-  "b": "gurudwara-dasvin",
-  "rel": "walkable",
-  "m": 287,
-  "min": {
-   "walking": 5
-  },
-  "verified": false,
-  "_names": "Gita Bhawan ↔ Gurudwara Dasvin Patshahi",
-  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9614,76.8286/data=!4m2!4m1!3e2"
- },
- {
-  "a": "gita-bhawan",
   "b": "jairam",
   "rel": "same-complex",
   "m": 98,
@@ -423,13 +363,13 @@
   "a": "gita-bhawan",
   "b": "kali-kamli",
   "rel": "walkable",
-  "m": 287,
+  "m": 371,
   "min": {
-   "walking": 5
+   "walking": 6
   },
   "verified": false,
   "_names": "Gita Bhawan ↔ Baba Kali Kamli Wale",
-  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.9614,76.8286/data=!4m2!4m1!3e2"
+  "_check": "https://www.google.com/maps/dir/29.9638687,76.8294689/29.964299,76.833283/data=!4m2!4m1!3e2"
  },
  {
   "a": "gita-bhawan",
@@ -565,63 +505,27 @@
  },
  {
   "a": "gurudwara-dasvin",
-  "b": "jairam",
-  "rel": "walkable",
-  "m": 346,
-  "min": {
-   "walking": 6
-  },
-  "verified": false,
-  "_names": "Gurudwara Dasvin Patshahi ↔ Shri Jairam Vidyapeeth",
-  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9640579,76.8304651/data=!4m2!4m1!3e2"
- },
- {
-  "a": "gurudwara-dasvin",
-  "b": "kali-kamli",
-  "rel": "same-complex",
-  "m": 0,
-  "min": {
-   "walking": 1
-  },
-  "verified": false,
-  "_names": "Gurudwara Dasvin Patshahi ↔ Baba Kali Kamli Wale",
-  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9614,76.8286/data=!4m2!4m1!3e2"
- },
- {
-  "a": "gurudwara-dasvin",
   "b": "stay-neelkanthi",
   "rel": "walkable",
-  "m": 262,
-  "min": {
-   "walking": 4
-  },
-  "verified": false,
-  "_names": "Gurudwara Dasvin Patshahi ↔ Neelkanthi Krishna Dham Yatri Niwas",
-  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9625,76.8262/data=!4m2!4m1!3e2"
- },
- {
-  "a": "gurudwara-dasvin",
-  "b": "stay-parashar",
-  "rel": "walkable",
-  "m": 233,
-  "min": {
-   "walking": 4
-  },
-  "verified": false,
-  "_names": "Gurudwara Dasvin Patshahi ↔ Parashar Tourist Complex",
-  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9601,76.8305/data=!4m2!4m1!3e2"
- },
- {
-  "a": "gurudwara-pehli",
-  "b": "stn-thc",
-  "rel": "walkable",
-  "m": 422,
+  "m": 452,
   "min": {
    "walking": 7
   },
   "verified": false,
-  "_names": "Gurudwara Pehli Patshahi, Siddh Vati ↔ Thanesar City",
-  "_check": "https://www.google.com/maps/dir/29.9559293,76.8252334/29.954,76.829/data=!4m2!4m1!3e2"
+  "_names": "Gurudwara Dasvin Patshahi ↔ Neelkanthi Krishna Dham Yatri Niwas",
+  "_check": "https://www.google.com/maps/dir/29.964913,76.822426/29.9625,76.8262/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "gurudwara-dasvin",
+  "b": "stn-thc",
+  "rel": "walkable",
+  "m": 321,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gurudwara Dasvin Patshahi ↔ Thanesar City",
+  "_check": "https://www.google.com/maps/dir/29.964913,76.822426/29.9669,76.82485/data=!4m2!4m1!3e2"
  },
  {
   "a": "harsh-ka-tila",
@@ -651,13 +555,13 @@
   "a": "jairam",
   "b": "kali-kamli",
   "rel": "walkable",
-  "m": 346,
+  "m": 273,
   "min": {
-   "walking": 6
+   "walking": 4
   },
   "verified": false,
   "_names": "Shri Jairam Vidyapeeth ↔ Baba Kali Kamli Wale",
-  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.9614,76.8286/data=!4m2!4m1!3e2"
+  "_check": "https://www.google.com/maps/dir/29.9640579,76.8304651/29.964299,76.833283/data=!4m2!4m1!3e2"
  },
  {
   "a": "jairam",
@@ -769,27 +673,75 @@
  },
  {
   "a": "kali-kamli",
-  "b": "stay-neelkanthi",
-  "rel": "walkable",
-  "m": 262,
+  "b": "krishna-museum",
+  "rel": "same-complex",
+  "m": 86,
   "min": {
-   "walking": 4
+   "walking": 1
   },
   "verified": false,
-  "_names": "Baba Kali Kamli Wale ↔ Neelkanthi Krishna Dham Yatri Niwas",
-  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9625,76.8262/data=!4m2!4m1!3e2"
+  "_names": "Baba Kali Kamli Wale ↔ Sri Krishna Museum",
+  "_check": "https://www.google.com/maps/dir/29.964299,76.833283/29.965068,76.8332478/data=!4m2!4m1!3e2"
  },
  {
   "a": "kali-kamli",
-  "b": "stay-parashar",
+  "b": "laxmi-narayan",
   "rel": "walkable",
-  "m": 233,
+  "m": 334,
   "min": {
-   "walking": 4
+   "walking": 5
   },
   "verified": false,
-  "_names": "Baba Kali Kamli Wale ↔ Parashar Tourist Complex",
-  "_check": "https://www.google.com/maps/dir/29.9614,76.8286/29.9601,76.8305/data=!4m2!4m1!3e2"
+  "_names": "Baba Kali Kamli Wale ↔ Laxmi Narayan Mandir",
+  "_check": "https://www.google.com/maps/dir/29.964299,76.833283/29.9671886,76.8342256/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "kali-kamli",
+  "b": "nabha-house",
+  "rel": "walkable",
+  "m": 290,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Baba Kali Kamli Wale ↔ Nabha House",
+  "_check": "https://www.google.com/maps/dir/29.964299,76.833283/29.9667363,76.8343648/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "kali-kamli",
+  "b": "nanda-memorial",
+  "rel": "walkable",
+  "m": 213,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Baba Kali Kamli Wale ↔ Gulzarilal Nanda Memorial",
+  "_check": "https://www.google.com/maps/dir/29.964299,76.833283/29.9626645,76.8344297/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "kali-kamli",
+  "b": "panorama",
+  "rel": "walkable",
+  "m": 199,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Baba Kali Kamli Wale ↔ Kurukshetra Panorama & Science Centre",
+  "_check": "https://www.google.com/maps/dir/29.964299,76.833283/29.9660103,76.8339023/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "kali-kamli",
+  "b": "sannihit-sarovar",
+  "rel": "walkable",
+  "m": 367,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Baba Kali Kamli Wale ↔ Sannihit Sarovar",
+  "_check": "https://www.google.com/maps/dir/29.964299,76.833283/29.9667155,76.8358776/data=!4m2!4m1!3e2"
  },
  {
   "a": "krishna-museum",
@@ -970,6 +922,1770 @@
   "verified": false,
   "_names": "Gulzarilal Nanda Memorial ↔ Parashar Tourist Complex",
   "_check": "https://www.google.com/maps/dir/29.9626645,76.8344297/29.9601,76.8305/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-bala-sundari",
+  "rel": "walkable",
+  "m": 208,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Shri Mata Bala Sundari Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.9808,76.5762/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-bauli-sahib",
+  "rel": "walkable",
+  "m": 265,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Gurudwara Bauli Sahib, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.98305,76.5784/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-brahmyoni",
+  "rel": "same-complex",
+  "m": 137,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Brahmyoni Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.98155,76.57935/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-brihaspati",
+  "rel": "same-complex",
+  "m": 50,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Brihaspati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.980853,76.578826/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-chaturmukh",
+  "rel": "walkable",
+  "m": 190,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Chaturmukh Mahadev Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.979153,76.579278/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-dholi-haveli",
+  "rel": "walkable",
+  "m": 365,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Dholi Haveli, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.9833,76.5761/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-kartikeya",
+  "rel": "walkable",
+  "m": 177,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-nathon-dera",
+  "rel": "same-complex",
+  "m": 135,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-papantak",
+  "rel": "same-complex",
+  "m": 73,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-prithvishwar",
+  "rel": "same-complex",
+  "m": 65,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 454,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 193,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 286,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-vishwamitra-tila",
+  "rel": "same-complex",
+  "m": 66,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 209,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-avakirna",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 207,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Avakirna Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980667,76.578357/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-bauli-sahib",
+  "rel": "walkable",
+  "m": 328,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Gurudwara Bauli Sahib, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.98305,76.5784/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-brahmyoni",
+  "rel": "walkable",
+  "m": 315,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Brahmyoni Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.98155,76.57935/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-brihaspati",
+  "rel": "walkable",
+  "m": 253,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Brihaspati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.980853,76.578826/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-chaturmukh",
+  "rel": "walkable",
+  "m": 348,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Chaturmukh Mahadev Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.979153,76.579278/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-dakshin-kali",
+  "rel": "walkable",
+  "m": 395,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Shri Dakshin Kali Peeth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.9842,76.575/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-dholi-haveli",
+  "rel": "walkable",
+  "m": 278,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Dholi Haveli, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.9833,76.5761/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-kartikeya",
+  "rel": "walkable",
+  "m": 356,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-nathon-dera",
+  "rel": "walkable",
+  "m": 325,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-papantak",
+  "rel": "walkable",
+  "m": 274,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-prithudak",
+  "rel": "walkable",
+  "m": 353,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Prithudak Tirth (Kailash Dham), Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.978709,76.573446/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-prithvishwar",
+  "rel": "walkable",
+  "m": 270,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 377,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 455,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 203,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 385,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bala-sundari",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 339,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Shri Mata Bala Sundari Mandir, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808,76.5762/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-brahmyoni",
+  "rel": "walkable",
+  "m": 190,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Brahmyoni Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.98155,76.57935/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-brihaspati",
+  "rel": "walkable",
+  "m": 248,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Brihaspati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.980853,76.578826/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-chaturmukh",
+  "rel": "walkable",
+  "m": 442,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Chaturmukh Mahadev Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.979153,76.579278/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-dakshin-kali",
+  "rel": "walkable",
+  "m": 352,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Shri Dakshin Kali Peeth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.9842,76.575/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-dholi-haveli",
+  "rel": "walkable",
+  "m": 223,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Dholi Haveli, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.9833,76.5761/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-kartikeya",
+  "rel": "walkable",
+  "m": 199,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-nathon-dera",
+  "rel": "walkable",
+  "m": 216,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-papantak",
+  "rel": "walkable",
+  "m": 241,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-prithvishwar",
+  "rel": "walkable",
+  "m": 256,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 292,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 215,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 219,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 329,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 197,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-bauli-sahib",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 108,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Gurudwara Bauli Sahib, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98305,76.5784/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-brihaspati",
+  "rel": "same-complex",
+  "m": 92,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Brihaspati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.980853,76.578826/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-chaturmukh",
+  "rel": "walkable",
+  "m": 267,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Chaturmukh Mahadev Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.979153,76.579278/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-dholi-haveli",
+  "rel": "walkable",
+  "m": 369,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Dholi Haveli, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.9833,76.5761/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-kartikeya",
+  "rel": "same-complex",
+  "m": 42,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-krishna-kripa",
+  "rel": "walkable",
+  "m": 481,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Shri Krishna Kripa Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.9789,76.5833/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-nathon-dera",
+  "rel": "same-complex",
+  "m": 25,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-papantak",
+  "rel": "same-complex",
+  "m": 72,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-prithvishwar",
+  "rel": "same-complex",
+  "m": 89,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 318,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-saraswati-tirth",
+  "rel": "same-complex",
+  "m": 62,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-vashishtha-prachi",
+  "rel": "same-complex",
+  "m": 149,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 198,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "p-yayati",
+  "rel": "same-complex",
+  "m": 73,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brahmyoni",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 93,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brahmyoni Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98155,76.57935/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-chaturmukh",
+  "rel": "walkable",
+  "m": 194,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Chaturmukh Mahadev Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.979153,76.579278/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-dholi-haveli",
+  "rel": "walkable",
+  "m": 378,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Dholi Haveli, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.9833,76.5761/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-kartikeya",
+  "rel": "same-complex",
+  "m": 130,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-krishna-kripa",
+  "rel": "walkable",
+  "m": 483,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Shri Krishna Kripa Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.9789,76.5833/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-nathon-dera",
+  "rel": "same-complex",
+  "m": 87,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-papantak",
+  "rel": "same-complex",
+  "m": 24,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-prithvishwar",
+  "rel": "same-complex",
+  "m": 18,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 410,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-saraswati-tirth",
+  "rel": "same-complex",
+  "m": 144,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 239,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-vishwamitra-tila",
+  "rel": "same-complex",
+  "m": 106,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 163,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-brihaspati",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 174,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Brihaspati Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980853,76.578826/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-kartikeya",
+  "rel": "walkable",
+  "m": 287,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-krishna-kripa",
+  "rel": "walkable",
+  "m": 388,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Shri Krishna Kripa Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.9789,76.5833/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-nathon-dera",
+  "rel": "walkable",
+  "m": 247,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-papantak",
+  "rel": "walkable",
+  "m": 202,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-prithvishwar",
+  "rel": "walkable",
+  "m": 186,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 289,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 381,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 151,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 315,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-chaturmukh",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 359,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Chaturmukh Mahadev Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.979153,76.579278/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dakshin-kali",
+  "b": "p-dholi-haveli",
+  "rel": "same-complex",
+  "m": 146,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Shri Dakshin Kali Peeth, Pehowa ↔ Dholi Haveli, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9842,76.575/29.9833,76.5761/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dakshin-kali",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 453,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Dakshin Kali Peeth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9842,76.575/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-kartikeya",
+  "rel": "walkable",
+  "m": 394,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Kartikeya Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.9817,76.57975/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-nathon-dera",
+  "rel": "walkable",
+  "m": 392,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-papantak",
+  "rel": "walkable",
+  "m": 385,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-prithvishwar",
+  "rel": "walkable",
+  "m": 394,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 415,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 440,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 407,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 404,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-dholi-haveli",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 317,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Dholi Haveli, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9833,76.5761/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-krishna-kripa",
+  "rel": "walkable",
+  "m": 462,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Shri Krishna Kripa Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.9789,76.5833/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-nathon-dera",
+  "rel": "same-complex",
+  "m": 44,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-papantak",
+  "rel": "same-complex",
+  "m": 107,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-prithvishwar",
+  "rel": "same-complex",
+  "m": 122,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 282,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-saraswati-tirth",
+  "rel": "same-complex",
+  "m": 22,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-vashishtha-prachi",
+  "rel": "same-complex",
+  "m": 110,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 235,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "p-yayati",
+  "rel": "same-complex",
+  "m": 33,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-kartikeya",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 92,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Kartikeya Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9817,76.57975/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-krishna-kripa",
+  "b": "p-nathon-dera",
+  "rel": "walkable",
+  "m": 457,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Krishna Kripa Mandir, Pehowa ↔ Nathon ka Dera, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9789,76.5833/29.981366,76.579508/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-krishna-kripa",
+  "b": "p-papantak",
+  "rel": "walkable",
+  "m": 470,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Shri Krishna Kripa Mandir, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9789,76.5833/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-krishna-kripa",
+  "b": "p-prithvishwar",
+  "rel": "walkable",
+  "m": 465,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Krishna Kripa Mandir, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9789,76.5833/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-krishna-kripa",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 445,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Krishna Kripa Mandir, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9789,76.5833/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-krishna-kripa",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 471,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Shri Krishna Kripa Mandir, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9789,76.5833/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-krishna-kripa",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 464,
+  "min": {
+   "walking": 7
+  },
+  "verified": false,
+  "_names": "Shri Krishna Kripa Mandir, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9789,76.5833/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-papantak",
+  "rel": "same-complex",
+  "m": 64,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Papantak Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.980958,76.57904/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-prithvishwar",
+  "rel": "same-complex",
+  "m": 78,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 326,
+  "min": {
+   "walking": 5
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-saraswati-tirth",
+  "rel": "same-complex",
+  "m": 57,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 153,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 192,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "p-yayati",
+  "rel": "same-complex",
+  "m": 77,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-nathon-dera",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 116,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Nathon ka Dera, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981366,76.579508/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "p-prithvishwar",
+  "rel": "same-complex",
+  "m": 17,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Prithvishwar Mahadev Mandir, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.9808086,76.5790083/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 389,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "p-saraswati-tirth",
+  "rel": "same-complex",
+  "m": 121,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 216,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "p-vishwamitra-tila",
+  "rel": "same-complex",
+  "m": 128,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "p-yayati",
+  "rel": "same-complex",
+  "m": 140,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-papantak",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 159,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Papantak Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.980958,76.57904/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithudak",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 479,
+  "min": {
+   "walking": 8
+  },
+  "verified": false,
+  "_names": "Prithudak Tirth (Kailash Dham), Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.978709,76.573446/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithvishwar",
+  "b": "p-ram-tirth",
+  "rel": "walkable",
+  "m": 404,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Prithvishwar Mahadev Mandir, Pehowa ↔ Ram Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808086,76.5790083/29.983864,76.581283/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithvishwar",
+  "b": "p-saraswati-tirth",
+  "rel": "same-complex",
+  "m": 135,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Prithvishwar Mahadev Mandir, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808086,76.5790083/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithvishwar",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 231,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Prithvishwar Mahadev Mandir, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808086,76.5790083/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithvishwar",
+  "b": "p-vishwamitra-tila",
+  "rel": "same-complex",
+  "m": 114,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Prithvishwar Mahadev Mandir, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808086,76.5790083/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithvishwar",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 155,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Prithvishwar Mahadev Mandir, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808086,76.5790083/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-prithvishwar",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 176,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Prithvishwar Mahadev Mandir, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9808086,76.5790083/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-ram-tirth",
+  "b": "p-saraswati-tirth",
+  "rel": "walkable",
+  "m": 273,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Ram Tirth, Pehowa ↔ Saraswati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.983864,76.581283/29.981682,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-ram-tirth",
+  "b": "p-vashishtha-prachi",
+  "rel": "walkable",
+  "m": 177,
+  "min": {
+   "walking": 3
+  },
+  "verified": false,
+  "_names": "Ram Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.983864,76.581283/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-ram-tirth",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 250,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Ram Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.983864,76.581283/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-ram-tirth",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 259,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Ram Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.983864,76.581283/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-saraswati-tirth",
+  "b": "p-vashishtha-prachi",
+  "rel": "same-complex",
+  "m": 97,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Saraswati Tirth, Pehowa ↔ Vashishtha Prachi Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981682,76.57998/29.9824,76.58055/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-saraswati-tirth",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 249,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Saraswati Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981682,76.57998/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-saraswati-tirth",
+  "b": "p-yayati",
+  "rel": "same-complex",
+  "m": 26,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Saraswati Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981682,76.57998/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-saraswati-tirth",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 107,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Saraswati Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.981682,76.57998/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-vashishtha-prachi",
+  "b": "p-vishwamitra-tila",
+  "rel": "walkable",
+  "m": 345,
+  "min": {
+   "walking": 6
+  },
+  "verified": false,
+  "_names": "Vashishtha Prachi Tirth, Pehowa ↔ Vishwamitra ka Tila, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9824,76.58055/29.9801,76.57815/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-vashishtha-prachi",
+  "b": "p-yayati",
+  "rel": "same-complex",
+  "m": 77,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Vashishtha Prachi Tirth, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9824,76.58055/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-vashishtha-prachi",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 129,
+  "min": {
+   "walking": 2
+  },
+  "verified": false,
+  "_names": "Vashishtha Prachi Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9824,76.58055/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-vishwamitra-tila",
+  "b": "p-yayati",
+  "rel": "walkable",
+  "m": 268,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Vishwamitra ka Tila, Pehowa ↔ Yayati Tirth, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9801,76.57815/29.98192,76.57998/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-vishwamitra-tila",
+  "b": "stay-hotel-legend",
+  "rel": "walkable",
+  "m": 273,
+  "min": {
+   "walking": 4
+  },
+  "verified": false,
+  "_names": "Vishwamitra ka Tila, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.9801,76.57815/29.98238,76.57921/data=!4m2!4m1!3e2"
+ },
+ {
+  "a": "p-yayati",
+  "b": "stay-hotel-legend",
+  "rel": "same-complex",
+  "m": 90,
+  "min": {
+   "walking": 1
+  },
+  "verified": false,
+  "_names": "Yayati Tirth, Pehowa ↔ Hotel Legend, Pehowa",
+  "_check": "https://www.google.com/maps/dir/29.98192,76.57998/29.98238,76.57921/data=!4m2!4m1!3e2"
  },
  {
   "a": "panorama",

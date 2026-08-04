@@ -1,21 +1,27 @@
-import { S, city, setCity } from "@/app/state";
-import { CITIES, cityOf } from "@/data/cities";
+import { S, city, setCity, allTowns } from "@/app/state";
+import { ALL, CITIES, cityOf } from "@/data/cities";
 import { D } from "@/data/destinations";
 import { t, nm, nPlaces } from "@/shared/i18n/i18n";
 import { Icon } from "@/shared/icons/Icon";
 import { openSheet, closeSheet, toast } from "@/shared/ui/overlays";
 
 /**
- * Which town the app is showing.
+ * Which town the app is showing — one of them, or both at once.
  *
  * It sits in the header rather than on Home because it is not a Home question:
  * someone reading the map, or looking at what they have saved, is exactly the
  * person who needs to notice they are looking at the wrong town. A chip that
- * *states* the town is also the cheapest way to answer "why can't I find
+ * *states* the scope is also the cheapest way to answer "why can't I find
  * Jyotisar" — the answer is on screen before the question is asked.
  *
- * The rows reuse `.menurow`, which is already the app's list-inside-a-sheet.
+ * "Both towns" leads, because it is the answer for anyone who does not yet
+ * know the district well enough for the question to mean anything.
  */
+const scopes = () => [
+  { id: ALL, label: { en: "Both towns", hi: "दोनों नगर" }, sub: null },
+  ...CITIES.map((c) => ({ id: c.id, label: c, sub: c.region })),
+];
+
 function CityBody() {
   return (
     <div className="menu">
@@ -25,28 +31,26 @@ function CityBody() {
       <p className="muted" style={{ margin: "2px 0 10px", fontSize: "calc(13px*var(--ts))" }} lang={S.lang}>
         {t("cityPickD")}
       </p>
-      {CITIES.map((c) => {
-        const on = c.id === S.city;
-        const n = D.filter((d) => cityOf(d) === c.id).length;
+      {scopes().map((sc) => {
+        const on = sc.id === S.city;
+        const n = sc.id === ALL ? D.length : D.filter((d) => cityOf(d) === sc.id).length;
         return (
           <button
-            key={c.id}
+            key={sc.id}
             className="menurow"
             aria-current={on ? "true" : undefined}
             onClick={() => {
               closeSheet();
               if (!on) {
-                setCity(c.id);
-                toast(nm(c));
+                setCity(sc.id);
+                toast(nm(sc.label));
               }
             }}
           >
-            <Icon name={on ? "check" : "pin"} />
+            <Icon name={on ? "check" : sc.id === ALL ? "compass" : "pin"} />
             <span className="menutext">
-              <b lang={S.lang}>{nm(c)}</b>
-              <small>
-                {nPlaces(n)} · {nm(c.region)}
-              </small>
+              <b lang={S.lang}>{nm(sc.label)}</b>
+              <small>{nPlaces(n) + (sc.sub ? " · " + nm(sc.sub) : "")}</small>
             </span>
           </button>
         );
@@ -57,12 +61,16 @@ function CityBody() {
 
 export const openCitySheet = () => openSheet(<CityBody />);
 
-/** Header chip: the town you are in, and the way to change it. */
+/** What the header chip says: the town, or that both are showing. */
+export const scopeName = (): string =>
+  allTowns() ? nm({ en: "Both towns", hi: "दोनों नगर" }) : nm(city());
+
+/** Header chip: the scope you are browsing, and the way to change it. */
 export function CityChip() {
   return (
     <button className="citybtn" onClick={openCitySheet} aria-haspopup="dialog" aria-label={t("cityPick")}>
-      <Icon name="pin" />
-      <span lang={S.lang}>{nm(city())}</span>
+      <Icon name={allTowns() ? "compass" : "pin"} />
+      <span lang={S.lang}>{scopeName()}</span>
     </button>
   );
 }

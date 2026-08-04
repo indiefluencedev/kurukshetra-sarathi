@@ -68,7 +68,11 @@ export interface AuditRow {
  * and the endpoint that carries it is public: `/content/<anything>.json` must
  * not become a way to probe the database for what else is in there.
  */
-export const CONTENT_KINDS = ["places", "hotels", "erickshaw"] as const;
+// `startpoints` is the curated index of stations, bus stands, hotels and
+// dharamshalas the planner offers as a start or an end. It is maintained the
+// same way and for the same reason as the rest: a bus stand moves, a yatri
+// niwas changes its phone number, and neither should need an app release.
+export const CONTENT_KINDS = ["places", "startpoints", "hotels", "erickshaw"] as const;
 export type ContentKind = (typeof CONTENT_KINDS)[number];
 
 export const isContentKind = (s: string): s is ContentKind =>

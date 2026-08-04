@@ -14,6 +14,7 @@ const data = {
   hero: read(base + "data/hero.json"),
   places: read(base + "data/places-index.json"),
   events: read(base + "data/events.json"),
+  cities: read(base + "data/cities.json"),
 };
 
 const out = [];
@@ -60,6 +61,35 @@ data.places.forEach((p, i) => {
   if (!p.verified) warn.push(`${at}: not verified — nobody has checked the pin`);
   else if (!p.checked) warn.push(`${at}: verified but no "checked" date`);
 });
+
+/* ---- the towns ----
+   Every list on screen is `filter(d => d.city === S.city)`. A place carrying a
+   town id that no longer exists is not a visible error — it is a place that
+   silently stops appearing anywhere, which is the failure mode this catches.
+   The same filter runs over hero photographs and the start-point index, so all
+   three are checked against the same list. */
+const cityIds = new Set(data.cities.map((c) => c.id));
+const DEFAULT_CITY = data.cities[0]?.id;
+if (!DEFAULT_CITY) out.push("cities: the list is empty — every filter would come back empty");
+for (const c of data.cities) {
+  const at = `cities ${c.id}`;
+  if (!c.centre || typeof c.centre.lat !== "number" || typeof c.centre.lng !== "number")
+    out.push(`${at}: centre must be {lat,lng} numbers`);
+  if (!c.wx || typeof c.wx.lat !== "number") out.push(`${at}: wx must be {lat,lng} numbers`);
+  if (!c.pin) out.push(`${at}: no pin code — the weather sheet prints it`);
+}
+for (const [name, list] of [["destinations", data.destinations], ["hero", data.hero], ["places", data.places]]) {
+  list.forEach((x, i) => {
+    const id = x.city ?? DEFAULT_CITY;
+    if (!cityIds.has(id)) out.push(`${name}[${i}] ${x.id}: unknown city "${x.city}"`);
+  });
+}
+// A town with no places is a town the picker offers and the visitor lands on
+// an empty Explore — worse than not offering it at all.
+for (const c of data.cities) {
+  const n = data.destinations.filter((d) => (d.city ?? DEFAULT_CITY) === c.id).length;
+  if (!n) out.push(`cities ${c.id}: no destinations belong to it`);
+}
 
 /* ---- the events calendar ----
    The dates are lunar and hand-entered from the panchang every year, which is

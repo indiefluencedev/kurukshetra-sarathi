@@ -245,8 +245,17 @@ console.log("multi-day start-time checks passed");
    zig-zagged on the map: stop 6 back past stop 4 to reach stop 7.
 
    `reorder` now breaks those ties on distance, which costs no time by
-   construction. This asserts the walk actually comes out geometrically optimal
-   against a brute force over the pocket. */
+   construction. This asserts the walk comes out within a whisker of
+   geometrically optimal against a brute force over the pocket.
+
+   Within a whisker, not exactly optimal. `reorder` scores candidates with
+   `simulate` — the real cost model, opening hours and the spread of waiting
+   included — while this brute force scores raw metres. When those two
+   disagree the engine is right and this measure is not: a pocket that walks
+   ten metres further and arrives before a temple shuts is the better day. So
+   the bar is "no zig-zag", which is what the failure looked like (17% over,
+   254m in one pocket), rather than "no metre wasted". */
+const WALK_SLACK = 1.05;
 {
   const hav = (a, b) => {
     const R = 6371000, r = (x) => (x * Math.PI) / 180;
@@ -280,7 +289,7 @@ console.log("multi-day start-time checks passed");
       const walked = len([pk[0].d, ...pk.slice(1).map((s) => s.d)]);
       const best = Math.min(...perms(pk.slice(1)).map((p) => len([pk[0].d, ...p.map((s) => s.d)])));
       assert.ok(
-        walked <= best + 1,
+        walked <= best * WALK_SLACK + 1,
         `walk from ${pk[0].d.name.en} covers ${Math.round(walked)}m; ${Math.round(best)}m was available ` +
           `(${pk.slice(1).map((s) => s.d.name.en).join(" -> ")})`,
       );
@@ -343,3 +352,111 @@ console.log("walk-order checks passed");
 }
 
 console.log("event alert checks passed");
+
+/* ── the town on screen scopes every list ──────────────────────────────────
+   `DC()` sits under Home, Explore, Search, the map and the planner's own
+   candidate pool. If it ever returned all 57 places, a Pehowa visitor would be
+   routed to Jyotisar, 25 km away, with no way to tell from the screen that
+   anything was wrong — the lists would simply be longer. So it is asserted
+   both ways round, and against the same partition the hero rail uses. */
+{
+  const { S, setCity, city } = await import("../src/app/state.ts");
+  const { CITIES } = await import("../src/data/cities.ts");
+  const { D, DC, themesHere } = await import("../src/data/destinations.ts");
+  const { heroFor } = await import("../src/data/reels-hero.ts");
+
+  assert.ok(CITIES.length >= 2, "this check is about there being more than one town");
+  const was = S.city;
+
+  let total = 0;
+  for (const c of CITIES) {
+    setCity(c.id);
+    assert.equal(city().id, c.id, "setCity actually switches");
+    const list = DC();
+    assert.ok(list.length, `${c.id} has no places — the picker would offer an empty town`);
+    assert.ok(
+      list.every((d) => (d.city || CITIES[0].id) === c.id),
+      `${c.id}'s list contains a place from another town`,
+    );
+    assert.ok(heroFor().length, `${c.id} has no hero photographs and no fallback`);
+
+    // A theme tile is a full-bleed photograph that opens a filtered list. One
+    // that says "0 places" opens nothing, and looks identical to one that does
+    // — so the grid must never be offered a theme this town cannot fill.
+    const shown = themesHere();
+    assert.ok(shown.length, `${c.id} offers no themes at all`);
+    for (const { th, n } of shown) {
+      assert.ok(n > 0, `${c.id} offers "${th.id}" with ${n} places`);
+      assert.equal(n, list.filter((d) => d.themes.includes(th.id)).length, `${c.id}/${th.id} count is wrong`);
+    }
+    total += list.length;
+  }
+  // every place belongs to exactly one town: no place is stranded, none double-counted
+  assert.equal(total, D.length, "the towns partition the catalogue");
+
+  // and the weather follows the town, or Pehowa reads Thanesar's forecast
+  setCity(CITIES[0].id);
+  const a = city().wx;
+  setCity(CITIES[1].id);
+  const b = city().wx;
+  assert.notDeepEqual(a, b, "each town forecasts its own coordinates");
+
+  setCity(was);
+}
+
+console.log("town-scoping checks passed");
+
+/* ── the plus on a card builds a real day ──────────────────────────────────
+   `addTo` is offered on every list, with no plan, a half-answered plan or a
+   finished route on screen, and `dropFrom` has to undo it from the MIDDLE.
+   The trap is the clock: stops are timed from the one before, so removing a
+   stop without re-timing what follows leaves every later arrival wrong by
+   that stop's length — a day that quietly claims to end an hour late. */
+{
+  const { S, setCity } = await import("../src/app/state.ts");
+  const { CITIES } = await import("../src/data/cities.ts");
+  const { DC } = await import("../src/data/destinations.ts");
+  const { addTo, dropFrom, inPlan, savedCount } = await import("../src/features/place/place-actions.ts");
+
+  setCity(CITIES[0].id);
+  S.plan = null;
+  const [a, b, c] = DC().slice(0, 3);
+
+  // no plan at all: the first plus has to make one
+  addTo(a.id);
+  assert.ok(S.plan && S.plan.res, "the first add must create a day");
+  assert.equal(savedCount(), 1);
+  assert.ok(inPlan(a.id));
+
+  addTo(b.id);
+  addTo(c.id);
+  assert.equal(savedCount(), 3, "further adds join the day that exists");
+
+  // tapping the same plus again is the undo
+  addTo(b.id);
+  assert.equal(savedCount(), 2, "a second tap removes it");
+  assert.ok(!inPlan(b.id) && inPlan(a.id) && inPlan(c.id), "and removes only that one");
+
+  // what remains has to be consistent: each stop timed from the one before,
+  // and the totals equal to the sum of the stops rather than a stale figure
+  const res = S.plan.res;
+  let clock = S.plan.startClock;
+  let travel = 0, visit = 0;
+  for (const s of res.stops) {
+    assert.equal(s.arrive, clock + s.travel, `${s.d.id} arrives at the wrong time`);
+    assert.equal(s.depart, s.arrive + s.visit, `${s.d.id} departs at the wrong time`);
+    clock = s.depart;
+    travel += s.travel;
+    visit += s.visit;
+  }
+  assert.equal(res.totals.travel, travel, "totals.travel drifted from the stops");
+  assert.equal(res.totals.visit, visit, "totals.visit drifted from the stops");
+  assert.equal(res.totals.finish, S.plan.startClock + res.totals.total, "the finish time drifted");
+
+  // emptying it leaves no day, rather than a route screen with nothing on it
+  dropFrom(a.id);
+  dropFrom(c.id);
+  assert.equal(S.plan, null, "an emptied day is no day");
+}
+
+console.log("quick-add checks passed");

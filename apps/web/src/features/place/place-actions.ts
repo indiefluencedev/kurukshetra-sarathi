@@ -45,7 +45,27 @@ export function flipFav(id: string) {
   bump();
 }
 
-/** Add a place to the current plan, creating a blank half-day plan if none. */
+/** Is this place already a stop in the plan on screen? */
+export const inPlan = (id: string): boolean =>
+  !!S.plan?.res && (S.plan.res.stops as { d: Destination }[]).some((s) => s.d.id === id);
+
+/** How many places the plan on screen holds. */
+export const savedCount = (): number => (S.plan?.res ? S.plan.res.stops.length : 0);
+
+/**
+ * Put a place in the day, wherever the visitor is standing in the app.
+ *
+ * The plus on a card has to work with no plan, a half-answered plan, or a
+ * finished route on screen, because it is offered on every list and the
+ * visitor has no idea which of those they are in. So there is one rule: add it
+ * to the day if there is one, and start a day if there is not.
+ *
+ * A day started this way begins HERE — at the visitor's own position if they
+ * have allowed it, otherwise at the centre of the town. That matters more than
+ * it sounds: the first leg of a route is the one they have to walk out of the
+ * door and do, and a route that opens by driving them back to a town centre
+ * they are standing two streets from is a route they will not trust again.
+ */
 export function addTo(id: string) {
   const d = byId(id);
   if (!d) return;
@@ -55,6 +75,11 @@ export function addTo(id: string) {
     S.plan.mins = 240;
     S.plan.label = dur(240);
     S.plan.startClock = nowM();
+    if (S.userLoc) {
+      S.plan.startType = "useLoc";
+      S.plan.start = { ...S.userLoc };
+      S.plan.end = { ...S.userLoc };
+    }
     S.plan.res = {
       stops: [],
       dropped: [],
@@ -71,8 +96,11 @@ export function addTo(id: string) {
   }
   const p = S.plan!;
   const res = p.res as any;
+  // Tapping it again takes it out. The plus is the only control on the card,
+  // so it has to be the undo as well — otherwise a mis-tap on a list of
+  // thirty-six is a trip to another screen to correct.
   if (res.stops.some((s: any) => s.d.id === id)) {
-    toast(t("inPlan"));
+    dropFrom(id);
     return;
   }
   const st = res.stops;
@@ -88,5 +116,48 @@ export function addTo(id: string) {
   T.total += tm + d.visit.rec;
   T.finish = (p.startClock || nowM()) + T.total;
   toast(t("addedT"));
+  bump();
+}
+
+/**
+ * Take a place back out and re-time what is left.
+ *
+ * The stops after it were timed from the one before, so removing a stop from
+ * the middle without recomputing leaves every arrival after it wrong by that
+ * stop's length — a day that silently claims to finish an hour later than it
+ * does. This walks the remaining stops once and re-times them from the start.
+ */
+export function dropFrom(id: string) {
+  const p = S.plan;
+  const res = p?.res as any;
+  if (!p || !res) return;
+  const kept = (res.stops as any[]).filter((s) => s.d.id !== id);
+  if (kept.length === res.stops.length) return;
+
+  let clock = p.startClock ?? nowM();
+  let prev: { lat: number; lng: number } = p.start;
+  const T = { travel: 0, visit: 0, km: 0 };
+  for (const s of kept) {
+    s.travel = Engine.travelMin(prev, s.d, p.mode || "car");
+    s.km = Engine.roadKm(prev, s.d);
+    s.arrive = clock + s.travel;
+    s.visit = s.d.visit.rec;
+    s.depart = s.arrive + s.visit;
+    clock = s.depart;
+    prev = s.d;
+    T.travel += s.travel;
+    T.visit += s.visit;
+    T.km += s.km;
+  }
+  res.stops = kept;
+  res.totals.travel = T.travel;
+  res.totals.visit = T.visit;
+  res.totals.km = +T.km.toFixed(1);
+  res.totals.total = T.travel + T.visit;
+  res.totals.finish = (p.startClock ?? nowM()) + res.totals.total;
+  // An emptied day is no day. Leaving a plan with zero stops on screen puts
+  // the route screen into a state it has no copy for.
+  if (!kept.length) S.plan = null;
+  toast(t("removedT"));
   bump();
 }

@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { S } from "@/app/state";
 import { go } from "@/app/nav";
-import { nm } from "@/shared/i18n/i18n";
-import { HERO } from "@/data/reels-hero";
+import { t, nm } from "@/shared/i18n/i18n";
+import { heroFor } from "@/data/reels-hero";
 import { imgUrl } from "@/data/images";
 import { byId } from "@/shared/lib/geo";
 import { isoToday } from "@/shared/lib/datetime";
@@ -36,7 +36,10 @@ export function HomeHero() {
   // Which one the day lands on. Stable for the whole day — a re-render must not
   // reshuffle the page under someone's thumb.
   const dayNo = Math.floor(Date.parse(isoToday() + "T00:00") / 864e5);
-  const start = ((dayNo % HERO.length) + HERO.length) % HERO.length;
+  // The town's own photographs, resolved once per render so the rail, the dots
+  // and the day's starting slide all count the same list.
+  const hero = heroFor();
+  const start = ((dayNo % hero.length) + hero.length) % hero.length;
 
   // Open on the day's slide without animating there: jump before first paint,
   // so it is where the visitor finds it rather than something that slid past.
@@ -49,7 +52,7 @@ export function HomeHero() {
   return (
     <div className="hh-c">
       <div className="hh-track" ref={trackRef}>
-        {HERO.map((h, i) => {
+        {hero.map((h, i) => {
           const d = byId(h.id);
           if (!d) return null;
           return (
@@ -71,7 +74,7 @@ export function HomeHero() {
               <span className="hh-body">
                 <span className="hh-kick">
                   <Icon name="tara" />
-                  {nm({ en: "Kurukshetra today", hi: "कुरुक्षेत्र आज" })}
+                  {t("heroKick")}
                 </span>
                 <span className="hh-name" lang={S.lang}>
                   {nm(d.name)}
@@ -87,7 +90,7 @@ export function HomeHero() {
       {/* Over the photograph, not under it: the plate below overlaps the foot of
           the hero, so dots beneath the image would sit behind the card. */}
       <div className="hh-dots" ref={dotsRef} aria-hidden="true">
-        {HERO.map((_, i) => (
+        {hero.map((_, i) => (
           <i key={i} className={i === start ? "on" : ""} />
         ))}
       </div>

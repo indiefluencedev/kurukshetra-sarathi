@@ -6,6 +6,7 @@ import { t, nm } from "@/shared/i18n/i18n";
 import { CONFIG } from "@/data/config";
 import { Icon } from "@/shared/icons/Icon";
 import { PLACES_INDEX, type IndexPlace, type PlaceKind } from "@/data/places-index";
+import { cityOf } from "@/data/cities";
 import { searchNearby, type FoundPlace } from "./places-search";
 import type { GeoPoint } from "@/shared/types";
 
@@ -32,9 +33,14 @@ export function PlacePicker({
   const [failed, setFailed] = useState(false);
 
   const needle = q.trim().toLowerCase();
-  const curated = PLACES_INDEX.filter((p) => kinds.includes(p.kind)).filter(
-    (p) => !needle || (p.name.en + " " + p.name.hi).toLowerCase().includes(needle),
-  );
+  // Sorted by town, not filtered by it. Someone visiting Pehowa still arrives
+  // at Kurukshetra Junction — there is no station in Pehowa town — so hiding
+  // the other town's terminals would remove the only correct answer. What the
+  // active town earns is the top of the list, and `area` says how far out the
+  // rest are.
+  const curated = PLACES_INDEX.filter((p) => kinds.includes(p.kind))
+    .filter((p) => !needle || (p.name.en + " " + p.name.hi).toLowerCase().includes(needle))
+    .sort((a, b) => Number(cityOf(b) === S.city) - Number(cityOf(a) === S.city));
 
   // OSM is queried ONLY when something has been typed.
   //

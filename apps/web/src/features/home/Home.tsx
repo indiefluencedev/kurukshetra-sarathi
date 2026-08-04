@@ -1,9 +1,8 @@
 import { useEffect } from "react";
-import { S, store } from "@/app/state";
+import { S } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm, nPlaces } from "@/shared/i18n/i18n";
-import { THEMES } from "@/data/config";
-import { DC } from "@/data/destinations";
+import { themesHere } from "@/data/destinations";
 import { imgUrl } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { loadWeather } from "@/features/weather/weather";
@@ -14,7 +13,7 @@ import { StartHere } from "./StartHere";
 import { EventRail } from "./EventRail";
 import { EventAlert } from "./EventAlert";
 import { HowToCard } from "./HowToCard";
-import { InstallBar } from "./install";
+import { InstallCard } from "./install";
 import { NotifyCard } from "@/features/notify/NotifyCard";
 
 /**
@@ -75,8 +74,7 @@ export function Home() {
           </button>
         </div>
         <div className="themes stagger">
-          {THEMES.map((th) => {
-            const n = DC().filter((d) => d.themes.indexOf(th.id) >= 0).length;
+          {themesHere().map(({ th, n }) => {
             return (
               <button key={th.id} className="tile" onClick={() => go("/theme/" + th.id)}>
                 <span className="tbg">
@@ -96,10 +94,12 @@ export function Home() {
         </div>
       </div>
 
-      {/* The walkthrough shows only until the visitor has built their first
-          route; the install bar shows only once they have, because that is the
-          moment the app has proved it is worth a home-screen slot. */}
-      {store.routes.length ? <InstallBar /> : <HowToCard />}
+      {/* Two install prompts on one screen is one too many. The slim bar that
+          used to take this slot after a route was saved has gone: the card
+          below says the same thing, permanently and better, so the bar was
+          only ever going to appear beneath it and repeat it. */}
+      <HowToCard />
+      <InstallCard />
     </>
   );
 }

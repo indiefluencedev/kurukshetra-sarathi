@@ -2,69 +2,216 @@
  {
   "id": "stn-kkde",
   "kind": "station",
+  "city": "kurukshetra",
   "name": {
    "en": "Kurukshetra Junction",
    "hi": "कुरुक्षेत्र जंक्शन"
   },
-  "lat": 29.9772,
-  "lng": 76.834,
+  "area": {
+   "en": "Sector 10, Thanesar",
+   "hi": "सेक्टर 10, थानेसर"
+  },
+  "lat": 29.96986,
+  "lng": 76.85171,
   "verified": false,
   "code": "KKDE"
  },
  {
   "id": "stn-thc",
   "kind": "station",
+  "city": "kurukshetra",
   "name": {
    "en": "Thanesar City",
    "hi": "थानेसर सिटी"
   },
-  "lat": 29.954,
-  "lng": 76.829,
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "lat": 29.9669,
+  "lng": 76.82485,
   "verified": false,
   "code": "TNDE"
  },
  {
+  "id": "stn-shdm",
+  "kind": "station",
+  "city": "kurukshetra",
+  "name": {
+   "en": "Shahabad Markanda",
+   "hi": "शाहाबाद मारकंडा"
+  },
+  "area": {
+   "en": "Shahabad, 24 km north",
+   "hi": "शाहाबाद, 24 कि.मी. उत्तर"
+  },
+  "lat": 30.16589,
+  "lng": 76.86167,
+  "verified": false,
+  "code": "SHDM"
+ },
+ {
+  "id": "stn-jtsr",
+  "kind": "station",
+  "city": "kurukshetra",
+  "name": {
+   "en": "Jyotisar Halt",
+   "hi": "ज्योतिसर हॉल्ट"
+  },
+  "area": {
+   "en": "Jyotisar",
+   "hi": "ज्योतिसर"
+  },
+  "lat": 29.94814,
+  "lng": 76.77179,
+  "verified": false,
+  "code": "JTSR"
+ },
+ {
+  "id": "stn-amin",
+  "kind": "station",
+  "city": "kurukshetra",
+  "name": {
+   "en": "Amin",
+   "hi": "अमीन"
+  },
+  "area": {
+   "en": "Amin village",
+   "hi": "अमीन गाँव"
+  },
+  "lat": 29.90462,
+  "lng": 76.8996,
+  "verified": false,
+  "code": "AMIN"
+ },
+ {
+  "id": "stn-phwr",
+  "kind": "station",
+  "city": "pehowa",
+  "name": {
+   "en": "Pehowa Road",
+   "hi": "पिहोवा रोड"
+  },
+  "area": {
+   "en": "11 km south of Pehowa town",
+   "hi": "पिहोवा नगर से 11 कि.मी. दक्षिण"
+  },
+  "lat": 29.88408,
+  "lng": 76.62109,
+  "verified": false,
+  "code": "PHWR"
+ },
+ {
   "id": "bus-new",
   "kind": "busstand",
+  "city": "kurukshetra",
   "name": {
-   "en": "New Bus Stand (Sector 13)",
-   "hi": "नया बस अड्डा (सेक्टर 13)"
+   "en": "New Bus Stand, Kurukshetra",
+   "hi": "नया बस अड्डा, कुरुक्षेत्र"
   },
-  "lat": 29.976,
-  "lng": 76.842,
+  "area": {
+   "en": "Sector 10, near Kurukshetra Junction",
+   "hi": "सेक्टर 10, कुरुक्षेत्र जंक्शन के पास"
+  },
+  "lat": 29.97263,
+  "lng": 76.86521,
+  "verified": false
+ },
+ {
+  "id": "bus-old",
+  "kind": "busstand",
+  "city": "kurukshetra",
+  "name": {
+   "en": "Old Bus Stand, Thanesar",
+   "hi": "पुराना बस अड्डा, थानेसर"
+  },
+  "area": {
+   "en": "Thanesar city, near the main bazaar",
+   "hi": "थानेसर शहर, मुख्य बाज़ार के पास"
+  },
+  "lat": 29.97296,
+  "lng": 76.83782,
   "verified": false
  },
  {
   "id": "bus-pipli",
   "kind": "busstand",
+  "city": "kurukshetra",
   "name": {
    "en": "Pipli Bus Stand",
    "hi": "पिपली बस अड्डा"
   },
-  "lat": 29.933,
-  "lng": 76.868,
+  "area": {
+   "en": "Pipli, on NH-44",
+   "hi": "पिपली, एन.एच.-44 पर"
+  },
+  "lat": 29.97896,
+  "lng": 76.89305,
   "verified": false
  },
  {
   "id": "stay-neelkanthi",
   "kind": "hotel",
+  "city": "kurukshetra",
   "name": {
    "en": "Neelkanthi Krishna Dham Yatri Niwas",
    "hi": "नीलकंठी कृष्ण धाम यात्री निवास"
   },
+  "area": {
+   "en": "University Road, Thanesar",
+   "hi": "यूनिवर्सिटी रोड, थानेसर"
+  },
   "lat": 29.9625,
   "lng": 76.8262,
+  "phone": "+91-9817851615",
   "verified": false
  },
  {
   "id": "stay-parashar",
   "kind": "dharamshala",
+  "city": "kurukshetra",
   "name": {
    "en": "Parashar Tourist Complex",
    "hi": "पराशर पर्यटक परिसर"
   },
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
   "lat": 29.9601,
   "lng": 76.8305,
+  "verified": false
+ },
+ {
+  "id": "stay-hotel-d9",
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "name": {
+   "en": "Hotel D9 Kurukshetra",
+   "hi": "होटल डी9 कुरुक्षेत्र"
+  },
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "lat": 29.95536,
+  "lng": 76.84721,
+  "verified": false
+ },
+ {
+  "id": "stay-hotel-legend",
+  "kind": "hotel",
+  "city": "pehowa",
+  "name": {
+   "en": "Hotel Legend, Pehowa",
+   "hi": "होटल लीजेंड, पिहोवा"
+  },
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "lat": 29.98238,
+  "lng": 76.57921,
   "verified": false
  }
 ]
