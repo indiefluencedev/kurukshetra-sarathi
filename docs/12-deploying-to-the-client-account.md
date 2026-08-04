@@ -211,6 +211,78 @@ names appear in exactly two files — `migrations/0001_init.sql` and
 
 ---
 
+## Looking at what is actually in there
+
+Three separate things, and it is worth knowing which one you are looking at:
+the **database** (what is stored), the **API** (what the app receives), and the
+**dashboard** (what the Board edits).
+
+### The database
+
+```bash
+cd worker
+npm run inspect -- --remote        # tables + the column check
+
+npx wrangler d1 execute discover_kurukshetra --remote --json \
+  --command "select id, name_en, date_from, date_to from events order by date_from" \
+  | jq -r '.[0].results[] | [.id, .name_en, .date_from] | @tsv'
+```
+
+`--json | jq` is the readable form; without it wrangler prints a wall of
+timing metadata and the rows scroll off the top. **`--remote` is not
+optional** — leave it off and you are querying the empty local sandbox in
+`worker/.wrangler`, which is the fastest way to conclude the data is missing
+when it is fine.
+
+As of 4 Aug: 4 events, 0 subs, 0 sent, 0 audit. The last three being empty is
+correct — nobody has subscribed, so nothing has been pushed, and no edit has
+been made through the dashboard.
+
+### The API
+
+```bash
+curl -s https://kuk-saarthi-api.indiefluence-in-media.workers.dev/content/events.json \
+  | jq '{rev, count: (.items|length)}'
+```
+
+This is the only endpoint the app reads. If it is right and the app still
+shows old events, the problem is the app's IndexedDB cache or a stale build,
+not the backend — see docs/11.
+
+### The dashboard, before Access exists
+
+`/admin` returns 403 to everyone until Cloudflare Access is attached, and that
+is on purpose (`who()` in `index.ts` refuses rather than accepting an
+anonymous edit). To see the page before then, run it locally and supply the
+identity header yourself:
+
+```bash
+cd worker
+npx wrangler d1 execute discover_kurukshetra --local --file=migrations/0001_init.sql
+npx wrangler d1 execute discover_kurukshetra --local --file=seed.sql
+npx wrangler dev --port 8788
+
+curl -s -H 'cf-access-authenticated-user-email: you@example.org' \
+  http://127.0.0.1:8788/admin/events | jq
+```
+
+Verified 4 Aug: no header → 403, header → 200 and the four seeded events with
+`"you": "board@example.org"` echoed back.
+
+For the *page* rather than the JSON, a browser cannot add that header on its
+own — use a header-injection extension (ModHeader and friends) scoped to
+`127.0.0.1:8788`, or just attach Access and use the real thing. Once Access is
+on, Cloudflare adds the header after login and `/admin` simply works in a
+browser.
+
+**`--remote` will not work for this.** Cloudflare strips inbound `cf-*`
+headers at the edge, so a spoofed `cf-access-authenticated-user-email` never
+reaches the Worker and you get a 403 that looks like a bug. Confirmed here:
+identical curl, 403 through `--remote`, 200 through local `wrangler dev`. That
+stripping is the reason trusting the header is safe in the first place.
+
+---
+
 ## Two things that cost time, so they are written down
 
 **`account_id` must sit above every `[section]`.** In TOML a bare key after a
