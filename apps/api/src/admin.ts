@@ -153,7 +153,12 @@ async function api(path, opts) {
   const r = await fetch(path, opts);
   // 403 here means signed out, or signed in as someone who is not an admin.
   // Either way the only useful thing is the sign-in form, not a broken page.
-  if (r.status === 403 || r.status === 401) { showGate("Sign in with an administrator account."); throw new Error("unauthorised"); }
+  if (r.status === 403) {
+    // Signed in fine, but not on the ADMIN_EMAILS list.
+    showGate(tok() ? "That account is signed in but is not an administrator." : "Sign in to continue.");
+    throw new Error("forbidden");
+  }
+  if (r.status === 401) { setTok(""); showGate("Your session has expired. Sign in again."); throw new Error("unauthorised"); }
   return r;
 }
 
@@ -163,16 +168,45 @@ function showGate(m) {
   if (m) { $("#gm").hidden = false; $("#gm").textContent = m; }
 }
 
+/**
+ * Sign in, and SAY what went wrong.
+ *
+ * Every failure used to collapse into "Wrong email or password", including
+ * the ones that were nothing of the kind — no session token returned,
+ * localStorage refused, the account being fine but not an administrator. The
+ * result was a form that appeared to do nothing when clicked, which is the
+ * hardest possible thing to debug from the other side of a screenshot.
+ */
 async function signIn(ev) {
   ev.preventDefault();
   $("#gm").hidden = true;
-  const r = await fetch("/api/auth/sign-in/email", {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email: $("#gu").value.trim(), password: $("#gp").value }),
-  });
-  if (r.status === 429) return showGate("Too many attempts. Wait a few minutes.");
-  if (!r.ok) return showGate("Wrong email or password.");
-  setTok(r.headers.get("set-auth-token") || "");
+
+  const email = $("#gu").value.trim();
+  const password = $("#gp").value;
+  if (!email || !password) return showGate("Enter both your email and your password.");
+
+  let r;
+  try {
+    r = await fetch("/api/auth/sign-in/email", {
+      method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: email, password: password }),
+    });
+  } catch (e) {
+    return showGate("Could not reach the server. Check your connection.");
+  }
+
+  if (r.status === 429) return showGate("Too many attempts. Wait five minutes and try again.");
+  if (r.status === 401 || r.status === 400) return showGate("Wrong email or password.");
+  if (!r.ok) return showGate("Sign-in failed (" + r.status + "). Tell whoever maintains this.");
+
+  const token = r.headers.get("set-auth-token");
+  // Succeeded, but with nothing to keep. Silently returning to the form here
+  // is exactly the "nothing happens" symptom.
+  if (!token) return showGate("Signed in, but no session was issued. This is a server problem, not your password.");
+
+  setTok(token);
+  if (!tok()) return showGate("Your browser is blocking storage for this site, so the session cannot be kept.");
+
   $("#gp").value = "";
   boot();
 }
