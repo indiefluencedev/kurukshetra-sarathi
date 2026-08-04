@@ -1,7 +1,7 @@
 # 05 · Routing (Phase 2)
 
 > **Phase 2 has shipped.** `CachedProvider` is the active provider and
-> `src/content/data/matrix.json` is in the bundle. Two things below describe the
+> `apps/web/src/content/data/matrix.json` is in the bundle. Two things below describe the
 > plan rather than the result, and [10 §2.4](10-engine-events-and-data.md) is
 > authoritative on both: the matrix is **one file, not one per mode** (the demo
 > server serves car only, so per-mode files would be identical copies — the real
@@ -52,7 +52,7 @@ Implementations, swappable without touching the algorithms or UI:
 
 `npm run build-matrix`: one OSRM `/table` call over the fixed points returns the
 **full N×N durations + distances** at once, written to
-`src/content/data/matrix.json` as indexed arrays (`{ ids, min[][], km[][] }`).
+`apps/web/src/content/data/matrix.json` as indexed arrays (`{ ids, min[][], km[][] }`).
 Because the POIs are fixed, this is generated rarely — only when a place is
 added, moved, or verified — and committed as data. No runtime cost, ToS-clean
 (open engine, own map). 42×42 in 13 KB.

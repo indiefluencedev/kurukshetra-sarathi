@@ -1,52 +1,85 @@
 # Kurukshetra Saarthi — internal docs
 
-Design & working notes for the app. Tracked in git alongside the code — keep
-them current as the code changes, in the same commit where possible.
+Design and working notes. Tracked in git alongside the code — keep them current
+as the code changes, in the same commit where possible.
 
-## How these docs are layered
+**Scope as of August 2026:** the app is no longer a static bundle. It is a PWA
+on Cloudflare Pages, a Worker on D1 holding content and accounts, and a bundled
+copy of everything that keeps working when neither answers.
 
-Read top-down; each layer assumes the one above it.
+---
+
+## Start here
+
+| If you want to… | Read |
+|---|---|
+| know what is finished and what is not | **[TASKS.md](TASKS.md)** — the only file that claims completion |
+| find a config value, or grant admin access | **[15](15-environment.md)** |
+| understand the whole system | [01-architecture.md](01-architecture.md) |
+| change the backend, deploy, or look at the data | [12](12-deploying-to-the-client-account.md), [13](13-content-in-d1.md) |
+| work on the planner | [10](10-engine-events-and-data.md), then [02](02-planner-flow.md), [03](03-algorithms.md) |
+| add content or a translation | [04](04-content-and-i18n.md), [11](11-events-authoring.md) |
+| build UI | [06](06-design-system.md), [07](07-screen-specs.md) |
+
+---
+
+## The layers
+
+Each assumes the one above it.
 
 | Doc | Layer | What it answers |
 |-----|-------|-----------------|
-| [01-architecture.md](01-architecture.md) | System | How the app is built and wired (stack, state, folders, routing). |
+| [TASKS.md](TASKS.md) | **Status** | **What is done, what blocks production, what we decided not to do.** |
+| [01-architecture.md](01-architecture.md) | System | Stack, workspace layout, state model, routing. |
 | [02-planner-flow.md](02-planner-flow.md) | Feature | The "Plan my visit" flow — each step, its data, and why. |
-| [03-algorithms.md](03-algorithms.md) | Algorithm | Path-finding & suggestion algorithms + the rule sets they use. |
+| [03-algorithms.md](03-algorithms.md) | Algorithm | Path-finding and suggestion algorithms, and the rule sets they use. |
 | [04-content-and-i18n.md](04-content-and-i18n.md) | Data | How content and translations are stored, and how to add more. |
 | [05-routing-phase2.md](05-routing-phase2.md) | Algorithm | The routing-provider abstraction and the road to real path-finding. |
-| [06-design-system.md](06-design-system.md) | Visual | The "painted manuscript" direction, its tokens, and the product rethink. |
-| [07-screen-specs.md](07-screen-specs.md) | Visual | Per-screen specifications. §5 covers the place graph and the drive guide. |
-| [10-engine-events-and-data.md](10-engine-events-and-data.md) | **Spec** | **Start here for new work.** Key features, architecture, the pathfinding problem, and how places & events are managed. |
+| [06-design-system.md](06-design-system.md) | Visual | The "painted manuscript" direction and its tokens. |
+| [07-screen-specs.md](07-screen-specs.md) | Visual | Per-screen specifications. §5 covers the place graph and drive guide. |
+| [10-engine-events-and-data.md](10-engine-events-and-data.md) | Spec | The planner engine, events, and how places and events are managed. |
+| [11-events-authoring.md](11-events-authoring.md) | Data | Writing an event so the engine and the checks both accept it. |
+| [12-deploying-to-the-client-account.md](12-deploying-to-the-client-account.md) | Ops | Access, secrets, deployment, rollback, and reading the live data. |
+| [13-content-in-d1.md](13-content-in-d1.md) | Backend | Content in D1, conditional GET, and the offline contract. |
+| [14-accounts-and-roles.md](14-accounts-and-roles.md) | Backend | Better Auth, bearer tokens, roles, and what is not built yet. |
+| [15-environment.md](15-environment.md) | Ops | **Every variable, where it lives, who sets it, and who is an admin.** |
+
+---
 
 ## What is authoritative
 
-**[10](10-engine-events-and-data.md) is the current design.** Where an older doc
-disagrees with it, 10 wins and the older doc is the one to correct.
+**[TASKS.md](TASKS.md) decides what is built.** Every other doc describes how
+something works, and several describe things that work but are not finished.
+Where a doc implies completion and TASKS.md disagrees, TASKS.md wins.
 
-01–07 remain as the layer-by-layer reference the code comments point at
-(`see docs/03`, `docs/04`, `docs/05`) — they describe how each module works
-today. 10 describes what is being built next and why.
+**[10](10-engine-events-and-data.md) decides planner design.** Where an older
+doc (01–07) disagrees about the engine, 10 wins and the older doc is the one to
+correct.
 
-## Status
+01–07 remain the layer-by-layer reference that code comments point at (`see
+docs/03`, `docs/04`). They describe how each module works today.
 
-- **Done:** planner flow rework, the algorithm suite, the place graph and walk
-  pockets, real road geometry for drawing, and all six steps of
-  [10 §5](10-engine-events-and-data.md#5--build-order) — the event calendar and
-  its engine wiring, the home event rail, the precomputed road matrix, the prefs
-  store, event surfaces on route/place/calendar, and the no-fit fallback.
-- **Not built, on purpose:** [10 §6](10-engine-events-and-data.md#6--what-is-not-built).
-- **Later:** curated bus / e-rickshaw datasets for true multi-modal ([05](05-routing-phase2.md)).
+---
 
 ## Before you commit
 
-```
-npm run check-content && npm run check-graph && npm run check-planner \
-  && npm run check-matrix && npm run check-corridor && npm run build
+```bash
+npm run check      # all five self-checks
+npm run build
 ```
 
-The checks are plain `assert`s in `scripts/` — no framework, no fixtures. Each
-one exists because something was wrong once and the wrongness was invisible.
-When a check fails, read what it is asserting before changing it: two of them
-have been rewritten because they measured a proxy rather than the thing
+Or individually from `apps/web`: `check-content`, `check-graph`,
+`check-planner`, `check-matrix`, `check-corridor`.
+
+The checks are plain `assert`s in `apps/web/tools/` — no framework, no
+fixtures. Each exists because something was wrong once and the wrongness was
+invisible. When one fails, read what it asserts before changing it: two have
+been rewritten because they measured a proxy rather than the thing
 ([10 §4.8](10-engine-events-and-data.md#48-content-checks)), and that is a
 judgement call, not a licence.
+
+Backend changes additionally want, from `apps/api`:
+
+```bash
+npm run inspect -- --remote    # never migrate without looking first
+```

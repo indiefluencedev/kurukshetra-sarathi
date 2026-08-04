@@ -2,14 +2,14 @@
 
 The calendar is the reason someone who lives here opens this app on a Tuesday.
 It is also the only content that goes stale on its own, so this is the file to
-read before touching `src/content/data/events.json`.
+read before touching `apps/web/src/content/data/events.json`.
 
 ## Where it lives
 
 | | |
 |---|---|
-| Data | `src/content/data/events.json` — the single source of truth |
-| Reader | `src/data/events.ts` — every query the app asks of it |
+| Data | `apps/web/src/content/data/events.json` — the single source of truth |
+| Reader | `apps/web/src/data/events.ts` — every query the app asks of it |
 | Gate | `npm run check-content` — refuses a malformed or ambiguous entry |
 | Surfaces | Home alert + rail, route badges, place cards, the date picker |
 
@@ -72,7 +72,7 @@ this app's users reach for Hindi before anything else.
 
 ## Adding one
 
-1. Edit `src/content/data/events.json`.
+1. Edit `apps/web/src/content/data/events.json`.
 2. `npm run check-content` — it names the exact field and entry that is wrong.
 3. `npm run check-planner` — proves a festival day still fits fewer stops and
    spends longer at each, i.e. that the wiring is live rather than declared.
@@ -86,7 +86,7 @@ perpendicular-distance test, not driven along.
 
 ## Where the data comes from at runtime
 
-`src/content/live.ts` makes any content file updatable without a release. Three
+`apps/web/apps/web/src/content/live.ts` makes any content file updatable without a release. Three
 rules, in this order, and the order is the design:
 
 1. The **bundled** copy renders first. The app opens on a rural signal and must

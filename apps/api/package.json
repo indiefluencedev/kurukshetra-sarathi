@@ -1,0 +1,33 @@
+{
+  "name": "@kuk/api",
+  "private": true,
+  "type": "module",
+  "description": "The Worker: HTTP routes, D1 schema, admin dashboard, auth, push. The only place with SQL in it.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "inspect": "node inspect-db.mjs",
+    "migrate:local": "wrangler d1 migrations apply discover_kurukshetra --local",
+    "migrate": "node inspect-db.mjs --remote && wrangler d1 migrations apply discover_kurukshetra --remote",
+    "seed:local": "wrangler d1 execute discover_kurukshetra --local --file=seed.sql",
+    "seed": "wrangler d1 execute discover_kurukshetra --remote --file=seed.sql",
+    "import:local": "node import-content.mjs > .content.sql && wrangler d1 execute discover_kurukshetra --local --file=.content.sql",
+    "import": "node import-content.mjs > .content.sql && wrangler d1 execute discover_kurukshetra --remote --file=.content.sql",
+    "test": "node --experimental-strip-types test-encrypt.mjs",
+    "db": "LOCAL_D1_PATH=\"file:$(node find-local-db.mjs)\" drizzle-kit studio",
+    "db:remote": "D1_REMOTE=1 drizzle-kit studio",
+    "db:pull": "LOCAL_D1_PATH=\"file:$(node find-local-db.mjs)\" drizzle-kit pull"
+  },
+  "dependencies": {
+    "@kuk/shared": "*",
+    "better-auth": "^1.6.25",
+    "kysely": "^0.29.4",
+    "kysely-d1": "^0.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240909.0",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
+    "wrangler": "^4.0.0"
+  }
+}

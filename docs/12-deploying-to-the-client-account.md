@@ -8,7 +8,8 @@ the subscriber list and the bill — and it decides how deployment works.
 
 ## What is live right now
 
-Deployed 3 Aug 2026. Nothing here is a secret; identifiers are not credentials.
+Deployed 3 Aug 2026, app added 4 Aug 2026. Nothing here is a secret;
+identifiers are not credentials.
 
 | | |
 |---|---|
@@ -17,6 +18,7 @@ Deployed 3 Aug 2026. Nothing here is a secret; identifiers are not credentials.
 | URL | `https://kuk-saarthi-api.indiefluence-in-media.workers.dev` |
 | D1 | `discover_kurukshetra` — `43389d66-b722-40bc-ae9f-ea5c194a6edf` |
 | Cron | `*/15 * * * *` |
+| App (Pages) | `kuk-saarthi` — `https://kuk-saarthi.pages.dev` |
 | Access granted by | member invite; wrangler runs as your own login |
 
 Verified live at deploy time:
@@ -25,12 +27,15 @@ Verified live at deploy time:
 |---|---|
 | `GET /content/events.json` | 200 · 4 events · `cache-control: max-age=300` |
 | `GET /vapid` | 200 · serves the public key |
-| `GET /admin` | **403** · refuses, because Access is not configured yet |
+| `GET /admin` | 200 · the sign-in shell; every route it calls is guarded |
 | `POST /subscribe` (bad body) | 400 |
 | `GET /nope` | 404 |
 
-The app was built with `VITE_CONTENT_URL` pointing at the Worker and confirmed
-end to end: fetched 200, cached in IndexedDB as `rev 1785754690314-4`, 4 items.
+Re-verified 4 Aug after setting `APP_URL`: same five results, plus
+`https://kuk-saarthi.pages.dev/` and its `manifest.webmanifest` and `sw.js` at
+200. The app was built with `VITE_CONTENT_URL` pointing at the Worker and
+confirmed end to end: fetched 200, cached in IndexedDB as `rev
+1785754690314-4`, 4 items.
 
 The database was **empty** (`num_tables: 0`) when we found it, so the migration
 went in clean and `window` / `corridor` JSON round-trips through D1 intact.
@@ -39,18 +44,22 @@ went in clean and `window` / `corridor` JSON round-trips through D1 intact.
 
 ## Still to do
 
-- [ ] **Attach a Cloudflare Access policy to `/admin*`.** Zero Trust → Access →
-      Applications → Self-hosted, path `admin*`, allow the Board's emails.
-      Until then the dashboard is *unreachable*: the Worker returns 403 when the
-      identity header is missing rather than accepting an anonymous edit. That
-      403 is the safety net, not a bug.
-- [ ] **`APP_URL`** — where the PWA is served. Only used for the notification's
-      click-through, so nothing breaks before the app has a home.
+The full list lives in [TASKS.md](TASKS.md). What is specific to *deployment*:
+
 - [ ] **`VAPID_SUBJECT`** — a real `mailto:`. Push services may reject a token
       whose subject is not a valid address, so this one must be set before the
-      first push.
-- [ ] Decide where `VITE_CONTENT_URL` lives for the app build — Pages build
-      settings rather than a committed `.env.production` is the cleaner half.
+      first push. Still `REPLACE@example.org`; waiting on the Board's contact
+      address. One line in `wrangler.toml` and a redeploy.
+
+Done since:
+
+- [x] **`APP_URL`** — `https://kuk-saarthi.pages.dev/`, live.
+- [x] **Where `VITE_CONTENT_URL` lives.** It stays in the committed
+      `.env.production`. Pages *build settings* would be the cleaner half only
+      for a git-connected project that builds on Cloudflare; we upload `dist`
+      directly with `wrangler pages deploy`, so Cloudflare never runs the
+      build and a build variable set there would do nothing. The value is a
+      public URL, not a secret.
 
 ---
 
@@ -129,48 +138,69 @@ npx wrangler secret list          # names only, never values
 npx wrangler secret delete NAME
 ```
 
-Currently set: `VAPID_PUBLIC`, `VAPID_PRIVATE`.
+Currently set: `VAPID_PUBLIC`, `VAPID_PRIVATE`, `AUTH_SECRET`.
+
+`AUTH_SECRET` signs every session — rotating it logs everyone out. Generate it
+with `openssl rand -base64 32 | npx wrangler secret put AUTH_SECRET`, and never
+reuse the value from `.dev.vars`.
 
 **Adding a new one:**
 
-1. Add it to the `Env` interface in `worker/src/index.ts` — TypeScript is the
+1. Add it to the `Env` interface in `apps/api/src/index.ts` — TypeScript is the
    only thing that will remind you it is missing.
 2. `[vars]` if it is not sensitive, `wrangler secret put` if it is.
 3. `npm run deploy`.
 
 A secret that only exists in production will be `undefined` in `wrangler dev`.
-For local work put it in `worker/.dev.vars` (gitignored, same `KEY=value`
+For local work put it in `apps/api/.dev.vars` (gitignored, same `KEY=value`
 shape as `.env`) — never in `wrangler.toml`.
 
 ### The app's own build variable
 
 `VITE_CONTENT_URL` is a **build-time** variable, not a Worker one: Vite inlines
 it, so changing it needs a rebuild, not a redeploy. Unset, the app falls back
-to its bundled calendar — see `src/content/live.ts` and docs/11.
+to its bundled calendar — see `apps/web/src/content/live.ts` and docs/11.
 
 ---
 
 ## Deploying, in order
 
 ```bash
-cd worker
-npm install
+npm install                              # from the repo root — it is a workspace
 
+cd apps/api
 npx wrangler d1 list                     # ids for wrangler.toml
 npm run inspect -- --remote              # LOOK FIRST — see below
 npm run migrate                          # runs inspect again and refuses on a clash
 npm run seed                             # optional: the bundled calendar as a start
+npm run import                           # places into D1 — see docs/13
 
+openssl rand -base64 32 | npx wrangler secret put AUTH_SECRET
 npx wrangler secret put VAPID_PUBLIC     # client should own the private key
 npx wrangler secret put VAPID_PRIVATE
 npm run deploy
 ```
 
-Rebuild the app whenever the Worker URL changes:
+Then promote the first admin, because `role` cannot be granted by signing up
+(docs/14) — sign up through the app first, then:
 
 ```bash
-VITE_CONTENT_URL=https://…workers.dev npm run build
+npx wrangler d1 execute discover_kurukshetra --remote \
+  --command "update user set role='admin' where email='you@example.org'"
 ```
+
+Then the app itself, from the repo root. `npm run build` reads
+`.env.production`, so the Worker URL only needs naming when it changes:
+
+```bash
+npm run build
+npx wrangler pages deploy apps/web/dist --project-name=kuk-saarthi --branch=main
+```
+
+`--branch=main` is what makes it the production deployment behind
+`kuk-saarthi.pages.dev`; leave it off and you get a preview URL nobody is
+looking at. The project was created once with
+`npx wrangler pages project create kuk-saarthi --production-branch=main`.
 
 ### Why `inspect` exists, and why `migrate` will not run without it
 
@@ -189,6 +219,73 @@ on a collision.
 If it refuses: ask what those tables are (they may be dead), rename ours (the
 names appear in exactly two files — `migrations/0001_init.sql` and
 `src/store.d1.ts`), or give the app its own D1.
+
+---
+
+## Looking at what is actually in there
+
+Three separate things, and it is worth knowing which one you are looking at:
+the **database** (what is stored), the **API** (what the app receives), and the
+**dashboard** (what the Board edits).
+
+### The database
+
+```bash
+cd apps/api
+npm run inspect -- --remote        # tables + the column check
+
+npx wrangler d1 execute discover_kurukshetra --remote --json \
+  --command "select id, name_en, date_from, date_to from events order by date_from" \
+  | jq -r '.[0].results[] | [.id, .name_en, .date_from] | @tsv'
+```
+
+`--json | jq` is the readable form; without it wrangler prints a wall of
+timing metadata and the rows scroll off the top. **`--remote` is not
+optional** — leave it off and you are querying the empty local sandbox in
+`apps/api/.wrangler`, which is the fastest way to conclude the data is missing
+when it is fine.
+
+As of 4 Aug: 4 events, 0 subs, 0 sent, 0 audit. The last three being empty is
+correct — nobody has subscribed, so nothing has been pushed, and no edit has
+been made through the dashboard.
+
+### The API
+
+```bash
+curl -s https://kuk-saarthi-api.indiefluence-in-media.workers.dev/content/events.json \
+  | jq '{rev, count: (.items|length)}'
+```
+
+This is the only endpoint the app reads. If it is right and the app still
+shows old events, the problem is the app's IndexedDB cache or a stale build,
+not the backend — see docs/11.
+
+### The dashboard
+
+`/admin` needs a signed-in user whose role is `admin` — see
+[14](14-accounts-and-roles.md). The page itself is public (it is a sign-in
+form); everything it calls is guarded.
+
+```bash
+# sign in and keep the token
+TOKEN=$(curl -s -D- -o /dev/null -X POST \
+  -H 'content-type: application/json' \
+  -d '{"email":"you@example.org","password":"…"}' \
+  https://kuk-saarthi-api.indiefluence-in-media.workers.dev/api/auth/sign-in/email \
+  | tr -d '\r' | awk -F': ' 'tolower($1)=="set-auth-token"{print $2}')
+
+curl -s -H "Authorization: Bearer $TOKEN" \
+  https://kuk-saarthi-api.indiefluence-in-media.workers.dev/admin/content/places | jq
+```
+
+`403` means the account exists but is not an admin. Promote it with the SQL in
+[14](14-accounts-and-roles.md#roles).
+
+> **Historical note, kept because it cost an afternoon.** This used to be a
+> Cloudflare Access header, and testing it through `wrangler dev --remote` was
+> impossible: Cloudflare strips inbound `cf-*` headers at the edge, so a
+> spoofed identity never reached the Worker and the 403 looked like a bug.
+> Bearer tokens have no such problem — they work identically local and remote.
 
 ---
 
@@ -238,7 +335,58 @@ keeps running. Nothing in this repo holds a credential — verified.
 
 ## Switching the database later
 
-`worker/src/store.ts` is the whole interface and `store.d1.ts` is the only file
+`apps/api/src/store.ts` is the whole interface and `store.d1.ts` is the only file
 with SQL in it. Moving off D1 means writing one more implementation of `Store`
 and changing the line in `index.ts` that constructs it — not auditing the
 codebase for queries.
+
+---
+
+## Browsing the database
+
+Three ways, cheapest first.
+
+**1. Cloudflare dashboard.** Storage & Databases → D1 → `discover_kurukshetra`
+→ Console. Fine for a query; poor for reading rows.
+
+**2. wrangler, for a precise question.**
+
+```bash
+npx wrangler d1 execute discover_kurukshetra --remote --json \
+  --command "select id, name_en from events" | jq -r '.[0].results[]|@tsv'
+```
+
+**3. Drizzle Studio, for actually looking at the data.**
+
+```bash
+cd apps/api
+npm run db          # local D1 — no credentials at all
+npm run db:remote   # production — needs a token, below
+```
+
+Opens a real table browser at `local.drizzle.studio`.
+
+For `db:remote`, create a Cloudflare API token (My Profile → API Tokens) with
+**Account → D1 → Edit**, restricted to this account, then:
+
+```bash
+export CLOUDFLARE_ACCOUNT_ID=4768790aa47814f60dd70c187c7a7bd9
+export CLOUDFLARE_D1_TOKEN=…
+```
+
+That token is a password for the client's database — keep it in a password
+manager and prefer the local view for anything that does not need live rows.
+
+### What Drizzle is and is not here
+
+It is a **viewer**. It is not the app's data layer and must not become one.
+
+- `apps/api/src/store.d1.ts` still holds every query the Worker runs.
+- `apps/api/migrations/` is still the only thing that changes the schema.
+- `apps/api/drizzle/schema.ts` is **generated** by `npm run db:pull`,
+  introspected *from* the database. It follows the schema rather than defining
+  it, so it cannot drift into being a second source of truth. Do not edit it,
+  and never migrate from it.
+
+Nothing under `drizzle/` is imported by the Worker — it is a dev dependency
+that never ships.

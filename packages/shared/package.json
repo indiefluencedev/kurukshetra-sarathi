@@ -1,0 +1,10 @@
+{
+  "name": "@kuk/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Rules both the app and the Worker must agree on. Nothing here may import from either side.",
+  "exports": {
+    "./*": "./*"
+  }
+}

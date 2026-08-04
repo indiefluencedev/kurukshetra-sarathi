@@ -87,7 +87,7 @@ where the time went (travel / visiting / waiting / parking / meals).
 ```
 
 **Where the event reader actually lives.** This file first proposed
-`planner/rules/events.ts`. It shipped as **`src/data/events.ts`**, because both
+`planner/rules/events.ts`. It shipped as **`apps/web/src/data/events.ts`**, because both
 the engine *and* the home rail read it, and a home-screen component importing
 out of `features/planner/rules/` is a dependency nobody would defend. It sits
 beside `data/graph.ts`, which is the same shape of thing for the same reason:
@@ -464,7 +464,7 @@ knowledge needed:
 ### 4.2 Adding a new place — the checklist
 
 ```
-1. Append an object to  src/content/data/destinations.json
+1. Append an object to  apps/web/src/content/data/destinations.json
      required: id, name{en,hi}, themes[], lat, lng, visit{rec,min,max},
                rank, first, short{en,hi}, why{en,hi}, hours{o,c}, closed[]
      set  "pending": true  until someone has stood at the coordinates
@@ -501,7 +501,7 @@ Kurukshetra one 3 km "walk".
 
 ### 4.4 The events file
 
-`src/content/data/events.json` — board-authored, bilingual, same shape rules as
+`apps/web/src/content/data/events.json` — board-authored, bilingual, same shape rules as
 every other content file, so `check-content.mjs` enforces `{en, hi}` parity
 automatically.
 

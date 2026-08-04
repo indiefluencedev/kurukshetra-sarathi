@@ -7,7 +7,7 @@ translations, and translators can work without touching `.tsx`.
 ## Where things live
 
 ```
-src/content/
+apps/web/src/content/
 ├── i18n/
 │   ├── en.json        UI microcopy, keyed  { "home": "Home", … }
 │   └── hi.json        same keys, Hindi      { "home": "होम", … }
@@ -19,7 +19,7 @@ src/content/
     └── places-index.json   stations / bus stands / stays (start-end picker)
 ```
 
-`src/data/*.ts` are thin **typed loaders** that `import` these JSON files and
+`apps/web/src/data/*.ts` are thin **typed loaders** that `import` these JSON files and
 re-export them as typed objects, so the rest of the app is unchanged
 (`import { D } from "@/data/destinations"` still works). `resolveJsonModule` is
 on, and Vite bundles JSON natively.
@@ -46,12 +46,12 @@ UI strings are reused in many places and are better keyed and deduplicated.
 
 ## Enforcement (so nothing ships half-translated)
 
-`src/content/validate.ts` exports `validateContent()`:
+`apps/web/src/content/validate.ts` exports `validateContent()`:
 - every `{en,hi}` in `data/*.json` has non-empty `en` **and** `hi`;
 - every key in `en.json` exists in `hi.json` and vice-versa.
 
 It runs as a dev self-check (logged on load in `import.meta.env.DEV`) and via
-`node scripts/check-content.mjs` in CI/precommit. A missing translation fails
+`npm run check-content` in CI/precommit. A missing translation fails
 loudly instead of silently rendering English.
 
 ## Language switching
