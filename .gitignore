@@ -46,3 +46,4 @@ apps/web/tools/out/
 # wrangler local secrets — never committed
 .dev.vars
 apps/api/.dev.vars
+.content.sql

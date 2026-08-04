@@ -1,5 +1,5 @@
 import { D1Store } from "./store.d1";
-import type { Store, EventRow } from "./store";
+import { isContentKind, type Store, type EventRow } from "./store";
 import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
 import { sendPush } from "./push";
 import { ADMIN_HTML } from "./admin";
@@ -70,13 +70,28 @@ export default {
       });
 
     /* ---- what the app reads ---- */
-    if (url.pathname === "/content/events.json" && req.method === "GET") {
-      const [items, rev] = await Promise.all([store.listEvents(), store.eventsRev()]);
-      return json({ rev, items }, 200, {
-        // Short, because a corrected festival date should reach people the same
-        // day; the app's own IndexedDB cache is what makes this cheap to poll.
-        "cache-control": "public, max-age=300",
-      });
+    const feed = url.pathname.match(/^\/content\/([a-z]+)\.json$/);
+    if (feed && req.method === "GET") {
+      const kind = feed[1];
+      let items: unknown[], rev: string;
+
+      if (kind === "events") [items, rev] = await Promise.all([store.listEvents(), store.eventsRev()]);
+      else if (isContentKind(kind))
+        [items, rev] = await Promise.all([store.listContent(kind), store.contentRev(kind)]);
+      else return json({ error: "not found" }, 404);
+
+      // Conditional GET, and it is not a micro-optimisation here. The calendar
+      // is 5 KB but the places feed is ~160 KB, and this is a district app used
+      // on rural mobile data — without it every launch re-downloads the whole
+      // catalogue to discover nothing changed. `rev` is already an exact
+      // content revision, so it makes an honest ETag and the browser does the
+      // rest. See docs/13.
+      const etag = `"${kind}-${rev}"`;
+      const headers = { "cache-control": "public, max-age=300", etag };
+      if (req.headers.get("if-none-match") === etag)
+        return new Response(null, { status: 304, headers: { ...headers, "access-control-allow-origin": "*" } });
+
+      return json({ rev, items }, 200, headers);
     }
 
     /* ---- push subscriptions ---- */
@@ -135,6 +150,34 @@ export default {
         if (!b?.id) return json({ error: "no id" }, 400);
         await store.deleteEvent(b.id, email);
         return json({ ok: true });
+      }
+
+      // Places, hotels and e-rickshaw. Unlike events these have no server-side
+      // rule set — the app is the schema — so the only thing checked is that
+      // the item has an id to key on. Validation that matters (a place needs a
+      // lat/lng the planner can use) belongs in the same shared rules file the
+      // calendar uses, and is not written yet; until it is, a bad row shows up
+      // as a place that will not plan rather than a corrupt feed.
+      const adminFeed = url.pathname.match(/^\/admin\/content\/([a-z]+)$/);
+      if (adminFeed) {
+        const kind = adminFeed[1];
+        if (!isContentKind(kind)) return json({ error: "unknown kind" }, 404);
+
+        if (req.method === "GET") return json({ items: await store.listContent(kind), you: email });
+
+        if (req.method === "PUT") {
+          const doc = (await req.json().catch(() => null)) as { id?: string } | null;
+          if (!doc?.id) return json({ error: "no id" }, 400);
+          await store.upsertContent(kind, doc.id, doc, email);
+          return json({ ok: true });
+        }
+
+        if (req.method === "DELETE") {
+          const b = (await req.json().catch(() => null)) as { id?: string } | null;
+          if (!b?.id) return json({ error: "no id" }, 400);
+          await store.deleteContent(kind, b.id, email);
+          return json({ ok: true });
+        }
       }
 
       if (url.pathname === "/admin/audit" && req.method === "GET")

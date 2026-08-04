@@ -61,7 +61,27 @@ export interface AuditRow {
   after: string | null;
 }
 
+/**
+ * The kinds of content the Board maintains besides the calendar.
+ *
+ * A closed list, checked at the edge of the Worker, because `kind` reaches SQL
+ * and the endpoint that carries it is public: `/content/<anything>.json` must
+ * not become a way to probe the database for what else is in there.
+ */
+export const CONTENT_KINDS = ["places", "hotels", "erickshaw"] as const;
+export type ContentKind = (typeof CONTENT_KINDS)[number];
+
+export const isContentKind = (s: string): s is ContentKind =>
+  (CONTENT_KINDS as readonly string[]).includes(s);
+
 export interface Store {
+  /** Every item of a kind, as the app consumes it. */
+  listContent(kind: ContentKind): Promise<unknown[]>;
+  /** Opaque revision for a kind — changes whenever any item of it changes. */
+  contentRev(kind: ContentKind): Promise<string>;
+  upsertContent(kind: ContentKind, id: string, doc: unknown, who: string): Promise<void>;
+  deleteContent(kind: ContentKind, id: string, who: string): Promise<void>;
+
   listEvents(): Promise<EventRow[]>;
   getEvent(id: string): Promise<EventRow | null>;
   upsertEvent(e: EventRow, who: string): Promise<void>;

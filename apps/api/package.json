@@ -11,6 +11,8 @@
     "migrate": "node inspect-db.mjs --remote && wrangler d1 migrations apply discover_kurukshetra --remote",
     "seed:local": "wrangler d1 execute discover_kurukshetra --local --file=seed.sql",
     "seed": "wrangler d1 execute discover_kurukshetra --remote --file=seed.sql",
+    "import:local": "node import-content.mjs > .content.sql && wrangler d1 execute discover_kurukshetra --local --file=.content.sql",
+    "import": "node import-content.mjs > .content.sql && wrangler d1 execute discover_kurukshetra --remote --file=.content.sql",
     "test": "node --experimental-strip-types test-encrypt.mjs"
   },
   "dependencies": {

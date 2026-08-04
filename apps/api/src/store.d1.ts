@@ -1,4 +1,4 @@
-import type { Store, EventRow, SubRow, AuditRow } from "./store";
+import type { Store, EventRow, SubRow, AuditRow, ContentKind } from "./store";
 
 /**
  * The D1 implementation — the ONLY file in the Worker that knows any SQL.
@@ -104,6 +104,54 @@ export class D1Store implements Store {
       .prepare("SELECT COALESCE(MAX(updated_at),0) AS m, COUNT(*) AS n FROM events")
       .first()) as { m: number; n: number } | null;
     return `${r?.m ?? 0}-${r?.n ?? 0}`;
+  }
+
+  /* ---- content: places, hotels, e-rickshaw ---- */
+
+  async listContent(kind: ContentKind): Promise<unknown[]> {
+    const { results } = await this.db.prepare("SELECT doc FROM content WHERE kind = ? ORDER BY id").bind(kind).all();
+    // A row that will not parse is skipped rather than thrown: one malformed
+    // doc must not blank a feed of 36 good ones, and the app's bundled copy is
+    // no help once a 200 with a short list has already been applied.
+    const out: unknown[] = [];
+    for (const r of results as { doc: string }[]) {
+      try {
+        out.push(JSON.parse(r.doc));
+      } catch {
+        /* skip */
+      }
+    }
+    return out;
+  }
+
+  /** Same shape as eventsRev, and for the same reason — see above. */
+  async contentRev(kind: ContentKind): Promise<string> {
+    const r = (await this.db
+      .prepare("SELECT COALESCE(MAX(updated_at),0) AS m, COUNT(*) AS n FROM content WHERE kind = ?")
+      .bind(kind)
+      .first()) as { m: number; n: number } | null;
+    return `${r?.m ?? 0}-${r?.n ?? 0}`;
+  }
+
+  async upsertContent(kind: ContentKind, id: string, doc: unknown, who: string): Promise<void> {
+    const json = JSON.stringify(doc);
+    const existed = await this.db
+      .prepare("SELECT 1 FROM content WHERE kind = ? AND id = ?")
+      .bind(kind, id)
+      .first();
+    await this.db
+      .prepare(
+        `INSERT INTO content (kind, id, doc, updated_at) VALUES (?,?,?,?)
+         ON CONFLICT(kind, id) DO UPDATE SET doc=excluded.doc, updated_at=excluded.updated_at`,
+      )
+      .bind(kind, id, json, Date.now())
+      .run();
+    await this.audit(who, existed ? "update" : "create", kind, id, json);
+  }
+
+  async deleteContent(kind: ContentKind, id: string, who: string): Promise<void> {
+    await this.db.prepare("DELETE FROM content WHERE kind = ? AND id = ?").bind(kind, id).run();
+    await this.audit(who, "delete", kind, id, null);
   }
 
   async addSub(s: SubRow): Promise<void> {
