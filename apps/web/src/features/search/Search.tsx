@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { S } from "@/app/state";
 import { t, nm, nPlaces } from "@/shared/i18n/i18n";
-import { D } from "@/data/destinations";
+import { DC } from "@/data/destinations";
 import { isOpen } from "@/shared/lib/geo";
 import { Icon } from "@/shared/icons/Icon";
 import { Pcard } from "@/shared/ui/PlaceCard";
@@ -28,7 +28,7 @@ export function Search() {
   }, [q, sf]);
 
   const query = q.trim().toLowerCase();
-  const res = D.filter((d) => {
+  const res = DC().filter((d) => {
     if (query) {
       const hay = (d.name.en + " " + d.name.hi + " " + nm(d.short) + " " + d.themes.join(" ")).toLowerCase();
       if (hay.indexOf(query) < 0) return false;

@@ -1,6 +1,6 @@
 import { S } from "@/app/state";
 import { nm } from "@/shared/i18n/i18n";
-import { D } from "@/data/destinations";
+import { DC } from "@/data/destinations";
 import { imgUrl } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { dur } from "@/shared/lib/format";
@@ -62,7 +62,7 @@ const ROUTES: Route[] = [
 
 /** How many plannable places a route would draw from — shown, not guessed at. */
 const poolSize = (themes: string[]) =>
-  themes.length ? D.filter((d) => themes.some((t) => d.themes.indexOf(t) >= 0)).length : D.length;
+  themes.length ? DC().filter((d) => themes.some((t) => d.themes.indexOf(t) >= 0)).length : DC().length;
 
 export function StartHere() {
   return (

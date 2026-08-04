@@ -221,6 +221,15 @@ header{
 .langbtn{border:1px solid var(--stone-2);background:var(--surface);border-radius:999px;height:var(--tap);
   min-width:52px;padding:0 12px;font-weight:700;font-size:calc(13px*var(--ts));color:var(--ink-2);cursor:pointer;
   display:flex;align-items:center;justify-content:center;letter-spacing:.03em}
+/* The town chip. Same pill as the language toggle so the two read as one pair
+   of switches, and its label is allowed to shrink before the wordmark does —
+   "Kurukshetra" in Devanagari is wide, and on a 320px screen something has to
+   give. It gives here rather than truncating the app's own name. */
+.citybtn{border:1px solid var(--stone-2);background:var(--surface);border-radius:999px;height:var(--tap);
+  padding:0 11px 0 8px;gap:4px;font-weight:650;font-size:calc(13px*var(--ts));color:var(--ink-2);cursor:pointer;
+  display:flex;align-items:center;min-width:0;flex:0 1 auto}
+.citybtn svg{width:15px;height:15px;flex:0 0 auto;color:var(--brass-deep)}
+.citybtn span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* ---------- layout ---------- */
 main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}

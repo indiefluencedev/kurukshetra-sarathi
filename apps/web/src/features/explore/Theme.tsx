@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
 import { S } from "@/app/state";
 import { t, nm, nPlaces } from "@/shared/i18n/i18n";
-import { D } from "@/data/destinations";
+import { DC } from "@/data/destinations";
 import { theme } from "@/data/config";
 import { Pcard } from "@/shared/ui/PlaceCard";
 import { Icon } from "@/shared/icons/Icon";
@@ -13,7 +13,7 @@ export function Theme() {
   const { id = "" } = useParams();
   const th = theme(id);
   if (!th) return <Explore />;
-  const list = D.filter((d) => d.themes.indexOf(id) >= 0).sort((a, b) => (b.rank || 0) - (a.rank || 0));
+  const list = DC().filter((d) => d.themes.indexOf(id) >= 0).sort((a, b) => (b.rank || 0) - (a.rank || 0));
   return (
     <>
       <div className="phead">

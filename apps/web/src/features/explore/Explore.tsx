@@ -2,7 +2,7 @@ import { useState } from "react";
 import { S } from "@/app/state";
 import { t, nm, nPlaces } from "@/shared/i18n/i18n";
 import { THEMES } from "@/data/config";
-import { D } from "@/data/destinations";
+import { DC } from "@/data/destinations";
 import { Icon } from "@/shared/icons/Icon";
 import { Pcard } from "@/shared/ui/PlaceCard";
 
@@ -12,7 +12,7 @@ import { Pcard } from "@/shared/ui/PlaceCard";
     bottom of the list rather than only from the top. */
 export function Explore() {
   const [th, setTh] = useState("");
-  const all = D.slice().sort((a, b) => (b.first || 0) - (a.first || 0));
+  const all = DC().sort((a, b) => (b.first || 0) - (a.first || 0));
   const list = th ? all.filter((d) => d.themes.indexOf(th) >= 0) : all;
 
   return (

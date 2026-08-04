@@ -1,5 +1,5 @@
 import { CONFIG } from "@/data/config";
-import { S, bump, type WeatherState } from "@/app/state";
+import { S, bump, city, type WeatherState } from "@/app/state";
 import type { Loc } from "@/shared/types";
 
 // WMO weather codes → [glyph, label]. Ported verbatim from the demo.
@@ -91,9 +91,10 @@ export function loadWeather(force?: boolean) {
   if (!force && S.wx && Date.now() - S.wxAt < 15 * 60 * 1000) return;
   S.wxBusy = true;
   const C = CONFIG.weather;
+  const P = city().wx;
   const url =
     C.api +
-    "?latitude=" + C.lat + "&longitude=" + C.lng +
+    "?latitude=" + P.lat + "&longitude=" + P.lng +
     "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,is_day" +
     "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,sunset" +
     "&timezone=Asia%2FKolkata&forecast_days=2";

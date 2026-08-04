@@ -6,6 +6,7 @@ import { CONFIG } from "@/data/config";
 import { LOGO_SM } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { openMenu } from "@/features/account/Menu";
+import { CityChip } from "@/shared/ui/CityPicker";
 
 // Five tabs. Explore had been folded into Home on the argument that browsing
 // is the same job as arriving — but Home is a long scroll, and "see every
@@ -65,7 +66,14 @@ export function Shell() {
           <span className="hspace" />
           {/* Three targets, not five. Search and the weather/clock moved onto
               Home, where they can be full-width and labelled instead of being
-              two more small icons competing in the bar. */}
+              two more small icons competing in the bar.
+
+              The town chip is the fourth, and it earns it the same way the
+              language button does: it is a switch, not a destination, and it
+              also *states* something — which of the two towns the list you are
+              reading belongs to. Buried in the menu, "where is Jyotisar" has
+              no answer on screen. */}
+          <CityChip />
           <button className="langbtn" onClick={flipLang} aria-label={S.lang === "hi" ? "Switch to English" : "हिन्दी में बदलें"}>
             {S.lang === "hi" ? "हिन्दी" : "ENG"}
           </button>

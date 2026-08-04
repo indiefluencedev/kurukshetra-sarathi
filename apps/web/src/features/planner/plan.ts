@@ -1,9 +1,8 @@
-import { S, bump, newPlan } from "@/app/state";
+import { S, bump, newPlan, city } from "@/app/state";
 import { go, track, planWeekday } from "@/app/nav";
 import { nm, t } from "@/shared/i18n/i18n";
 import { fromISO, isoToday, isoDate, isToday, nowM, addDays } from "@/shared/lib/datetime";
 import { toast } from "@/shared/ui/overlays";
-import { CONFIG } from "@/data/config";
 import { Engine } from "@/features/planner/engine";
 import { askLoc } from "@/features/location/location";
 import { savePlan, rememberAnswers } from "./persist";
@@ -273,14 +272,14 @@ export function pickStart(ty: string) {
       setStartPoint(
         S.userLoc
           ? { lat: S.userLoc.lat, lng: S.userLoc.lng, label: nm({ en: "My location", hi: "मेरा स्थान" }) }
-          : { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng, label: nm({ en: "Town centre", hi: "नगर केंद्र" }) },
+          : { lat: city().centre.lat, lng: city().centre.lng, label: nm({ en: "Town centre", hi: "नगर केंद्र" }) },
       );
     });
   } else if (ty === "other") {
     bump(); // leave the pin-map to set the point
   } else {
     // station / bus / hotel — user picks from the searchable list; clear any prior label
-    p.start = { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng };
+    p.start = { lat: city().centre.lat, lng: city().centre.lng };
     bump();
   }
 }
@@ -290,7 +289,7 @@ export function pickEnd(ty: string) {
   p.endType = ty;
   p.endManual = true;
   if (ty === "backToStart") p.end = { lat: p.start.lat, lng: p.start.lng, label: p.start.label };
-  else if (ty === "anywhere") p.end = { lat: CONFIG.centre.lat, lng: CONFIG.centre.lng };
+  else if (ty === "anywhere") p.end = { lat: city().centre.lat, lng: city().centre.lng };
   // station / bus / hotel: leave for the list pick
   bump();
 }

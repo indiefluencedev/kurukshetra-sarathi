@@ -204,12 +204,16 @@ async function signIn(ev) {
 
   let r;
   try {
+    // A request that never settles is indistinguishable from a frozen page.
     r = await fetch("/api/auth/sign-in/email", {
       method: "POST", headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: email, password: password }),
+      signal: AbortSignal.timeout(20000),
     });
   } catch (e) {
-    return showGate("Could not reach the server. Check your connection.");
+    return showGate(e && e.name === "TimeoutError"
+      ? "The server did not answer within 20 seconds."
+      : "Could not reach the server. Check your connection.");
   }
 
   if (r.status === 429) return showGate("Too many attempts. Wait five minutes and try again.");
@@ -236,14 +240,31 @@ function signOut() {
   if (had) fetch("/api/auth/sign-out", { method: "POST", headers: { Authorization: "Bearer " + had } }).catch(() => {});
 }
 
-/** Show the dashboard only once a request has actually been allowed. */
+/**
+ * Show the dashboard only once a request has actually been allowed.
+ *
+ * The catch used to be empty, on the assumption that api() had already shown
+ * the gate. That is true for 401 and 403 and false for everything else — so a
+ * TypeError while rendering the list, or a body that would not parse as JSON,
+ * left "Signing in…" on screen for ever with nothing said and nothing logged.
+ * Sign-in had SUCCEEDED; only the first load after it failed, which is the
+ * least obvious place to look.
+ *
+ * Now only the two errors api() raises deliberately stay quiet. Anything else
+ * names itself, on screen and in the console.
+ */
 async function boot() {
   if (!tok()) return showGate("");
   try {
     await load();
     $("#gate").hidden = true;
     $("#app").hidden = false;
-  } catch (e) { /* api() has already shown the gate */ }
+  } catch (e) {
+    const m = (e && e.message) || String(e);
+    if (m === "forbidden" || m === "unauthorised") return; // api() has already shown the gate
+    console.error("[admin] dashboard failed to load:", e);
+    showGate("Signed in, but the dashboard could not load: " + m);
+  }
 }
 const f = $("#f");
 const msg = (t, bad) => { $("#m").className = t ? "msg " + (bad ? "bad" : "good") : ""; $("#m").textContent = t; };

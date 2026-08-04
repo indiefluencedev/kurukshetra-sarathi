@@ -3,10 +3,11 @@ import { S } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { byId } from "@/shared/lib/geo";
+import { CITIES, cityOf } from "@/data/cities";
 import { toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 import { Pcard } from "@/shared/ui/PlaceCard";
-import { store, bump } from "@/app/state";
+import { store, bump, setCity } from "@/app/state";
 import { listPlans, deletePlan, openPlan, type SavedPlan } from "@/features/planner/persist";
 import { buildRoute, longDate, lastDay } from "@/features/planner/plan";
 
@@ -120,7 +121,15 @@ function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
 }
 
 export function Saved() {
-  const favs = store.favs.map((i) => byId(i)).filter(Boolean) as NonNullable<ReturnType<typeof byId>>[];
+  const all = store.favs.map((i) => byId(i)).filter(Boolean) as NonNullable<ReturnType<typeof byId>>[];
+  // Saving is per place, but reading is per town: a Pehowa tirtha sitting in a
+  // list under a header that says Kurukshetra reads as a bug. So the section
+  // holds this town, and the rest is one row that says how many and where —
+  // nothing is hidden, and nothing is mixed.
+  const favs = all.filter((d) => cityOf(d) === S.city);
+  const elsewhere = CITIES.filter((c) => c.id !== S.city)
+    .map((c) => ({ c, n: all.filter((d) => cityOf(d) === c.id).length }))
+    .filter((x) => x.n > 0);
   const [rs, setRs] = useState<SavedPlan[] | null>(null);
   const refresh = () => listPlans().then(setRs, () => setRs([]));
   useEffect(() => {
@@ -145,7 +154,7 @@ export function Saved() {
       </>
     );
 
-  if (!favs.length && !rs.length)
+  if (!all.length && !rs.length)
     return (
       <>
         <div className="phead">
@@ -195,6 +204,16 @@ export function Saved() {
           </div>
         </div>
       )}
+      {elsewhere.map(({ c, n }) => (
+        <button key={c.id} className="menurow" onClick={() => setCity(c.id)}>
+          <Icon name="pin" />
+          <span className="menutext">
+            <b lang={S.lang}>{t("savedElsewhere").replace("{n}", String(n))}</b>
+            <small>{nm(c)}</small>
+          </span>
+          <Icon name="chev" />
+        </button>
+      ))}
     </>
   );
 }

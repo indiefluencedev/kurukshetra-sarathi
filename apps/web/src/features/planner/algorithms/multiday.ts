@@ -1,7 +1,7 @@
 // multiday.ts — split a window longer than one sensible day into morning-started
 // days, never repeating a place across days. Takes the engine's `build` as a
 // parameter to avoid an import cycle. See docs/03.
-import { D } from "@/data/destinations";
+import { DC } from "@/data/destinations";
 import { addDays } from "@/shared/lib/datetime";
 import type { Itinerary } from "@/shared/types";
 
@@ -35,7 +35,7 @@ export function buildDays(o: any, build: BuildFn) {
   for (let n = 0; n < totalDays; n++) {
     const leftMin = o.budgetMin - n * DAY_MAX;
     if (leftMin <= 45) break;
-    const pool = D.filter((d) => !used[d.id]).map((d) => d.id);
+    const pool = DC().filter((d) => !used[d.id]).map((d) => d.id);
     if (!pool.length) break;
     const start = dayStart(n, o.startClock);
     const day = build(

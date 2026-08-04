@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { S, useApp, bump } from "@/app/state";
+import { S, useApp, bump, city } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { dur } from "@/shared/lib/format";
 import { distTo, byId, navTo } from "@/shared/lib/geo";
-import { CONFIG, THEMES, theme } from "@/data/config";
-import { D } from "@/data/destinations";
+import { THEMES, theme } from "@/data/config";
+import { DC } from "@/data/destinations";
 import { ICON } from "@/shared/icons/icons";
 import { openSheet, closeSheet } from "@/shared/ui/overlays";
 import { StatusPill, Pcard } from "@/shared/ui/PlaceCard";
@@ -29,7 +29,7 @@ const navColour = () =>
   getComputedStyle(document.documentElement).getPropertyValue("--nav").trim() || "#24486E";
 
 const mapPts = () =>
-  D.filter((p) => p.lat && p.lng && (S.mapTheme === "all" || p.themes.indexOf(S.mapTheme) >= 0));
+  DC().filter((p) => p.lat && p.lng && (S.mapTheme === "all" || p.themes.indexOf(S.mapTheme) >= 0));
 
 /** ~4.5 km from the town centre — what counts as "in Kurukshetra" for framing. */
 const CORE_DEG = 0.045;
@@ -83,7 +83,7 @@ export function MapView() {
       fadeAnimation: false,
       zoomAnimation: false,
       markerZoomAnimation: false,
-    }).setView([CONFIG.centre.lat, CONFIG.centre.lng], 13, { animate: false });
+    }).setView([city().centre.lat, city().centre.lng], 13, { animate: false });
     const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
       attribution: "© OpenStreetMap",
@@ -215,7 +215,7 @@ export function MapView() {
             // pan away, and the theme filter re-fits.
             const core = bounds.filter(
               ([la, ln]) =>
-                Math.abs(la - CONFIG.centre.lat) < CORE_DEG && Math.abs(ln - CONFIG.centre.lng) < CORE_DEG,
+                Math.abs(la - city().centre.lat) < CORE_DEG && Math.abs(ln - city().centre.lng) < CORE_DEG,
             );
             map.fitBounds(core.length > 2 ? core : bounds, { padding: [40, 40], maxZoom: 15, animate: false });
           }

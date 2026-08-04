@@ -1,10 +1,12 @@
+import { useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { S, store } from "@/app/state";
+import { S, store, setCityQuiet } from "@/app/state";
 import { track } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { dur } from "@/shared/lib/format";
 import { distTo, byId, navTo } from "@/shared/lib/geo";
 import { theme, shownThemes, PHOTO_CREDIT } from "@/data/config";
+import { cityOf } from "@/data/cities";
 import { Icon } from "@/shared/icons/Icon";
 import { Photo } from "@/shared/ui/Photo";
 import { StatusPill, Fcard } from "@/shared/ui/PlaceCard";
@@ -40,6 +42,13 @@ const hoursShort = (h?: { o: string; c: string }): string => {
 export function Place() {
   const { id = "" } = useParams();
   const d = byId(id);
+  /* A place reached from search, from a saved list, or from a shared link may
+     belong to the other town. Follow it, rather than showing its page under a
+     header that names somewhere else — and quietly, because arriving at a page
+     is not a reason to tear up a half-built plan. */
+  useEffect(() => {
+    if (d) setCityQuiet(cityOf(d));
+  }, [d]);
   if (!d)
     return (
       <div className="empty">

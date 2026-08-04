@@ -3,7 +3,7 @@ import { S, store } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm, nPlaces } from "@/shared/i18n/i18n";
 import { THEMES } from "@/data/config";
-import { D } from "@/data/destinations";
+import { DC } from "@/data/destinations";
 import { imgUrl } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { loadWeather } from "@/features/weather/weather";
@@ -76,7 +76,7 @@ export function Home() {
         </div>
         <div className="themes stagger">
           {THEMES.map((th) => {
-            const n = D.filter((d) => d.themes.indexOf(th.id) >= 0).length;
+            const n = DC().filter((d) => d.themes.indexOf(th.id) >= 0).length;
             return (
               <button key={th.id} className="tile" onClick={() => go("/theme/" + th.id)}>
                 <span className="tbg">

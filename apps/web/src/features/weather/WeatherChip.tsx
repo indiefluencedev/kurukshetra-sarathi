@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { S } from "@/app/state";
+import { S, city } from "@/app/state";
 import { nm, t } from "@/shared/i18n/i18n";
 import { clock12 } from "@/shared/lib/datetime";
 import { openSheet, closeSheet } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
-import { CONFIG } from "@/data/config";
 import { loadWeather, wcode, glyphBody, advice } from "./weather";
 
 /** Animated weather glyph (spins/drifts/falls per CSS). */
@@ -49,7 +48,7 @@ export function openWxSheet() {
             {nm(d[1])} · {nm({ en: "feels", hi: "अनुभव" })} {w.feels}°
           </p>
           <p className="muted" style={{ fontSize: "calc(11.5px*var(--ts))", marginTop: 3 }}>
-            {nm(CONFIG.weather.place)} 136118
+            {nm(city().wxPlace)} {city().pin}
             {w.live ? "" : " · " + nm({ en: "offline estimate", hi: "ऑफ़लाइन अनुमान" })}
           </p>
         </span>

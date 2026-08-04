@@ -1,0 +1,22 @@
+[
+ {
+  "id": "kurukshetra",
+  "en": "Kurukshetra",
+  "hi": "कुरुक्षेत्र",
+  "centre": { "lat": 29.9614, "lng": 76.8286 },
+  "wx": { "lat": 29.9732, "lng": 76.8343 },
+  "wxPlace": { "en": "Thanesar, Kurukshetra", "hi": "थानेसर, कुरुक्षेत्र" },
+  "pin": "136118",
+  "region": { "en": "Haryana", "hi": "हरियाणा" }
+ },
+ {
+  "id": "pehowa",
+  "en": "Pehowa",
+  "hi": "पिहोवा",
+  "centre": { "lat": 29.9808, "lng": 76.5793 },
+  "wx": { "lat": 29.9808, "lng": 76.5793 },
+  "wxPlace": { "en": "Pehowa, Kurukshetra", "hi": "पिहोवा, कुरुक्षेत्र" },
+  "pin": "136128",
+  "region": { "en": "Haryana", "hi": "हरियाणा" }
+ }
+]

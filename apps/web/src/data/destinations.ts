@@ -1,9 +1,12 @@
 import data from "@/content/data/destinations.json";
 import { register } from "@/content/live";
+import { S } from "@/app/state";
+import { cityOf } from "@/data/cities";
 import type { Destination } from "@/shared/types";
 
 /**
- * The 36 tirthas. Source of truth: src/content/data/destinations.json (each
+ * The 57 tirthas of the two towns. Source of truth:
+ * src/content/data/destinations.json (each
  * text field is { en, hi } so a place can't be added without its Hindi). See
  * docs/04.
  *
@@ -27,3 +30,14 @@ register<Destination>("places", (items) => {
   if (items.length < (data as unknown as Destination[]).length / 2) return;
   D = items;
 });
+
+/**
+ * The places of the town currently chosen — what every list on screen shows.
+ *
+ * A function, not a constant: `D` is replaced when live content lands and
+ * `S.city` changes under the user, so anything captured at module load would
+ * be one town behind. The engine, the map and the search all call this; `D`
+ * itself stays available for the few things that are genuinely cross-town
+ * (resolving a saved id, counting what is saved elsewhere).
+ */
+export const DC = (): Destination[] => D.filter((d) => cityOf(d) === S.city);

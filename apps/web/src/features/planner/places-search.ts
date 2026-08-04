@@ -8,7 +8,7 @@
 // long tail. Both services are community-run and rate-limited, so every call is
 // debounced by the caller, cached here, and failure is silent — the curated
 // list is always a working answer on its own.
-import { CONFIG } from "@/data/config";
+import { city } from "@/app/state";
 import type { PlaceKind } from "@/data/places-index";
 
 export interface FoundPlace {
@@ -30,9 +30,13 @@ const AREA = 3601942848;
 const DISTRICT = "Kurukshetra";
 // Nominatim can't take a polygon, so it gets the bounding box and then every
 // result is checked against the district name it reports.
-const BOX = [CONFIG.centre.lng - 0.32, CONFIG.centre.lat + 0.28, CONFIG.centre.lng + 0.32, CONFIG.centre.lat - 0.28]
-  .map((n) => n.toFixed(4))
-  .join(",");
+//
+// The district, not the town: this used to be derived from a single hardcoded
+// centre, and once Pehowa became a town you could plan from, a box drawn round
+// whichever town happened to be active cut off the other end of the district —
+// Pehowa's box stops short of Pipli, and Kurukshetra's stops short of nothing
+// only by luck. The district is fixed, so the box is a constant.
+const BOX = [76.40, 30.25, 77.15, 29.60].map((n) => n.toFixed(4)).join(",");
 
 /** OSM tags per kind — what "a hotel" or "a bus stand" actually is in OSM.
     Exact key=value only. A tag-value regex is slower and a bare `["name"~"…"]`
@@ -159,4 +163,4 @@ function kindOf(tags: any, want: PlaceKind[]): PlaceKind {
   return want.includes("dharamshala") ? "dharamshala" : want[0];
 }
 
-const dist = (p: FoundPlace) => (p.lat - CONFIG.centre.lat) ** 2 + (p.lng - CONFIG.centre.lng) ** 2;
+const dist = (p: FoundPlace) => (p.lat - city().centre.lat) ** 2 + (p.lng - city().centre.lng) ** 2;

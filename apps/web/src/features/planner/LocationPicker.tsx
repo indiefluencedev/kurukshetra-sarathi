@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { S } from "@/app/state";
+import { S, city } from "@/app/state";
 import { t, nm } from "@/shared/i18n/i18n";
 import { CONFIG } from "@/data/config";
 import { Icon } from "@/shared/icons/Icon";
@@ -172,7 +172,7 @@ export function PinMap({
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const start: [number, number] = value.label ? [value.lat, value.lng] : [CONFIG.centre.lat, CONFIG.centre.lng];
+    const start: [number, number] = value.label ? [value.lat, value.lng] : [city().centre.lat, city().centre.lng];
     const map = L.map(host, { zoomControl: true, attributionControl: true }).setView(start, value.label ? 15 : 13);
     mapRef.current = map;
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);

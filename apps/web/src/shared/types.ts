@@ -25,6 +25,8 @@ export interface NoticeItem {
 
 export interface Destination {
   id: string;
+  /** which town it is in — see data/cities.ts. Absent means Kurukshetra. */
+  city?: string;
   img?: string;
   gallery?: string[];
   name: Loc;

@@ -1,7 +1,6 @@
-import { CONFIG } from "@/data/config";
 import { D } from "@/data/destinations";
 import { Engine } from "@/features/planner/engine";
-import { S } from "@/app/state";
+import { S, city } from "@/app/state";
 import { track } from "@/app/nav";
 import type { Destination } from "@/shared/types";
 
@@ -13,13 +12,13 @@ export const isOpen = (d: Destination): boolean => {
 };
 
 export const distTo = (d: Destination): number =>
-  Engine.roadKm(S.userLoc || CONFIG.centre, d);
+  Engine.roadKm(S.userLoc || city().centre, d);
 
 /** Open Google Maps directions to a destination (was navTo). */
 export function navTo(id: string) {
   const d = byId(id);
   if (!d) return;
-  const o = S.userLoc || CONFIG.centre;
+  const o = S.userLoc || city().centre;
   const mm: Record<string, string> = {
     car: "driving",
     taxi: "driving",

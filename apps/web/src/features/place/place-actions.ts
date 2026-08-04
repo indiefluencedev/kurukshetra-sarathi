@@ -6,6 +6,7 @@ import { dur } from "@/shared/lib/format";
 import { nowM } from "@/shared/lib/datetime";
 import { byId } from "@/shared/lib/geo";
 import { D } from "@/data/destinations";
+import { cityOf } from "@/data/cities";
 import { Engine } from "@/features/planner/engine";
 import type { Destination, Loc } from "@/shared/types";
 
@@ -20,9 +21,11 @@ export const DY: [string, string][] = [
   ["Thu", "गुरु"], ["Fri", "शुक्र"], ["Sat", "शनि"],
 ];
 
-/** four closest other places. */
+/** Four closest other places, within the same town. Scoped to `d`'s own town
+    rather than the one on screen: Pehowa is twenty-five kilometres west, so
+    "nearby" across the two is a suggestion nobody can act on. */
 export const near = (d: Destination): Destination[] =>
-  D.filter((x) => x.id !== d.id)
+  D.filter((x) => x.id !== d.id && cityOf(x) === cityOf(d))
     .map((x) => ({ x, k: Engine.roadKm(d, x) }))
     .sort((a, b) => a.k - b.k)
     .slice(0, 4)
