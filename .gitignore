@@ -47,3 +47,6 @@ apps/web/tools/out/
 .dev.vars
 apps/api/.dev.vars
 .content.sql
+
+# drizzle studio introspection output — regenerate with `npm run db:pull`
+apps/api/drizzle/meta/

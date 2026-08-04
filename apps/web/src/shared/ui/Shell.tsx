@@ -7,9 +7,15 @@ import { LOGO_SM } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { openMenu } from "@/features/account/Menu";
 
-// Four tabs. Browsing (explore / a theme) belongs to Home — it is the same
-// job, "find somewhere to go", so it no longer takes a tab of its own.
-const TABS = ["home", "plan", "map", "saved"];
+// Five tabs. Explore had been folded into Home on the argument that browsing
+// is the same job as arriving — but Home is a long scroll, and "see every
+// place" was reachable only by finding a card partway down it. A tab is one
+// tap from anywhere, which is what that job deserves.
+//
+// The bar's CSS derives the sliding pill's width from --tabs, so this array is
+// the single place the count lives. It was hardcoded to /5 while this held
+// four, which is why the pill never lined up with the active tab.
+const TABS = ["home", "explore", "plan", "map", "saved"];
 
 /**
  * Which tab owns this route, or -1 for the screens that belong to none of them
@@ -20,8 +26,8 @@ const TABS = ["home", "plan", "map", "saved"];
  * nothing. On those screens the pill now slides out of sight instead.
  */
 function tabIndex(r: string): number {
-  if (r === "/route" || r === "/go") return 1; // both are the planner's output
-  if (r === "/explore" || r.indexOf("/theme/") === 0) return 0;
+  if (r === "/route" || r === "/go") return 2; // both are the planner's output
+  if (r.indexOf("/theme/") === 0) return 1; // a theme is a filtered Explore
   return TABS.indexOf(r.slice(1));
 }
 
@@ -35,7 +41,7 @@ export function Shell() {
     const on =
       r === "/" + id ||
       (id === "plan" && (r === "/route" || r === "/go")) ||
-      (id === "home" && (r === "/explore" || r.indexOf("/theme/") === 0));
+      (id === "explore" && r.indexOf("/theme/") === 0);
     return (
       <button key={id} className={on ? "on" : ""} onClick={() => go("/" + id)} aria-current={on ? "page" : undefined}>
         <Icon name={ic} />
@@ -91,6 +97,7 @@ export function Shell() {
           style={{ ["--i" as string]: Math.max(tabIndex(r), 0), ["--tabs" as string]: TABS.length }}
         >
           {tab("home", "home", t("home"))}
+          {tab("explore", "compass", t("explore"))}
           {tab("plan", "route", t("plan"))}
           {tab("map", "mapi", t("map"))}
           {tab("saved", "saved", t("saved"))}

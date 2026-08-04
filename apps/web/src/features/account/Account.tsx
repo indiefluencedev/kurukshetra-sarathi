@@ -17,6 +17,49 @@ import { currentUser, isAdmin, signIn, signUp, signOut, googleUrl, canUseGoogle,
  * this exists so a saved plan survives a new phone, and the copy says so
  * rather than implying a wall.
  */
+/**
+ * A password field you can read back.
+ *
+ * Typing a password blind on a phone keyboard is the most common reason a
+ * correct password gets rejected, and this audience is the least likely to
+ * enjoy guessing which character went wrong. The toggle is a button, not a
+ * checkbox, so it is one tap and announces its own state.
+ */
+function PasswordField({
+  id,
+  label,
+  value,
+  onChange,
+  autoComplete,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete: string;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    <div className="field">
+      <label htmlFor={id}>{label}</label>
+      <div className="pwwrap">
+        <input
+          id={id}
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          autoCapitalize="none"
+          spellCheck={false}
+        />
+        <button type="button" className="pwtoggle" onClick={() => setShow(!show)} aria-pressed={show}>
+          {show ? t("hidePassword") : t("showPassword")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Account() {
   const user = currentUser();
   const [mode, setMode] = useState<"in" | "up">("in");
@@ -119,18 +162,26 @@ export function Account() {
             />
           </div>
 
-          <div className="field">
-            <label htmlFor="ac-password">{t("password")}</label>
-            <input
-              id="ac-password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              // "new-password" tells the keychain to offer a generated one on
-              // sign-up and not to overwrite a saved one on sign-in.
-              autoComplete={mode === "up" ? "new-password" : "current-password"}
-            />
-          </div>
+          {/* "new-password" tells the keychain to offer a generated one on
+              sign-up and not to overwrite a saved one on sign-in. */}
+          <PasswordField
+            id="ac-password"
+            label={t("password")}
+            value={password}
+            onChange={setPassword}
+            autoComplete={mode === "up" ? "new-password" : "current-password"}
+          />
+
+          {mode === "in" && (
+            <button
+              type="button"
+              className="linkish"
+              style={{ width: "100%", marginTop: 2 }}
+              onClick={() => toast(t("forgotHelp"))}
+            >
+              {t("forgotPassword")}
+            </button>
+          )}
 
           {err && (
             <div className="msg bad" role="alert" style={{ marginTop: 12 }}>
@@ -212,14 +263,8 @@ function ChangePassword() {
         toast(t("passwordChanged"));
       }}
     >
-      <div className="field">
-        <label htmlFor="cp-cur">{t("currentPassword")}</label>
-        <input id="cp-cur" type="password" value={cur} onChange={(e) => setCur(e.target.value)} autoComplete="current-password" />
-      </div>
-      <div className="field">
-        <label htmlFor="cp-new">{t("newPassword")}</label>
-        <input id="cp-new" type="password" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
-      </div>
+      <PasswordField id="cp-cur" label={t("currentPassword")} value={cur} onChange={setCur} autoComplete="current-password" />
+      <PasswordField id="cp-new" label={t("newPassword")} value={next} onChange={setNext} autoComplete="new-password" />
       {err && (
         <div className="msg bad" role="alert" style={{ marginBottom: 12 }}>
           {err}

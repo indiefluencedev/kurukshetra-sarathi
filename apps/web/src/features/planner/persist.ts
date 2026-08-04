@@ -151,8 +151,18 @@ export async function savePlan(p: Plan): Promise<SavedPlan> {
 }
 
 export const listPlans = async (): Promise<SavedPlan[]> => {
-  // the store holds three kinds of record in one table; only one is a plan
-  const rows = (await all<SavedPlan>()).filter((r) => r.id !== DRAFT && r.id !== PREFS);
+  // The store holds several kinds of record in one table and only one is a
+  // plan. This used to name the other two (draft, prefs) and exclude them by
+  // id — which silently broke the moment content/live.ts began caching feeds
+  // here under "content:*". Those rows have no `ids`, so PlanRow's
+  // `r.ids.map(...)` threw and took the whole Saved screen down with it: no
+  // list, no save button, nothing. It read exactly like plans not being saved.
+  //
+  // So the test is now positive — what a plan *is*, rather than what it is
+  // not. A new record type sharing this store cannot reintroduce the bug.
+  const rows = (await all<SavedPlan>()).filter(
+    (r) => r && r.id !== DRAFT && r.id !== PREFS && Array.isArray(r.ids) && !!r.plan,
+  );
   return rows.sort((a, b) => b.at - a.at);
 };
 

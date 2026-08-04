@@ -249,5 +249,9 @@
  "currentPassword": "Current password",
  "newPassword": "New password",
  "passwordChanged": "Password changed",
- "tooManyTries": "Too many attempts. Please wait a few minutes and try again."
+ "tooManyTries": "Too many attempts. Please wait a few minutes and try again.",
+ "showPassword": "Show",
+ "hidePassword": "Hide",
+ "forgotPassword": "Forgotten your password?",
+ "forgotHelp": "Password reset by email is not available yet. Ask the Board to reset it for you."
 }

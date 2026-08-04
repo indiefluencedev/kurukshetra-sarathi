@@ -13,7 +13,10 @@
     "seed": "wrangler d1 execute discover_kurukshetra --remote --file=seed.sql",
     "import:local": "node import-content.mjs > .content.sql && wrangler d1 execute discover_kurukshetra --local --file=.content.sql",
     "import": "node import-content.mjs > .content.sql && wrangler d1 execute discover_kurukshetra --remote --file=.content.sql",
-    "test": "node --experimental-strip-types test-encrypt.mjs"
+    "test": "node --experimental-strip-types test-encrypt.mjs",
+    "db": "LOCAL_D1_PATH=\"file:$(node find-local-db.mjs)\" drizzle-kit studio",
+    "db:remote": "D1_REMOTE=1 drizzle-kit studio",
+    "db:pull": "LOCAL_D1_PATH=\"file:$(node find-local-db.mjs)\" drizzle-kit pull"
   },
   "dependencies": {
     "@kuk/shared": "*",
@@ -23,6 +26,8 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
     "wrangler": "^4.0.0"
   }
 }

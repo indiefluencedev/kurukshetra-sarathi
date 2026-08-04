@@ -50,8 +50,27 @@ export const ADMIN_HTML = `<!doctype html>
    background:#EFF1DF;color:var(--ok);border-radius:99px;padding:2px 8px;margin-left:6px}
  .pill.ov{background:#F9EAE3;color:var(--bad)}
  .aud{font-size:12px;color:var(--muted);max-height:220px;overflow:auto}
+ .gate{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;padding:20px;z-index:20}
+ .gbox{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:22px;width:100%;max-width:360px}
+ .gbox h1{font-size:19px;margin:0 0 4px}
+ .gbox p{margin:0 0 14px;color:var(--muted);font-size:14px}
+ .gbox label{font-size:13px;font-weight:700}
+ .gbox button{width:100%;margin-top:16px}
+ header .ghost{margin-left:8px}
 </style></head><body>
+<div id="gate" class="gate">
+  <form class="gbox" onsubmit="signIn(event)">
+    <h1>Kurukshetra Saarthi</h1>
+    <p>Sign in to manage the calendar and places.</p>
+    <label>Email<input id="gu" type="email" autocomplete="username" required></label>
+    <label>Password<input id="gp" type="password" autocomplete="current-password" required></label>
+    <div class="msg bad" id="gm" hidden></div>
+    <button class="primary" type="submit">Sign in</button>
+  </form>
+</div>
+<div id="app" hidden>
 <header><h1>Events</h1><span class="you" id="you"></span>
+  <button class="ghost" onclick="signOut()">Sign out</button>
   <button class="ghost" onclick="testPush()">Send a test notification</button></header>
 <main>
  <section>
@@ -113,14 +132,74 @@ export const ADMIN_HTML = `<!doctype html>
   <div class="aud" id="audit"></div>
  </section>
 </main>
+</div>
 <script>
 const $ = (s) => document.querySelector(s);
+
+/* ---- session -------------------------------------------------------------
+   The dashboard is served by the same Worker it talks to, so these fetches are
+   same-origin — but the session is a bearer token, not a cookie (see docs/14),
+   so nothing is attached automatically. Every call must carry the header
+   itself. Before this, the page loaded and then 403'd on its own first
+   request, which made the admin area unreachable rather than merely locked. */
+const TOK = "kuk_admin_token";
+const tok = () => { try { return localStorage.getItem(TOK) || ""; } catch (e) { return ""; } };
+const setTok = (v) => { try { v ? localStorage.setItem(TOK, v) : localStorage.removeItem(TOK); } catch (e) {} };
+
+/** fetch + Authorization, and one place that notices the session has died. */
+async function api(path, opts) {
+  opts = opts || {};
+  opts.headers = Object.assign({}, opts.headers, tok() ? { Authorization: "Bearer " + tok() } : {});
+  const r = await fetch(path, opts);
+  // 403 here means signed out, or signed in as someone who is not an admin.
+  // Either way the only useful thing is the sign-in form, not a broken page.
+  if (r.status === 403 || r.status === 401) { showGate("Sign in with an administrator account."); throw new Error("unauthorised"); }
+  return r;
+}
+
+function showGate(m) {
+  $("#gate").hidden = false;
+  $("#app").hidden = true;
+  if (m) { $("#gm").hidden = false; $("#gm").textContent = m; }
+}
+
+async function signIn(ev) {
+  ev.preventDefault();
+  $("#gm").hidden = true;
+  const r = await fetch("/api/auth/sign-in/email", {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email: $("#gu").value.trim(), password: $("#gp").value }),
+  });
+  if (r.status === 429) return showGate("Too many attempts. Wait a few minutes.");
+  if (!r.ok) return showGate("Wrong email or password.");
+  setTok(r.headers.get("set-auth-token") || "");
+  $("#gp").value = "";
+  boot();
+}
+
+function signOut() {
+  const had = tok();
+  setTok("");
+  showGate("");
+  $("#gm").hidden = true;
+  if (had) fetch("/api/auth/sign-out", { method: "POST", headers: { Authorization: "Bearer " + had } }).catch(() => {});
+}
+
+/** Show the dashboard only once a request has actually been allowed. */
+async function boot() {
+  if (!tok()) return showGate("");
+  try {
+    await load();
+    $("#gate").hidden = true;
+    $("#app").hidden = false;
+  } catch (e) { /* api() has already shown the gate */ }
+}
 const f = $("#f");
 const msg = (t, bad) => { $("#m").className = t ? "msg " + (bad ? "bad" : "good") : ""; $("#m").textContent = t; };
 const toggleOverlay = () => { $("#ov").hidden = !["yatra","closure"].includes(f.kind.value); };
 
 async function load() {
-  const r = await fetch("/admin/events").then(r => r.json());
+  const r = await api("/admin/events").then(r => r.json());
   $("#you").textContent = r.you || "";
   $("#list").innerHTML = (r.items || []).map(e => {
     const ov = ["yatra","closure"].includes(e.kind);
@@ -130,7 +209,7 @@ async function load() {
       '<span class="acts"><button class="ghost" onclick=\\'edit(' + esc(JSON.stringify(JSON.stringify(e))) + ')\\'>Edit</button>' +
       '<button class="danger" onclick="del(\\'' + e.id + '\\')">Delete</button></span></li>';
   }).join("") || "<li><span>Nothing yet.</span></li>";
-  const a = await fetch("/admin/audit").then(r => r.json());
+  const a = await api("/admin/audit").then(r => r.json());
   $("#audit").innerHTML = (a.items || []).map(x =>
     new Date(x.at).toLocaleString() + " — " + esc(x.who) + " " + x.action + "d " + esc(x.entityId)).join("<br>") || "No changes yet.";
 }
@@ -170,7 +249,7 @@ async function save(ev) {
       return { lat, lng };
     });
   }
-  const r = await fetch("/admin/events", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const r = await api("/admin/events", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   const j = await r.json();
   if (!r.ok) return msg((j.problems || [j.error]).join("\\n"), true);
   msg("Saved. It reaches phones within five minutes."); f.reset(); toggleOverlay(); load();
@@ -178,12 +257,14 @@ async function save(ev) {
 
 async function del(id) {
   if (!confirm("Delete " + id + "? Past events stop showing on their own — you only need this for a mistake.")) return;
-  await fetch("/admin/events", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
+  await api("/admin/events", { method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ id }) });
   load();
 }
 async function testPush() {
-  const r = await fetch("/admin/test-push", { method: "POST" }).then(r => r.json());
+  const r = await api("/admin/test-push", { method: "POST" }).then(r => r.json());
   alert("Sent to " + r.sent + " device(s).");
 }
-load();
+// boot(), not load(): the page must decide whether to show the dashboard or
+// the sign-in form, and it decides by whether a real request succeeds.
+boot();
 </script></body></html>`;
