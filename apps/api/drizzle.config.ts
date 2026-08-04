@@ -1,3 +1,8 @@
+/// <reference types="node" />
+// This file runs under Node (drizzle-kit), not in the Worker. The Worker's
+// tsconfig types it as workers-only, which is correct for src/ and wrong here
+// — hence the reference above, rather than adding "node" to the whole project
+// and letting Worker code reach for process.env that will not exist at runtime.
 import { defineConfig } from "drizzle-kit";
 
 /**

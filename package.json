@@ -20,6 +20,7 @@
     "@libsql/client": "^0.17.4",
     "drizzle-kit": "^0.31.10",
     "drizzle-orm": "^0.45.2",
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.0.0",
+    "@types/node": "^26.1.2"
   }
 }
