@@ -5,11 +5,11 @@
 // here is what lets the self-checks import the real modules instead of a copy
 // of them that can drift.
 //
-// Usage:  node --experimental-strip-types --import ./scripts/alias.mjs <file>
+// Usage:  node --experimental-strip-types --import ./tools/alias.mjs <file>
 import { register } from "node:module";
 import { pathToFileURL } from "node:url";
 
-register("./alias-hooks.mjs", pathToFileURL("./scripts/"));
+register("./alias-hooks.mjs", pathToFileURL("./tools/"));
 
 /* A tiny in-memory localStorage.
    app/state.ts reads it at module load, so the self-checks cannot import any

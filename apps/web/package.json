@@ -1,0 +1,37 @@
+{
+  "name": "@kuk/web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "The visitor-facing PWA. Frontend only — no SQL, no secrets, no server code.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "check": "npm run check-content && npm run check-planner && npm run check-graph && npm run check-corridor && npm run check-matrix",
+    "check-content": "node tools/check-content.mjs",
+    "check-planner": "node --experimental-strip-types --import ./tools/alias.mjs tools/check-planner.mjs",
+    "check-graph": "node --experimental-strip-types --import ./tools/alias.mjs tools/check-graph.mjs",
+    "check-corridor": "node --experimental-strip-types --import ./tools/alias.mjs tools/check-corridor.mjs",
+    "check-matrix": "node --experimental-strip-types --import ./tools/alias.mjs tools/check-matrix.mjs",
+    "harvest-places": "node tools/harvest-places.mjs",
+    "build-graph": "node tools/build-graph.mjs",
+    "build-matrix": "node tools/build-matrix.mjs"
+  },
+  "dependencies": {
+    "@kuk/shared": "*",
+    "leaflet": "^1.9.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.9.12",
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.8",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}

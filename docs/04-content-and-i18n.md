@@ -51,7 +51,7 @@ UI strings are reused in many places and are better keyed and deduplicated.
 - every key in `en.json` exists in `hi.json` and vice-versa.
 
 It runs as a dev self-check (logged on load in `import.meta.env.DEV`) and via
-`node scripts/check-content.mjs` in CI/precommit. A missing translation fails
+`npm run check-content` in CI/precommit. A missing translation fails
 loudly instead of silently rendering English.
 
 ## Language switching

@@ -38,12 +38,11 @@ pnpm-debug.log*
 .claude
 
 # harvested review files, not shipped
-scripts/out/
+apps/web/tools/out/
 
 # wrangler's local D1 sandbox and build cache
 .wrangler/
-worker/node_modules/
 
 # wrangler local secrets — never committed
 .dev.vars
-worker/.dev.vars
+apps/api/.dev.vars

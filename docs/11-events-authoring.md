@@ -86,7 +86,7 @@ perpendicular-distance test, not driven along.
 
 ## Where the data comes from at runtime
 
-`src/content/live.ts` makes any content file updatable without a release. Three
+`apps/web/src/content/live.ts` makes any content file updatable without a release. Three
 rules, in this order, and the order is the design:
 
 1. The **bundled** copy renders first. The app opens on a rural signal and must

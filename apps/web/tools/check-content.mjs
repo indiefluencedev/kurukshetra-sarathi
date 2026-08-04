@@ -1,7 +1,7 @@
 // CI / pre-commit content check: every {en,hi} is fully translated and the two
 // UI dictionaries share the same keys. Exits non-zero on any problem. See docs/04.
 import { readFileSync } from "node:fs";
-import { validateEvent, validateEventSet } from "../shared/event-rules.mjs";
+import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
 
 const read = (p) => JSON.parse(readFileSync(new URL(p, import.meta.url), "utf8"));
 const base = "../src/content/";

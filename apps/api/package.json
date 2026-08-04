@@ -1,16 +1,20 @@
 {
-  "name": "kuk-saarthi-api",
+  "name": "@kuk/api",
   "private": true,
   "type": "module",
+  "description": "The Worker: HTTP routes, D1 schema, admin dashboard, auth, push. The only place with SQL in it.",
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "inspect": "node inspect-db.mjs",
-    "migrate:local": "wrangler d1 execute discover_kurukshetra --local --file=migrations/0001_init.sql",
-    "migrate": "node inspect-db.mjs --remote && wrangler d1 execute discover_kurukshetra --remote --file=migrations/0001_init.sql",
+    "migrate:local": "wrangler d1 migrations apply discover_kurukshetra --local",
+    "migrate": "node inspect-db.mjs --remote && wrangler d1 migrations apply discover_kurukshetra --remote",
     "seed:local": "wrangler d1 execute discover_kurukshetra --local --file=seed.sql",
     "seed": "wrangler d1 execute discover_kurukshetra --remote --file=seed.sql",
     "test": "node --experimental-strip-types test-encrypt.mjs"
+  },
+  "dependencies": {
+    "@kuk/shared": "*"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",

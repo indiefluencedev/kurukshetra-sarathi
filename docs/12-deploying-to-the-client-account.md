@@ -145,27 +145,27 @@ Currently set: `VAPID_PUBLIC`, `VAPID_PRIVATE`.
 
 **Adding a new one:**
 
-1. Add it to the `Env` interface in `worker/src/index.ts` — TypeScript is the
+1. Add it to the `Env` interface in `apps/api/src/index.ts` — TypeScript is the
    only thing that will remind you it is missing.
 2. `[vars]` if it is not sensitive, `wrangler secret put` if it is.
 3. `npm run deploy`.
 
 A secret that only exists in production will be `undefined` in `wrangler dev`.
-For local work put it in `worker/.dev.vars` (gitignored, same `KEY=value`
+For local work put it in `apps/api/.dev.vars` (gitignored, same `KEY=value`
 shape as `.env`) — never in `wrangler.toml`.
 
 ### The app's own build variable
 
 `VITE_CONTENT_URL` is a **build-time** variable, not a Worker one: Vite inlines
 it, so changing it needs a rebuild, not a redeploy. Unset, the app falls back
-to its bundled calendar — see `src/content/live.ts` and docs/11.
+to its bundled calendar — see `apps/web/src/content/live.ts` and docs/11.
 
 ---
 
 ## Deploying, in order
 
 ```bash
-cd worker
+cd apps/api
 npm install
 
 npx wrangler d1 list                     # ids for wrangler.toml
@@ -183,7 +183,7 @@ Then the app itself, from the repo root. `npm run build` reads
 
 ```bash
 npm run build
-npx wrangler pages deploy dist --project-name=kuk-saarthi --branch=main
+npx wrangler pages deploy apps/web/dist --project-name=kuk-saarthi --branch=main
 ```
 
 `--branch=main` is what makes it the production deployment behind
@@ -220,7 +220,7 @@ the **database** (what is stored), the **API** (what the app receives), and the
 ### The database
 
 ```bash
-cd worker
+cd apps/api
 npm run inspect -- --remote        # tables + the column check
 
 npx wrangler d1 execute discover_kurukshetra --remote --json \
@@ -231,7 +231,7 @@ npx wrangler d1 execute discover_kurukshetra --remote --json \
 `--json | jq` is the readable form; without it wrangler prints a wall of
 timing metadata and the rows scroll off the top. **`--remote` is not
 optional** — leave it off and you are querying the empty local sandbox in
-`worker/.wrangler`, which is the fastest way to conclude the data is missing
+`apps/api/.wrangler`, which is the fastest way to conclude the data is missing
 when it is fine.
 
 As of 4 Aug: 4 events, 0 subs, 0 sent, 0 audit. The last three being empty is
@@ -257,7 +257,7 @@ anonymous edit). To see the page before then, run it locally and supply the
 identity header yourself:
 
 ```bash
-cd worker
+cd apps/api
 npx wrangler d1 execute discover_kurukshetra --local --file=migrations/0001_init.sql
 npx wrangler d1 execute discover_kurukshetra --local --file=seed.sql
 npx wrangler dev --port 8788
@@ -329,7 +329,7 @@ keeps running. Nothing in this repo holds a credential — verified.
 
 ## Switching the database later
 
-`worker/src/store.ts` is the whole interface and `store.d1.ts` is the only file
+`apps/api/src/store.ts` is the whole interface and `store.d1.ts` is the only file
 with SQL in it. Moving off D1 means writing one more implementation of `Store`
 and changing the line in `index.ts` that constructs it — not auditing the
 codebase for queries.

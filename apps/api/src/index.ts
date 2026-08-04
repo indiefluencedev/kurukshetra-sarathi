@@ -1,6 +1,6 @@
 import { D1Store } from "./store.d1";
 import type { Store, EventRow } from "./store";
-import { validateEvent, validateEventSet } from "../../shared/event-rules.mjs";
+import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
 import { sendPush } from "./push";
 import { ADMIN_HTML } from "./admin";
 
