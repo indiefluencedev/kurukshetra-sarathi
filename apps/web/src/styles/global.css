@@ -739,7 +739,14 @@ details.more[open] summary svg{transform:rotate(90deg)}
 .dockbar-space{height:calc(86px + env(safe-area-inset-bottom))}
 
 /* ---------- map ---------- */
-.mapbox{margin:0 calc(-1*var(--pad));position:relative;height:calc(100dvh - 268px);min-height:380px;background:#DCE3E2}
+/* One height for every map in the app. The route screen hardcoded 300px while
+   the Map tab used a viewport calculation, so the same route was a different
+   size depending on which screen you opened it from. */
+:root{--map-h:clamp(320px, calc(100dvh - 268px), 560px)}
+.mapbox{margin:0 calc(-1*var(--pad));position:relative;height:var(--map-h);background:#DCE3E2}
+/* the route screen's map: same height token, but it sits inside a card so it
+   keeps its own margins */
+.routemap-host{margin:0;height:var(--map-h)}
 .mapbox svg{width:100%;height:100%;display:block}
 .mtools{position:absolute;top:12px;left:0;right:0;display:flex;gap:7px;overflow-x:auto;
   padding:0 12px 4px;scrollbar-width:none}

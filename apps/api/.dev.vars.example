@@ -1,0 +1,28 @@
+# Copy to `.dev.vars` (gitignored) for local `wrangler dev`.
+#
+#   cp .dev.vars.example .dev.vars
+#
+# These are LOCAL ONLY. Production values are set with `wrangler secret put`
+# and are never in any file. A secret that exists only in production is
+# `undefined` under `wrangler dev` — that is what this file is for.
+
+# Signs every session. Any random string works locally; production has its own.
+#   openssl rand -base64 32
+AUTH_SECRET=local-dev-only-replace-me
+
+# Who may reach /admin. Comma-separated, case-insensitive.
+# THE authority on admin access — the database is not consulted.
+# Empty means nobody is an admin.
+ADMIN_EMAILS=you@example.org
+
+# Web Push. Optional locally: without them /config reports no key and the app
+# simply never offers notifications.
+#   npx web-push generate-vapid-keys
+VAPID_PUBLIC=
+VAPID_PRIVATE=
+
+# Google sign-in. Optional. Until BOTH are set the button is not shown at all,
+# because an empty client id does not disable a provider — it produces a button
+# that fails at Google.
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

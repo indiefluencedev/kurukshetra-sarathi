@@ -16,6 +16,7 @@ import { Icon } from "@/shared/icons/Icon";
 import { askLoc } from "@/features/location/location";
 import { PlaceDeck } from "./PlaceDeck";
 import { roadGeometry } from "@/features/planner/routing/osrm";
+import { routePoints } from "@/features/route/route-line";
 import { startGo } from "@/features/route/route-actions";
 import type { Destination } from "@/shared/types";
 
@@ -156,10 +157,7 @@ export function MapView() {
         bounds.push([p.lat, p.lng]);
       });
       if (plan && plan.res && plan.res.stops.length) {
-        const straight = [
-          ...(plan.start?.label ? [[plan.start.lat, plan.start.lng] as [number, number]] : []),
-          ...(plan.res.stops as any[]).map((x) => [x.d.lat, x.d.lng] as [number, number]),
-        ];
+        const straight = routePoints(plan).map((p) => [p.lat, p.lng] as [number, number]);
         // solid where we know the road, dashes where we are still guessing —
         // the same two states the route screen's map uses, and the dashes are
         // the honest one
@@ -245,11 +243,9 @@ export function MapView() {
       setRoad([]);
       return;
     }
-    const pl = S.plan!;
-    const via = [
-      ...(pl.start?.label ? [{ lat: pl.start.lat, lng: pl.start.lng }] : []),
-      ...(pl.res!.stops as any[]).map((x) => ({ lat: x.d.lat, lng: x.d.lng })),
-    ];
+    // The SAME points the route screen asks for — see route-line.ts. When
+    // these two lists differed, the two maps drew two different journeys.
+    const via = routePoints(S.plan);
     let dead = false;
     const ac = new AbortController();
     roadGeometry(via, ac.signal).then((geo) => {

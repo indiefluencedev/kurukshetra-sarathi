@@ -14,6 +14,7 @@ copy of everything that keeps working when neither answers.
 | If you want to… | Read |
 |---|---|
 | know what is finished and what is not | **[TASKS.md](TASKS.md)** — the only file that claims completion |
+| find a config value, or grant admin access | **[15](15-environment.md)** |
 | understand the whole system | [01-architecture.md](01-architecture.md) |
 | change the backend, deploy, or look at the data | [12](12-deploying-to-the-client-account.md), [13](13-content-in-d1.md) |
 | work on the planner | [10](10-engine-events-and-data.md), then [02](02-planner-flow.md), [03](03-algorithms.md) |
@@ -41,6 +42,7 @@ Each assumes the one above it.
 | [12-deploying-to-the-client-account.md](12-deploying-to-the-client-account.md) | Ops | Access, secrets, deployment, rollback, and reading the live data. |
 | [13-content-in-d1.md](13-content-in-d1.md) | Backend | Content in D1, conditional GET, and the offline contract. |
 | [14-accounts-and-roles.md](14-accounts-and-roles.md) | Backend | Better Auth, bearer tokens, roles, and what is not built yet. |
+| [15-environment.md](15-environment.md) | Ops | **Every variable, where it lives, who sets it, and who is an admin.** |
 
 ---
 

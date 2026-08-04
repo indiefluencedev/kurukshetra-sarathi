@@ -17,6 +17,11 @@ export interface Env {
   API_URL: string;
   /** secret Better Auth signs sessions with. No default; see auth.ts */
   AUTH_SECRET: string;
+  /**
+   * Comma-separated emails allowed into /admin. THE authority on who is an
+   * administrator — see admin() below. Empty means nobody.
+   */
+  ADMIN_EMAILS: string;
   /** optional: absent until the client creates OAuth credentials */
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
@@ -49,11 +54,34 @@ const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =
  * be set at sign-up (see auth.ts), so becoming an admin is a deliberate act
  * against the database, not something a registration form can grant.
  */
+export const adminEmails = (env: Env): string[] =>
+  (env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+
 async function admin(req: Request, env: Env): Promise<string> {
   try {
     const session = await makeAuth(env).api.getSession({ headers: req.headers });
-    if (!session?.user) return "";
-    return (session.user as { role?: string }).role === "admin" ? session.user.email : "";
+    const email = session?.user?.email?.toLowerCase();
+    if (!email) return "";
+
+    // The allow-list is the authority, and the database is not consulted.
+    //
+    // A `role` column alone means anyone who can write one row can grant
+    // themselves the dashboard — a SQL injection, a leaked D1 token, a
+    // mis-scoped script, a restored backup. ADMIN_EMAILS is a Worker variable:
+    // changing it takes a deploy by someone with account access, which is a
+    // far higher bar than an UPDATE.
+    //
+    // It also removes the step that made this unusable: nobody has to run SQL
+    // to create an admin, and no password has to be handed to anyone. Put the
+    // address in the variable, sign up with it, done.
+    //
+    // Empty list = nobody is an admin. Deliberately NOT "fall back to the role
+    // column": a missing variable is a misconfiguration, and the safe reading
+    // of a misconfiguration is to refuse rather than to open up.
+    return adminEmails(env).includes(email) ? session.user.email : "";
   } catch {
     // A failure to read a session is not permission to proceed.
     return "";
@@ -115,6 +143,9 @@ export default {
       return json(
         {
           google: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+          // So the app can show "Manage content" to the right people without
+          // depending on a role column that is no longer the authority.
+          admins: adminEmails(env),
           // The public half is public by definition — the browser needs it to
           // build a subscription at all.
           vapidPublic: env.VAPID_PUBLIC || "",

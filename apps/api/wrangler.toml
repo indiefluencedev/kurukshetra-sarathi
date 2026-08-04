@@ -29,6 +29,10 @@ APP_URL = "https://kuk-saarthi.pages.dev/"
 API_URL = "https://kuk-saarthi-api.indiefluence-in-media.workers.dev"
 # mailto: address Web Push requires as the JWT subject.
 VAPID_SUBJECT = "mailto:REPLACE@example.org"
+# Who may reach /admin. Comma-separated, case-insensitive. THE authority on
+# admin access — the database is not consulted, so there is no role to set and
+# no password for anyone to hand over. Empty means nobody. See docs/15.
+ADMIN_EMAILS = "anuragmishra262000@gmail.com"
 
 # Every quarter hour. The notify() window is 45 minutes and `sent` makes a
 # repeat a no-op, so a missed run is survivable and a double run is harmless —

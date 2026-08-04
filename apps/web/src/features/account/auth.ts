@@ -35,7 +35,13 @@ export interface User {
 let user: User | null | undefined = undefined;
 
 export const currentUser = () => user;
-export const isAdmin = () => user?.role === "admin";
+/**
+ * Admin, according to the server's allow-list — not the `role` column, which
+ * is no longer the authority (docs/15). This only decides whether to SHOW the
+ * "Manage content" link; the Worker checks the same list on every request, so
+ * faking it here buys nothing but a link that 403s.
+ */
+export const isAdmin = () => !!user && admins.includes(user.email.toLowerCase());
 /** True once we know one way or the other — before that, render nothing. */
 export const sessionKnown = () => user !== undefined;
 
@@ -171,6 +177,7 @@ export async function signOut(): Promise<void> {
  * undefined = not asked yet, and the button stays hidden until we know.
  */
 let googleReady: boolean | undefined = undefined;
+let admins: string[] = [];
 export const canUseGoogle = () => googleReady === true;
 
 export async function loadConfig(): Promise<void> {
@@ -180,8 +187,9 @@ export async function loadConfig(): Promise<void> {
   }
   try {
     const r = await fetch(`${BASE}/config`);
-    const c = r.ok ? ((await r.json()) as { google?: boolean }) : null;
+    const c = r.ok ? ((await r.json()) as { google?: boolean; admins?: string[] }) : null;
     googleReady = !!c?.google;
+    admins = (c?.admins || []).map((e) => e.toLowerCase());
   } catch {
     googleReady = false; // offline: hide it rather than offer a dead button
   }

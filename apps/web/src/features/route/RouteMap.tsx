@@ -6,6 +6,7 @@ import { nm } from "@/shared/i18n/i18n";
 import { Icon } from "@/shared/icons/Icon";
 import { roadGeometry } from "@/features/planner/routing/osrm";
 import { PlaceDeck } from "@/features/map/PlaceDeck";
+import { routeKey } from "./route-line";
 import type { Itinerary, GeoPoint, Destination } from "@/shared/types";
 
 /**
@@ -29,12 +30,15 @@ export function RouteMap({ it, start, end }: { it: Itinerary; start: GeoPoint; e
   const [sel, setSel] = useState<{ d: Destination; n: number } | null>(null);
 
   const stops = it.stops as any[];
+  // Kept in this shape (start + stops + end) because it IS the canonical shape
+  // — route-line.ts builds the same list from a Plan for the Map tab, which
+  // used to build a shorter one and draw a different journey.
   const via = [
     { lat: start.lat, lng: start.lng },
     ...stops.map((s) => ({ lat: s.d.lat, lng: s.d.lng })),
     { lat: end.lat, lng: end.lng },
   ];
-  const key = via.map((p) => p.lat.toFixed(4) + "," + p.lng.toFixed(4)).join("|");
+  const key = routeKey(via as GeoPoint[]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -115,7 +119,10 @@ export function RouteMap({ it, start, end }: { it: Itinerary; start: GeoPoint; e
 
   return (
     <div className="routemap">
-      <div className="mapwrap mapdeck-host" style={{ margin: 0, height: 300 }}>
+      {/* height comes from --map-h, the same token the Map tab uses — the two
+          were 300px and calc(100dvh - 268px), so the same route changed size
+          depending on which screen you reached it from */}
+      <div className="mapwrap mapdeck-host routemap-host">
         <div ref={hostRef} style={{ width: "100%", height: "100%" }} />
         {sel && <PlaceDeck d={sel.d} n={sel.n} onClose={() => setSel(null)} />}
       </div>

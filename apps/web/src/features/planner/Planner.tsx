@@ -659,11 +659,19 @@ function ExistingPlan({ onNew }: { onNew: () => void }) {
         <Icon name="route" />
         {nm({ en: "Plan a different visit", hi: "कोई और यात्रा बनाएँ" })}
       </button>
+      {/* Only claim it is in Saved when it actually is. Deleting it from
+          Saved clears savedId (see persist.deletePlan), and this line used to
+          go on promising a copy that no longer existed. */}
       <p className="ph-note" lang={S.lang}>
-        {nm({
-          en: "Starting a new plan keeps this one — it is in Saved.",
-          hi: "नई योजना बनाने पर यह सुरक्षित रहेगी — सहेजे में मिलेगी।",
-        })}
+        {S.plan?.savedId
+          ? nm({
+              en: "Starting a new plan keeps this one — it is in Saved.",
+              hi: "नई योजना बनाने पर यह सुरक्षित रहेगी — सहेजे में मिलेगी।",
+            })
+          : nm({
+              en: "This plan is not in Saved. Starting a new one will replace it.",
+              hi: "यह योजना सहेजी नहीं गई है। नई बनाने पर यह हट जाएगी।",
+            })}
       </p>
     </>
   );

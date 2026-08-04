@@ -74,6 +74,11 @@ would hit.
 - [x] Five-tab bar with Explore restored; pill width driven by `--tabs`
 - [x] Show/hide password on every password field
 - [x] Drizzle Studio as a database browser (`npm run db`)
+- [x] `ADMIN_EMAILS` — admin access from env, not a database column
+- [x] `docs/15-environment.md` + `.dev.vars.example` — every variable, one page
+- [x] One route definition shared by both maps (`route-line.ts`)
+- [x] One map height token (`--map-h`)
+- [x] Deleting a saved plan no longer leaves the Plan screen claiming it is saved
 
 ---
 
@@ -81,10 +86,10 @@ would hit.
 
 Ordered by what hurts a real visitor first.
 
-- [ ] **Change the admin password.** `anuragmishra262000@gmail.com` was created
-      with the placeholder `change-this-password-now`. A known password on an
-      admin account of a live system. Do this first — the app can now do it:
-      hamburger → Account → Change password.
+- [x] ~~Change the admin password.~~ Removed the problem instead of the
+      password: admin access is now `ADMIN_EMAILS` in `wrangler.toml`
+      (docs/15). Nobody hands anyone a password, and the account can be
+      deleted and recreated at will without losing admin.
 - [ ] **`VAPID_SUBJECT` is still `mailto:REPLACE@example.org`.** Push services
       may reject a token whose subject is not a real address, so the first
       notification can fail. One line in `wrangler.toml` + redeploy.
