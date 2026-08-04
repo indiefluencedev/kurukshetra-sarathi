@@ -102,6 +102,28 @@ export default {
       return new Response(res.body, { status: res.status, headers: h });
     }
 
+    /**
+     * What this deployment can actually do.
+     *
+     * The app cannot know from its own bundle whether Google credentials or
+     * push keys were ever set — those are Worker secrets. Without this it has
+     * to guess, and guessing wrong means offering a sign-in button that dies
+     * at Google, or asking for notification permission the server cannot honour.
+     * Permission refused once is refused for good, so guessing is expensive.
+     */
+    if (url.pathname === "/config" && req.method === "GET") {
+      return json(
+        {
+          google: !!(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+          // The public half is public by definition — the browser needs it to
+          // build a subscription at all.
+          vapidPublic: env.VAPID_PUBLIC || "",
+        },
+        200,
+        { "cache-control": "public, max-age=300" },
+      );
+    }
+
     /* ---- what the app reads ---- */
     const feed = url.pathname.match(/^\/content\/([a-z]+)\.json$/);
     if (feed && req.method === "GET") {

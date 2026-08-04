@@ -13,6 +13,10 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico"],
+      // Push lives in public/push-sw.js and is imported into the generated
+      // worker. Two event handlers do not justify moving the whole build to
+      // injectManifest and owning the precache logic by hand.
+      workbox: { importScripts: ["push-sw.js"] },
       manifest: {
         name: "Kurukshetra · कुरुक्षेत्र",
         short_name: "Kurukshetra",

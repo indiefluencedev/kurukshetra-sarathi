@@ -2172,3 +2172,25 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
 .linkish{background:none;border:0;cursor:pointer;font:inherit;color:var(--nav);
   font-weight:650;font-size:calc(13.5px*var(--ts));text-decoration:underline;
   text-underline-offset:3px;min-height:var(--tap);padding:0}
+
+/* ---- notification ask + social sign-in ---------------------------------- */
+.notifycard{padding:15px;margin-top:11px}
+.nc-head{display:flex;align-items:center;gap:10px}
+.nc-head b{font-size:calc(15px*var(--ts));line-height:1.3}
+.nc-ic{width:34px;height:34px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;
+  background:var(--sand);color:var(--clay)}
+.nc-ic svg{width:18px;height:18px}
+.nc-body{margin:9px 0 0;font-size:calc(13.5px*var(--ts));line-height:1.5;color:var(--ink-2)}
+.nc-acts{display:flex;gap:9px;margin-top:13px}
+.nc-acts .btn{flex:1}
+
+/* An <a> styled as a button. Without the reset it inherits the global link
+   underline, which is what made "Continue with Google" read as a link sitting
+   inside a box rather than as a button. */
+a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center;
+  width:100%;box-sizing:border-box}
+a.btn:hover{text-decoration:none}
+/* The Google mark keeps its own brand colours, so it must not inherit the
+   button's text colour the way every other icon here does. */
+.gbtn{gap:10px}
+.gbtn svg{width:19px;height:19px;color:initial;flex:0 0 auto}

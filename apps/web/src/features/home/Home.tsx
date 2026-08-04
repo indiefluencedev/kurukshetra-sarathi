@@ -15,6 +15,7 @@ import { EventRail } from "./EventRail";
 import { EventAlert } from "./EventAlert";
 import { HowToCard } from "./HowToCard";
 import { InstallBar } from "./install";
+import { NotifyCard } from "@/features/notify/NotifyCard";
 
 /**
  * Home, in the order a visit actually happens.
@@ -54,6 +55,12 @@ export function Home() {
           days, not three weeks: a resident plans around a mela weeks out, and
           the rail sorts ongoing first so today always leads. */}
       <EventAlert />
+
+      {/* Under the event surfaces on purpose: by this point the visitor has
+          seen what "an event" means here, so the offer to be told about them
+          is a follow-on rather than a cold interruption. Renders nothing after
+          it has been answered once. */}
+      <NotifyCard />
 
       <EventRail withinDays={90} />
 

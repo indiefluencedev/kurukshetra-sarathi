@@ -3,6 +3,7 @@ import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { Icon } from "@/shared/icons/Icon";
 import { isStandalone, installApp } from "@/features/home/install";
+import { NotifyRow } from "@/features/notify/NotifyRow";
 import type { Loc } from "@/shared/types";
 
 const SIZES: [number, string, Loc][] = [
@@ -64,6 +65,8 @@ export function Settings() {
           </div>
         </div>
       </div>
+
+      <NotifyRow />
 
       {!isStandalone() && (
         <button className="card rcard" style={{ marginTop: 11 }} onClick={installApp}>

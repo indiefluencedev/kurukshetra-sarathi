@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { bearer } from "better-auth/plugins";
-import { Kysely } from "kysely";
 import { D1Dialect } from "kysely-d1";
 import type { Env } from "./index";
 
@@ -85,6 +84,49 @@ export function makeAuth(env: Env) {
          * friction for a handful of Board members.
          */
         role: { type: "string", required: false, defaultValue: "visitor", input: false },
+      },
+    },
+
+    /**
+     * Throttling, stored in D1 rather than memory.
+     *
+     * Better Auth's default rate limiter keeps counters in the instance's
+     * memory. On Workers that is worthless: every request may land on a fresh
+     * isolate in a different city, so an attacker gets a clean allowance each
+     * time and the limit never bites. Putting the counters in the database is
+     * what makes the number mean something.
+     *
+     * The custom rules matter more than the global one. Ten requests a minute
+     * is generous for reading a session and far too generous for guessing a
+     * password.
+     */
+    /**
+     * Where the client's IP comes from.
+     *
+     * Without this Better Auth finds no trusted IP header and files every
+     * request under one key — `no-trusted-ip|/sign-in/email`. The rate limit
+     * then applies to *everyone at once*, so one person guessing passwords
+     * locks the whole district out of signing in. Caught exactly that way in
+     * testing.
+     *
+     * `cf-connecting-ip` is set by Cloudflare itself on every request and
+     * cannot be spoofed by the client — an inbound copy is overwritten at the
+     * edge. Trusting `x-forwarded-for` here instead would let an attacker
+     * change one header per request and never be limited at all.
+     */
+    advanced: {
+      ipAddress: { ipAddressHeaders: ["cf-connecting-ip"] },
+    },
+
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      window: 60,
+      max: 30,
+      customRules: {
+        "/sign-in/email": { window: 300, max: 8 },
+        "/sign-up/email": { window: 3600, max: 5 },
+        "/change-password": { window: 300, max: 5 },
       },
     },
 

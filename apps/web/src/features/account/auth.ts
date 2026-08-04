@@ -110,6 +110,9 @@ async function submit(path: string, body: unknown): Promise<string | null> {
   if (!BASE) return "This build has no server configured.";
   try {
     const res = await call(path, body);
+    // Throttled. Distinguished from a wrong password because the reader needs
+    // to know that waiting helps and trying harder does not.
+    if (res.status === 429) return "rate";
     if (!res.ok) {
       const e = (await res.json().catch(() => null)) as { message?: string } | null;
       return e?.message || "That did not work. Please check and try again.";
@@ -155,6 +158,73 @@ export async function signOut(): Promise<void> {
   }
 }
 
-/** Where Google sign-in sends the browser. Empty when it is not configured. */
+/* ---- what this deployment can do ---------------------------------------- */
+
+/**
+ * Whether Google sign-in is actually usable.
+ *
+ * This has to come from the server. The credentials are Worker secrets, so the
+ * bundle cannot know, and the first version of this file guessed "yes,
+ * whenever a server exists" — which rendered a Google button on a deployment
+ * with no Google credentials. It looked correct and failed at Google.
+ *
+ * undefined = not asked yet, and the button stays hidden until we know.
+ */
+let googleReady: boolean | undefined = undefined;
+export const canUseGoogle = () => googleReady === true;
+
+export async function loadConfig(): Promise<void> {
+  if (!BASE) {
+    googleReady = false;
+    return;
+  }
+  try {
+    const r = await fetch(`${BASE}/config`);
+    const c = r.ok ? ((await r.json()) as { google?: boolean }) : null;
+    googleReady = !!c?.google;
+  } catch {
+    googleReady = false; // offline: hide it rather than offer a dead button
+  }
+  bump();
+}
+
+/**
+ * Where Google sign-in sends the browser.
+ *
+ * `callbackURL` is where Better Auth returns to after Google. It must be an
+ * origin the Worker trusts (APP_URL), which is why it is not `location.href` —
+ * on a preview deployment that would be an untrusted origin and the callback
+ * would be rejected after the user had already signed in at Google.
+ */
 export const googleUrl = (): string =>
-  BASE ? `${BASE}/api/auth/sign-in/social?provider=google&callbackURL=${encodeURIComponent(location.href)}` : "";
+  BASE ? `${BASE}/api/auth/sign-in/social?provider=google&callbackURL=${encodeURIComponent(location.origin + location.pathname + "#/account")}` : "";
+
+/* ---- changing a password ------------------------------------------------ */
+
+/**
+ * Requires the current password, deliberately.
+ *
+ * A signed-in session on an unattended phone should not be enough to lock the
+ * real owner out of their own account.
+ */
+export async function changePassword(currentPassword: string, newPassword: string): Promise<string | null> {
+  if (!BASE) return "This build has no server configured.";
+  try {
+    const res = await fetch(`${BASE}/api/auth/change-password`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ currentPassword, newPassword, revokeOtherSessions: true }),
+    });
+    if (res.status === 429) return "rate";
+    if (!res.ok) {
+      const e = (await res.json().catch(() => null)) as { message?: string } | null;
+      return e?.message || "That did not work. Please check and try again.";
+    }
+    // revokeOtherSessions invalidates every other device, which is the point of
+    // changing a password. This device gets a fresh token to stay signed in.
+    keepToken(res);
+    return null;
+  } catch {
+    return "No connection. Try again when you are back online.";
+  }
+}

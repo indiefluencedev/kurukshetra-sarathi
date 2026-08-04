@@ -234,5 +234,20 @@
  "accountMade": "Account created",
  "passwordShort": "Use at least 8 characters.",
  "fillAll": "Please fill in every field.",
- "adminArea": "Manage content"
+ "adminArea": "Manage content",
+ "notifyTitle": "Be told when something is on",
+ "notifyBody": "A procession starting, a temple closed for the day, an aarti time changed. Only things happening in Kurukshetra — a few times a month.",
+ "notifyYes": "Yes, tell me",
+ "notifyNo": "Not now",
+ "notifyOn": "Notifications are on",
+ "notifyOff": "Notifications are off",
+ "notifyBlocked": "Notifications are blocked in your browser settings.",
+ "notifications": "Notifications",
+ "turnOn": "Turn on",
+ "turnOff": "Turn off",
+ "changePassword": "Change password",
+ "currentPassword": "Current password",
+ "newPassword": "New password",
+ "passwordChanged": "Password changed",
+ "tooManyTries": "Too many attempts. Please wait a few minutes and try again."
 }

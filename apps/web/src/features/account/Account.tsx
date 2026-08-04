@@ -4,7 +4,7 @@ import { go } from "@/app/nav";
 import { t } from "@/shared/i18n/i18n";
 import { Icon } from "@/shared/icons/Icon";
 import { toast } from "@/shared/ui/overlays";
-import { currentUser, isAdmin, signIn, signUp, signOut, googleUrl } from "./auth";
+import { currentUser, isAdmin, signIn, signUp, signOut, googleUrl, canUseGoogle, changePassword } from "./auth";
 
 /**
  * Sign in, create an account, or see the one you have — all on one screen.
@@ -26,7 +26,8 @@ export function Account() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
 
-  const google = googleUrl();
+  // Gated on what the SERVER reports, not on "a server exists". See auth.ts.
+  const google = canUseGoogle() ? googleUrl() : "";
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -43,7 +44,7 @@ export function Account() {
       mode === "up" ? await signUp(email.trim(), password, name.trim()) : await signIn(email.trim(), password);
     setBusy(false);
 
-    if (problem) return setErr(problem);
+    if (problem) return setErr(problem === "rate" ? t("tooManyTries") : problem);
     toast(mode === "up" ? t("accountMade") : t("welcomeBack"));
     go("/home");
   }
@@ -69,7 +70,7 @@ export function Account() {
           {isAdmin() && (
             <a
               className="btn ghost"
-              style={{ display: "block", textAlign: "center", marginTop: 14 }}
+              style={{ marginTop: 14 }}
               href={(import.meta.env?.VITE_CONTENT_URL || "") + "/admin"}
               target="_blank"
               rel="noreferrer"
@@ -77,6 +78,8 @@ export function Account() {
               {t("adminArea")}
             </a>
           )}
+
+          <ChangePassword />
 
           <button
             className="btn ghost"
@@ -146,8 +149,9 @@ export function Account() {
               <div className="muted" style={{ textAlign: "center", margin: "12px 0", fontSize: "calc(12.5px*var(--ts))" }}>
                 {t("or")}
               </div>
-              <a className="btn ghost" style={{ display: "block", textAlign: "center" }} href={google}>
-                {t("withGoogle")}
+              <a className="btn ghost gbtn" href={google}>
+                <Icon name="google" />
+                <span>{t("withGoogle")}</span>
               </a>
             </>
           )}
@@ -166,5 +170,64 @@ export function Account() {
         </form>
       )}
     </>
+  );
+}
+
+/**
+ * Change password, collapsed until asked for.
+ *
+ * Requires the current one — a signed-in session on a phone left on a table
+ * must not be enough to lock the owner out of their own account. Every other
+ * device is signed out on success, which is the point of changing it.
+ */
+function ChangePassword() {
+  const [open, setOpen] = useState(false);
+  const [cur, setCur] = useState("");
+  const [next, setNext] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  if (!open)
+    return (
+      <button type="button" className="linkish" style={{ width: "100%", marginTop: 14 }} onClick={() => setOpen(true)}>
+        {t("changePassword")}
+      </button>
+    );
+
+  return (
+    <form
+      style={{ marginTop: 14, borderTop: "1px solid var(--stone)", paddingTop: 4 }}
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setErr("");
+        if (!cur || !next) return setErr(t("fillAll"));
+        if (next.length < 8) return setErr(t("passwordShort"));
+        setBusy(true);
+        const problem = await changePassword(cur, next);
+        setBusy(false);
+        if (problem) return setErr(problem === "rate" ? t("tooManyTries") : problem);
+        setCur("");
+        setNext("");
+        setOpen(false);
+        toast(t("passwordChanged"));
+      }}
+    >
+      <div className="field">
+        <label htmlFor="cp-cur">{t("currentPassword")}</label>
+        <input id="cp-cur" type="password" value={cur} onChange={(e) => setCur(e.target.value)} autoComplete="current-password" />
+      </div>
+      <div className="field">
+        <label htmlFor="cp-new">{t("newPassword")}</label>
+        <input id="cp-new" type="password" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" />
+      </div>
+      {err && (
+        <div className="msg bad" role="alert" style={{ marginBottom: 12 }}>
+          {err}
+        </div>
+      )}
+      <button className="btn primary" style={{ width: "100%" }} disabled={busy}>
+        {busy ? t("working") : t("changePassword")}
+      </button>
+    </form>
   );
 }

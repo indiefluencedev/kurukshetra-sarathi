@@ -5,7 +5,7 @@ import { App } from "./App";
 import { onBump } from "./app/state";
 import { bootPersistence, saveDraft } from "./features/planner/persist";
 import { refreshContent } from "./content/live";
-import { loadSession } from "./features/account/auth";
+import { loadSession, loadConfig } from "./features/account/auth";
 import "./styles/global.css";
 
 // Dev-only: warn if any content is half-translated or UI keys drift (see docs/04).
@@ -29,6 +29,7 @@ bootPersistence().finally(() => {
   // an auth round trip would be the one network dependency this app refuses
   // to have.
   loadSession();
+  loadConfig();
   ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
       <HashRouter>
