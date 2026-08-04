@@ -28,6 +28,17 @@ const NEEDED = {
   subs: ["endpoint", "p256dh", "auth", "lang", "created_at"],
   sent: ["event_id", "day", "at"],
   audit: ["id", "at", "who", "action", "entity", "entity_id", "after"],
+  content: ["kind", "id", "doc", "updated_at"],
+
+  // Better Auth's tables. Listed here for the collision check, not because we
+  // own the shape — it is generated (see migrations/0003_auth.sql). `user` in
+  // particular is the single most likely table name to already exist in
+  // somebody else's database, and finding that out during a migration against
+  // a live client account is exactly what this file exists to prevent.
+  user: ["id", "name", "email", "emailVerified", "createdAt", "updatedAt", "role"],
+  session: ["id", "userId", "token", "expiresAt", "createdAt", "updatedAt"],
+  account: ["id", "userId", "accountId", "providerId", "password", "createdAt", "updatedAt"],
+  verification: ["id", "identifier", "value", "expiresAt"],
 };
 
 function d1(sql) {

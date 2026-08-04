@@ -16,7 +16,10 @@
     "test": "node --experimental-strip-types test-encrypt.mjs"
   },
   "dependencies": {
-    "@kuk/shared": "*"
+    "@kuk/shared": "*",
+    "better-auth": "^1.6.25",
+    "kysely": "^0.29.4",
+    "kysely-d1": "^0.4.0"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240909.0",

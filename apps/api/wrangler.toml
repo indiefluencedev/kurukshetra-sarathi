@@ -2,6 +2,10 @@ name = "kuk-saarthi-api"
 main = "src/index.ts"
 compatibility_date = "2026-01-01"
 
+# Better Auth reaches for node:crypto and node:async_hooks. Without this the
+# Worker does not fail at deploy — it fails to start, with "No such module".
+compatibility_flags = ["nodejs_compat"]
+
 # The client's account. See docs/12 for how access is granted — never a shared
 # login; this is a member invite, so wrangler runs as your own identity.
 #
@@ -16,8 +20,13 @@ database_name = "discover_kurukshetra"
 database_id = "43389d66-b722-40bc-ae9f-ea5c194a6edf"
 
 [vars]
-# The app's origin, for the notification's click-through.
+# The app's origin, for the notification's click-through. Also the one origin
+# Better Auth will accept requests from — a typo here is a login that fails
+# with a CORS error rather than a wrong answer.
 APP_URL = "https://kuk-saarthi.pages.dev/"
+# This Worker's own public URL. Better Auth builds OAuth callback URLs from it,
+# so it must match what is registered with Google exactly.
+API_URL = "https://kuk-saarthi-api.indiefluence-in-media.workers.dev"
 # mailto: address Web Push requires as the JWT subject.
 VAPID_SUBJECT = "mailto:REPLACE@example.org"
 
@@ -30,3 +39,6 @@ crons = ["*/15 * * * *"]
 # Secrets — set with `wrangler secret put`, never in this file:
 #   VAPID_PUBLIC
 #   VAPID_PRIVATE
+#   AUTH_SECRET           openssl rand -base64 32. Rotating it logs everyone out.
+#   GOOGLE_CLIENT_ID      optional — until both are set the Google button is
+#   GOOGLE_CLIENT_SECRET  not offered at all, rather than offered and broken.

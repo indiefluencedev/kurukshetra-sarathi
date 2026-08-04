@@ -1,5 +1,6 @@
 import { D1Store } from "./store.d1";
 import { isContentKind, type Store, type EventRow } from "./store";
+import { makeAuth } from "./auth";
 import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
 import { sendPush } from "./push";
 import { ADMIN_HTML } from "./admin";
@@ -12,6 +13,13 @@ export interface Env {
   VAPID_SUBJECT: string;
   /** where the app is served from, for the notification's click-through */
   APP_URL: string;
+  /** this Worker's own public URL — Better Auth builds callback URLs from it */
+  API_URL: string;
+  /** secret Better Auth signs sessions with. No default; see auth.ts */
+  AUTH_SECRET: string;
+  /** optional: absent until the client creates OAuth credentials */
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
 }
 
 const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
@@ -29,20 +37,28 @@ const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =
   });
 
 /**
- * Who is making this request.
+ * Who is making this request, and may they edit?
  *
- * Cloudflare Access sits in front of /admin and will not pass a request
- * through without a verified identity, so by the time we see it the header is
- * trustworthy. Deliberately no auth code of our own: hand-rolled admin auth is
- * the single most likely thing here to be got wrong, and Access is free at
- * this size.
+ * Was a Cloudflare Access header; is now a Better Auth session, so the Board
+ * signs in through the same system as visitors and the admin area is a
+ * restricted path rather than a separate product. See docs/14.
  *
- * The route MUST be protected in the Access dashboard. Unprotected, this
- * returns "unknown" and the guard below refuses the write rather than
- * accepting an anonymous edit.
+ * Returns the email only for a user whose role is "admin". Every caller treats
+ * an empty string as "refuse", so a signed-in visitor poking at /admin is
+ * indistinguishable from an anonymous one — which is the point. `role` cannot
+ * be set at sign-up (see auth.ts), so becoming an admin is a deliberate act
+ * against the database, not something a registration form can grant.
  */
-const who = (req: Request): string =>
-  req.headers.get("cf-access-authenticated-user-email") || "";
+async function admin(req: Request, env: Env): Promise<string> {
+  try {
+    const session = await makeAuth(env).api.getSession({ headers: req.headers });
+    if (!session?.user) return "";
+    return (session.user as { role?: string }).role === "admin" ? session.user.email : "";
+  } catch {
+    // A failure to read a session is not permission to proceed.
+    return "";
+  }
+}
 
 const IST = 5.5 * 60; // the district is in one timezone; the Worker is in none
 
@@ -65,9 +81,26 @@ export default {
         headers: {
           "access-control-allow-origin": "*",
           "access-control-allow-methods": "GET,POST,PUT,DELETE,OPTIONS",
-          "access-control-allow-headers": "content-type",
+          // `authorization` because the session travels as a bearer token, and
+          // `set-auth-token` must be *exposed* or the app cannot read the
+          // token it was just issued — a cross-origin response hides every
+          // header not on this list, and sign-in appears to succeed while
+          // leaving the app logged out.
+          "access-control-allow-headers": "content-type, authorization",
+          "access-control-expose-headers": "set-auth-token",
         },
       });
+
+    /* ---- accounts ---- */
+    if (url.pathname.startsWith("/api/auth/")) {
+      const res = await makeAuth(env).handler(req);
+      // Better Auth builds its own responses, so the CORS headers the `json`
+      // helper adds never touch them.
+      const h = new Headers(res.headers);
+      h.set("access-control-allow-origin", "*");
+      h.set("access-control-expose-headers", "set-auth-token");
+      return new Response(res.body, { status: res.status, headers: h });
+    }
 
     /* ---- what the app reads ---- */
     const feed = url.pathname.match(/^\/content\/([a-z]+)\.json$/);
@@ -118,15 +151,17 @@ export default {
 
     /* ---- the dashboard, behind Cloudflare Access ---- */
     if (url.pathname.startsWith("/admin")) {
-      const email = who(req);
-      if (!email)
-        return json(
-          { error: "This route must be protected by Cloudflare Access. Refusing to accept an anonymous edit." },
-          403,
-        );
+      const email = await admin(req, env);
 
+      // The dashboard page itself is served unauthenticated on purpose: it is
+      // a sign-in form plus an empty shell, and every route it then calls is
+      // guarded. Serving a 403 here instead would leave the Board with a login
+      // screen they cannot reach without already being logged in.
       if (url.pathname === "/admin" || url.pathname === "/admin/")
         return new Response(ADMIN_HTML, { headers: { "content-type": "text/html; charset=utf-8" } });
+
+      if (!email)
+        return json({ error: "Sign in as an administrator to edit." }, 403);
 
       if (url.pathname === "/admin/events" && req.method === "GET")
         return json({ items: await store.listEvents(), you: email });
