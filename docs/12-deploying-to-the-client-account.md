@@ -339,3 +339,54 @@ keeps running. Nothing in this repo holds a credential — verified.
 with SQL in it. Moving off D1 means writing one more implementation of `Store`
 and changing the line in `index.ts` that constructs it — not auditing the
 codebase for queries.
+
+---
+
+## Browsing the database
+
+Three ways, cheapest first.
+
+**1. Cloudflare dashboard.** Storage & Databases → D1 → `discover_kurukshetra`
+→ Console. Fine for a query; poor for reading rows.
+
+**2. wrangler, for a precise question.**
+
+```bash
+npx wrangler d1 execute discover_kurukshetra --remote --json \
+  --command "select id, name_en from events" | jq -r '.[0].results[]|@tsv'
+```
+
+**3. Drizzle Studio, for actually looking at the data.**
+
+```bash
+cd apps/api
+npm run db          # local D1 — no credentials at all
+npm run db:remote   # production — needs a token, below
+```
+
+Opens a real table browser at `local.drizzle.studio`.
+
+For `db:remote`, create a Cloudflare API token (My Profile → API Tokens) with
+**Account → D1 → Edit**, restricted to this account, then:
+
+```bash
+export CLOUDFLARE_ACCOUNT_ID=4768790aa47814f60dd70c187c7a7bd9
+export CLOUDFLARE_D1_TOKEN=…
+```
+
+That token is a password for the client's database — keep it in a password
+manager and prefer the local view for anything that does not need live rows.
+
+### What Drizzle is and is not here
+
+It is a **viewer**. It is not the app's data layer and must not become one.
+
+- `apps/api/src/store.d1.ts` still holds every query the Worker runs.
+- `apps/api/migrations/` is still the only thing that changes the schema.
+- `apps/api/drizzle/schema.ts` is **generated** by `npm run db:pull`,
+  introspected *from* the database. It follows the schema rather than defining
+  it, so it cannot drift into being a second source of truth. Do not edit it,
+  and never migrate from it.
+
+Nothing under `drizzle/` is imported by the Worker — it is a dev dependency
+that never ships.

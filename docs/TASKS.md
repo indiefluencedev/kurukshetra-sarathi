@@ -69,6 +69,11 @@ would hit.
 - [x] `GET /config` — the app learns what the deployment can actually do
 - [x] Change password, requiring the current one, revoking other sessions
 - [x] Rate limiting in D1, keyed per client IP
+- [x] Admin dashboard sign-in (it was unreachable after the move to bearer tokens)
+- [x] Saved plans list — was crashing on the content cache sharing its store
+- [x] Five-tab bar with Explore restored; pill width driven by `--tabs`
+- [x] Show/hide password on every password field
+- [x] Drizzle Studio as a database browser (`npm run db`)
 
 ---
 
@@ -84,8 +89,10 @@ Ordered by what hurts a real visitor first.
       may reject a token whose subject is not a real address, so the first
       notification can fail. One line in `wrangler.toml` + redeploy.
 - [ ] **No password reset.** Someone who forgets their password today has no
-      way back in and no way to tell us. Needs an email sender — Cloudflare
-      Email Sending is free and in the same account.
+      way back in. The app now says so plainly instead of pretending
+      ("Forgotten your password?" explains it is unavailable), but that is a
+      message, not a fix. Needs an email sender — Cloudflare Email Sending is
+      free and in the same account.
 - [ ] **No email verification.** Anyone can sign up as anyone's address.
       Tolerable while an account holds only itineraries; not once it holds
       anything else. Turn on *with* the sender, not before.
