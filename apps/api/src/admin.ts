@@ -59,9 +59,15 @@ export const ADMIN_HTML = `<!doctype html>
  header .ghost{margin-left:8px}
 </style></head><body>
 <div id="gate" class="gate">
-  <form class="gbox" onsubmit="signIn(event)">
+  <form class="gbox" id="gform">
     <h1>Kurukshetra Saarthi</h1>
     <p>Sign in to manage the calendar and places.</p>
+    <!-- Removed by the script the moment it runs. If it is still on screen,
+         the page's JavaScript did not execute at all — which otherwise looks
+         identical to "the button does nothing", because a form whose submit
+         handler never attached just submits natively, reloads the page,
+         clears the password and wipes the console on the way. -->
+    <div class="msg bad" id="nojs">This page&rsquo;s JavaScript did not run, so signing in cannot work. Try a hard reload (Cmd-Shift-R).</div>
     <label>Email<input id="gu" type="email" autocomplete="username" required></label>
     <label>Password<input id="gp" type="password" autocomplete="current-password" required></label>
     <div class="msg bad" id="gm" hidden></div>
@@ -70,7 +76,7 @@ export const ADMIN_HTML = `<!doctype html>
 </div>
 <div id="app" hidden>
 <header><h1>Events</h1><span class="you" id="you"></span>
-  <button class="ghost" onclick="signOut()">Sign out</button>
+  <button class="ghost" id="signout">Sign out</button>
   <button class="ghost" onclick="testPush()">Send a test notification</button></header>
 <main>
  <section>
@@ -136,6 +142,11 @@ export const ADMIN_HTML = `<!doctype html>
 <script>
 const $ = (s) => document.querySelector(s);
 
+/* Proof of life, first statement in the file. Everything below is useless if
+   this line never runs, and until now there was no way to tell that apart
+   from a login that silently failed. */
+(function () { const n = document.getElementById("nojs"); if (n) n.remove(); })();
+
 /* ---- session -------------------------------------------------------------
    The dashboard is served by the same Worker it talks to, so these fetches are
    same-origin — but the session is a bearer token, not a cookie (see docs/14),
@@ -165,7 +176,7 @@ async function api(path, opts) {
 function showGate(m) {
   $("#gate").hidden = false;
   $("#app").hidden = true;
-  if (m) { $("#gm").hidden = false; $("#gm").textContent = m; }
+  if (m) { $("#gm").hidden = false; $("#gm").className = "msg bad"; $("#gm").textContent = m; }
 }
 
 /**
@@ -184,6 +195,12 @@ async function signIn(ev) {
   const email = $("#gu").value.trim();
   const password = $("#gp").value;
   if (!email || !password) return showGate("Enter both your email and your password.");
+
+  // Visible before the first await, so a click that is received always changes
+  // something on screen even if the network takes a while.
+  $("#gm").hidden = false;
+  $("#gm").className = "msg";
+  $("#gm").textContent = "Signing in\u2026";
 
   let r;
   try {
@@ -298,6 +315,16 @@ async function testPush() {
   const r = await api("/admin/test-push", { method: "POST" }).then(r => r.json());
   alert("Sent to " + r.sent + " device(s).");
 }
+/* Handlers attached in code rather than as onsubmit="" / onclick="" attributes.
+   An inline handler that fails to run — a Content-Security-Policy, an extension,
+   a stale cached copy of this page — does not error visibly: the form falls
+   back to a native submit, the page reloads, the password box empties and the
+   console clears. That is indistinguishable from "the button does nothing",
+   and it is what sent us looking in the wrong place. addEventListener either
+   attaches or the script did not run, and #nojs above says which. */
+document.getElementById("gform").addEventListener("submit", signIn);
+document.getElementById("signout").addEventListener("click", signOut);
+
 // boot(), not load(): the page must decide whether to show the dashboard or
 // the sign-in form, and it decides by whether a real request succeeds.
 boot();

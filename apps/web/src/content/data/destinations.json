@@ -1,6 +1,7 @@
 [
  {
   "id": "brahma-sarovar",
+  "city": "kurukshetra",
   "img": "brahma-sarovar",
   "gallery": [
    "brahma-sarovar-1",
@@ -109,16 +110,6 @@
      "en": "The evening aarti and the lit ghats are what most visitors remember.",
      "hi": "सांध्य आरती और प्रकाशित घाट ही वह दृश्य है जो अधिकांश यात्री याद रखते हैं।"
     }
-   },
-   {
-    "t": {
-     "en": "Watch your footwear",
-     "hi": "जूतों का ध्यान रखें"
-    },
-    "d": {
-     "en": "Visitors report shoes going missing at the ghat steps.",
-     "hi": "घाट की सीढ़ियों पर जूते खोने की शिकायतें मिलती हैं।"
-    }
    }
   ],
   "visit": {
@@ -132,6 +123,17 @@
   },
   "closed": [],
   "free": true,
+  "anchor": {
+   "at": 1110,
+   "win": [
+    1050,
+    1170
+   ],
+   "lb": {
+    "en": "Sandhya aarti on the Purushottam Bagh ghat",
+    "hi": "पुरुषोत्तमबाग घाट पर संध्या आरती"
+   }
+  },
   "fee": {
    "en": "No entry fee",
    "hi": "प्रवेश निःशुल्क"
@@ -159,6 +161,7 @@
  },
  {
   "id": "jyotisar",
+  "city": "kurukshetra",
   "img": "jyotisar",
   "gallery": [
    "jyotisar-1"
@@ -295,6 +298,7 @@
  },
  {
   "id": "anubhav-kendra",
+  "city": "kurukshetra",
   "img": "anubhav-kendra",
   "gallery": [
    "anubhav-kendra-1",
@@ -432,6 +436,7 @@
  },
  {
   "id": "sthaneshwar",
+  "city": "kurukshetra",
   "img": "sthaneshwar",
   "gallery": [],
   "name": {
@@ -523,6 +528,7 @@
  },
  {
   "id": "sannihit-sarovar",
+  "city": "kurukshetra",
   "img": "sannihit-sarovar",
   "gallery": [],
   "name": {
@@ -636,6 +642,7 @@
  },
  {
   "id": "bhishma-kund",
+  "city": "kurukshetra",
   "img": "bhishma-kund",
   "gallery": [
    "bhishma-kund-1"
@@ -650,8 +657,8 @@
    "spiritual",
    "sarovar"
   ],
-  "lat": 29.9386322,
-  "lng": 76.8126273,
+  "lat": 29.967236,
+  "lng": 76.799445,
   "placeId": "ChIJMVAb50Q_DjkRPoRPHVHy2Tk",
   "short": {
    "en": "The bed of arrows, and the Vishnu Sahasranama.",
@@ -741,6 +748,7 @@
  },
  {
   "id": "ban-ganga",
+  "city": "kurukshetra",
   "img": "ban-ganga",
   "gallery": [],
   "name": {
@@ -811,6 +819,7 @@
  },
  {
   "id": "krishna-museum",
+  "city": "kurukshetra",
   "img": "krishna-museum",
   "gallery": [
    "krishna-museum-1"
@@ -905,6 +914,7 @@
  },
  {
   "id": "panorama",
+  "city": "kurukshetra",
   "img": "panorama",
   "gallery": [
    "panorama-1"
@@ -998,6 +1008,7 @@
  },
  {
   "id": "dharohar",
+  "city": "kurukshetra",
   "img": "dharohar",
   "gallery": [
    "dharohar-1"
@@ -1113,6 +1124,7 @@
  },
  {
   "id": "planetarium",
+  "city": "kurukshetra",
   "img": "planetarium",
   "gallery": [
    "planetarium-1"
@@ -1238,6 +1250,7 @@
  },
  {
   "id": "bhadrakali",
+  "city": "kurukshetra",
   "img": "bhadrakali",
   "gallery": [
    "bhadrakali-1",
@@ -1322,6 +1335,7 @@
  },
  {
   "id": "gurudwara-chhevin",
+  "city": "kurukshetra",
   "img": "gurudwara-chhevin",
   "gallery": [
    "gurudwara-chhevin-1"
@@ -1428,6 +1442,7 @@
  },
  {
   "id": "sheikh-chilli",
+  "city": "kurukshetra",
   "img": "sheikh-chilli",
   "gallery": [
    "sheikh-chilli-1"
@@ -1544,6 +1559,7 @@
  },
  {
   "id": "harsh-ka-tila",
+  "city": "kurukshetra",
   "img": "harsh-ka-tila",
   "gallery": [
    "harsh-ka-tila-1"
@@ -1624,6 +1640,7 @@
  },
  {
   "id": "gita-gyan",
+  "city": "kurukshetra",
   "img": "gita-gyan",
   "gallery": [
    "gita-gyan-1"
@@ -1699,6 +1716,7 @@
  },
  {
   "id": "pipli-zoo",
+  "city": "kurukshetra",
   "img": "pipli-zoo",
   "gallery": [
    "pipli-zoo-1",
@@ -1774,6 +1792,7 @@
  },
  {
   "id": "rantuk-yaksh",
+  "city": "kurukshetra",
   "img": "rantuk-yaksh",
   "gallery": [],
   "name": {
@@ -1864,6 +1883,7 @@
  },
  {
   "id": "buddha-stupa",
+  "city": "kurukshetra",
   "img": "buddha-stupa",
   "gallery": [
    "buddha-stupa-1"
@@ -1934,6 +1954,7 @@
  },
  {
   "id": "nabhi-kamal",
+  "city": "kurukshetra",
   "img": "nabhi-kamal",
   "gallery": [],
   "name": {
@@ -2003,6 +2024,7 @@
  },
  {
   "id": "laxmi-narayan",
+  "city": "kurukshetra",
   "img": "laxmi-narayan",
   "gallery": [
    "laxmi-narayan-1"
@@ -2062,6 +2084,7 @@
  },
  {
   "id": "nanda-memorial",
+  "city": "kurukshetra",
   "img": "nanda-memorial",
   "gallery": [],
   "name": {
@@ -2152,6 +2175,7 @@
  },
  {
   "id": "iskcon",
+  "city": "kurukshetra",
   "img": "iskcon",
   "gallery": [],
   "name": {
@@ -2222,6 +2246,7 @@
  },
  {
   "id": "jairam",
+  "city": "kurukshetra",
   "img": "jairam",
   "gallery": [],
   "name": {
@@ -2337,6 +2362,7 @@
  },
  {
   "id": "gita-bhawan",
+  "city": "kurukshetra",
   "img": "gita-bhawan",
   "gallery": [],
   "name": {
@@ -2405,6 +2431,7 @@
  },
  {
   "id": "birla-mandir",
+  "city": "kurukshetra",
   "img": "birla-mandir",
   "gallery": [],
   "name": {
@@ -2474,6 +2501,7 @@
  },
  {
   "id": "gurudwara-pehli",
+  "city": "kurukshetra",
   "img": "gurudwara-pehli",
   "gallery": [],
   "name": {
@@ -2545,6 +2573,7 @@
  },
  {
   "id": "tirupati-balaji",
+  "city": "kurukshetra",
   "img": "tirupati-balaji",
   "gallery": [
    "tirupati-balaji-1"
@@ -2639,6 +2668,7 @@
  },
  {
   "id": "gaudiya-math",
+  "city": "kurukshetra",
   "img": "gaudiya-math",
   "gallery": [
    "gaudiya-math-1"
@@ -2725,6 +2755,7 @@
  },
  {
   "id": "kuber-tirth",
+  "city": "kurukshetra",
   "img": "kuber-tirth",
   "gallery": [],
   "name": {
@@ -2805,6 +2836,7 @@
  },
  {
   "id": "nabha-house",
+  "city": "kurukshetra",
   "img": "nabha-house",
   "gallery": [
    "nabha-house-1"
@@ -2884,6 +2916,7 @@
  },
  {
   "id": "karna-ka-tila",
+  "city": "kurukshetra",
   "img": "karna-ka-tila",
   "gallery": [
    "karna-ka-tila-1"
@@ -2963,6 +2996,7 @@
  },
  {
   "id": "gurudwara-dasvin",
+  "city": "kurukshetra",
   "img": "gurudwara-dasvin",
   "gallery": [],
   "pending": true,
@@ -2974,8 +3008,8 @@
    "heritage",
    "spiritual"
   ],
-  "lat": 29.9614,
-  "lng": 76.8286,
+  "lat": 29.964913,
+  "lng": 76.822426,
   "placeId": "",
   "short": {
    "en": "Marks Guru Gobind Singh Ji's visit, on the north-west bank of Brahma Sarovar.",
@@ -3033,6 +3067,7 @@
  },
  {
   "id": "kali-kamli",
+  "city": "kurukshetra",
   "img": "kali-kamli",
   "gallery": [
    "kali-kamli-1"
@@ -3046,8 +3081,8 @@
    "heritage",
    "spiritual"
   ],
-  "lat": 29.9614,
-  "lng": 76.8286,
+  "lat": 29.964299,
+  "lng": 76.833283,
   "placeId": "",
   "short": {
    "en": "One of the oldest service institutions near Brahma Sarovar.",
@@ -3105,6 +3140,7 @@
  },
  {
   "id": "jyotisar-water",
+  "city": "kurukshetra",
   "img": "jyotisar-water",
   "gallery": [
    "jyotisar-water-1"
@@ -3161,6 +3197,17 @@
   },
   "closed": [],
   "free": false,
+  "anchor": {
+   "at": 1110,
+   "win": [
+    1080,
+    1200
+   ],
+   "lb": {
+    "en": "The water light and sound show",
+    "hi": "जल प्रकाश एवं ध्वनि शो"
+   }
+  },
   "fee": {
    "en": "Show ticket",
    "hi": "शो टिकट"
@@ -3186,6 +3233,7 @@
  },
  {
   "id": "jyotisar-virat",
+  "city": "kurukshetra",
   "img": "jyotisar-virat",
   "gallery": [
    "jyotisar-virat-1"
@@ -3242,6 +3290,17 @@
   },
   "closed": [],
   "free": false,
+  "anchor": {
+   "at": 1155,
+   "win": [
+    1125,
+    1245
+   ],
+   "lb": {
+    "en": "The Virat Swaroop 3D show",
+    "hi": "विराट स्वरूप 3डी शो"
+   }
+  },
   "fee": {
    "en": "Show ticket",
    "hi": "शो टिकट"
@@ -3263,6 +3322,1931 @@
   "facilities": [
    "washroom",
    "parking"
+  ]
+ },
+ {
+  "id": "p-saraswati-tirth",
+  "city": "pehowa",
+  "img": "p-saraswati-tirth",
+  "gallery": [
+   "p-saraswati-tirth-1"
+  ],
+  "name": {
+   "en": "Saraswati Tirth, Pehowa",
+   "hi": "सरस्वती तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar",
+   "heritage",
+   "aarti"
+  ],
+  "lat": 29.981682,
+  "lng": 76.57998,
+  "short": {
+   "en": "The Saraswati bank where India comes to free its ancestors.",
+   "hi": "सरस्वती का वह तट जहाँ पितृ-मुक्ति के लिए सारा देश आता है।"
+  },
+  "why": {
+   "en": "Set on the bank of the Saraswati, this is among the oldest tirthas of Sanatan Dharma and is known across India above all for pind-daan and tarpan for the departed. Pehowa was Prithudak in the puranic age, named for Raja Prithu, son of Vena, who is said to have performed his father's last rites here and won him moksha. Tradition holds that Brahma sat at this bank when he conceived creation, and that Vishwamitra's austerities here raised him from kshatriya to Brahmarshi. The Vamana Purana says the merit of bathing in the Ganga, Yamuna or Sindhu is had at this one bank of the Saraswati. After the Mahabharata war, on Krishna's counsel, Yudhishthira performed tarpan here for his kinsmen, his teachers and Bhishma. As at Haridwar, the tirth purohits of Pehowa keep written genealogies of pilgrim families going back three and four hundred years. Ninth-century Gurjara-Pratihara inscriptions of Mihira Bhoja and Mahendrapala show Pehowa was also a prosperous trading town, famous for its horse market.",
+   "hi": "सरस्वती तीर्थ सनातन धर्म के सबसे पवित्र और प्राचीन तीर्थ स्थलों में से एक है। पवित्र सरस्वती नदी के तट पर बसा यह धाम मुख्य रूप से पितृ-मुक्ति, पिंडदान और तर्पण के लिए भारतभर में विख्यात है। पौराणिक काल में पिहोवा को पृथूदक कहा जाता था — नाम महाराजा वेन के पुत्र राजा पृथु से पड़ा, जिन्होंने अपने पिता का अंतिम संस्कार और पिंडदान इसी स्थान पर किया। मान्यता है कि ब्रह्मा जी ने इसी तट पर बैठकर सृष्टि रचना का विचार किया, और महर्षि विश्वामित्र ने यहीं तप कर 'ब्रह्मर्षि' पद पाया। वामन पुराण के अनुसार जो पुण्य गंगा, यमुना या सिंधु में स्नान से मिलता है, वह अकेले सरस्वती के इस तट पर स्नान व तर्पण से प्राप्त हो जाता है। महाभारत युद्ध के पश्चात श्रीकृष्ण के परामर्श पर युधिष्ठिर ने अपने स्वजनों, गुरुजनों और भीष्म पितामह के लिए यहीं तर्पण किया। हरिद्वार की भाँति यहाँ के तीर्थ पुरोहितों के पास 300-400 वर्ष पुरानी वंशावलियाँ लिखित रूप में सुरक्षित हैं। 9वीं शताब्दी के गुर्जर-प्रतिहार शिलालेख बताते हैं कि पिहोवा घोड़ों के व्यापार का समृद्ध केंद्र भी था।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "The pind-daan ghats",
+     "hi": "पिंडदान घाट"
+    },
+    "d": {
+     "en": "Steps along the Saraswati where tarpan and pind-daan are performed, busiest through the sixteen days of Pitru Paksha.",
+     "hi": "सरस्वती तट की सीढ़ियाँ, जहाँ तर्पण व पिंडदान होते हैं; पितृ पक्ष के सोलह दिनों में सर्वाधिक भीड़।"
+    }
+   },
+   {
+    "n": {
+     "en": "The purohits' bahis",
+     "hi": "पुरोहितों की बहियाँ"
+    },
+    "d": {
+     "en": "Handwritten family registers, three to four centuries deep. Families trace their line before performing the rites.",
+     "hi": "हस्तलिखित वंशावली बहियाँ, तीन-चार सौ वर्ष पुरानी। परिवार अनुष्ठान से पूर्व अपना वंश खोजते हैं।"
+    }
+   },
+   {
+    "n": {
+     "en": "Chaitra Chaudas mela",
+     "hi": "चैत्र चौदस मेला"
+    },
+    "d": {
+     "en": "Pehowa's largest fair, on the fourteenth of Chaitra (March–April), when lakhs come for tarpan.",
+     "hi": "चैत्र मास की चतुर्दशी (मार्च-अप्रैल) — पिहोवा का सबसे बड़ा मेला, लाखों श्रद्धालु तर्पण हेतु आते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Come with the names",
+     "hi": "नाम साथ लाएँ"
+    },
+    "d": {
+     "en": "If you are here for pitra rites, carry the names and gotra of the departed. The purohits work from their registers.",
+     "hi": "पितृ अनुष्ठान हेतु आ रहे हैं तो दिवंगतजनों के नाम व गोत्र साथ लाएँ। पुरोहित अपनी बहियों से कार्य करते हैं।"
+    }
+   },
+   {
+    "t": {
+     "en": "Pitru Paksha is crowded",
+     "hi": "पितृ पक्ष में भीड़"
+    },
+    "d": {
+     "en": "Through the sixteen days of shraddh, thousands come daily. Start early.",
+     "hi": "श्राद्ध पक्ष के सोलह दिनों में प्रतिदिन हज़ारों लोग आते हैं। प्रातः जल्दी आरंभ करें।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 30,
+   "min": 20,
+   "max": 60
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee; rites are arranged with the purohits",
+   "hi": "प्रवेश निःशुल्क; अनुष्ठान पुरोहितों से तय होते हैं"
+  },
+  "best": {
+   "en": "Early morning for the rites, dusk for the lamps",
+   "hi": "अनुष्ठान हेतु प्रातः, दीपदान हेतु संध्या"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 100,
+  "first": 100,
+  "anchor": {
+   "at": 1095,
+   "win": [
+    1020,
+    1170
+   ],
+   "lb": {
+    "en": "Evening deep-daan on the ghats",
+    "hi": "घाटों पर संध्या दीपदान"
+   }
+  },
+  "parking": {
+   "en": "Parking near the ghat approach",
+   "hi": "घाट के पहुँच मार्ग पर पार्किंग"
+  },
+  "facilities": [
+   "washroom",
+   "water",
+   "food",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-kartikeya",
+  "city": "pehowa",
+  "img": "p-kartikeya",
+  "gallery": [
+   "p-kartikeya-1"
+  ],
+  "approx": true,
+  "name": {
+   "en": "Kartikeya Tirth, Pehowa",
+   "hi": "कार्तिकेय तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "heritage"
+  ],
+  "lat": 29.9817,
+  "lng": 76.57975,
+  "short": {
+   "en": "North India's rare shrine to Kartikeya, anointed in mustard oil.",
+   "hi": "उत्तर भारत का दुर्लभ कार्तिकेय धाम, सरसों के तेल से अभिषेक।"
+  },
+  "why": {
+   "en": "Kartikeya, elder son of Shiva and Parvati, is worshipped widely in the south as Murugan; in the north this Pehowa shrine is among the very few and is held to be one of the oldest. The story told here is that when Shiva set his two sons to circle the earth, Ganesha won by circling his parents instead. Kartikeya, returning from the true circuit and finding himself beaten, gave up skin and flesh, offered his bones to his parents, and came to this place as a renunciate to perform tapasya. The pindi installed here is taken to be that form. The Mahabharata and the Vamana Purana hold that darshan at this tirtha releases one even from the gravest sin, and that fear, disease and family discord leave the lives of those who come in faith.",
+   "hi": "कार्तिकेय स्वामी मंदिर उत्तर भारत के सबसे प्राचीन, अद्वितीय और पवित्र धार्मिक स्थलों में से एक है। भगवान कार्तिकेय की पूजा दक्षिण भारत में 'मुरुगन' रूप में अधिक प्रसिद्ध है, किंतु उत्तर भारत में पिहोवा का यह तीर्थ उनका अत्यंत दुर्लभ धाम माना जाता है। कथा है कि जब शिवजी ने अपने दोनों पुत्रों के समक्ष पृथ्वी परिक्रमा की शर्त रखी, तब श्री गणेश ने माता-पिता की परिक्रमा कर विजय पाई। कार्तिकेय जी पूरी पृथ्वी घूमकर लौटे और गणेश जी को विजयी पाकर क्रोधित हो गए; उन्होंने त्वचा और माँस त्यागकर अपनी हड्डियाँ माता-पिता को समर्पित कीं और वैरागी होकर इसी स्थान पर तपस्या करने लगे। यहाँ स्थापित पिंडी उन्हीं के उस पावन स्वरूप का प्रतीक मानी जाती है। महाभारत और वामन पुराण के अनुसार यहाँ दर्शन-पूजन से महापापों से मुक्ति मिलती है और जीवन से भय, रोग व पारिवारिक कलह दूर होते हैं।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Tel and sindoor abhishek",
+     "hi": "तेल व सिंदूर अभिषेक"
+    },
+    "d": {
+     "en": "The temple's signature rite — mustard oil and vermilion offered on the pindi form of Kartikeya.",
+     "hi": "मंदिर की प्रमुख परंपरा — पिंड रूपी कार्तिकेय जी पर सरसों का तेल और सिंदूर अर्पित करना।"
+    }
+   },
+   {
+    "n": {
+     "en": "Chaitra Chaudas",
+     "hi": "चैत्र चौदस"
+    },
+    "d": {
+     "en": "Pehowa's largest fair, when lakhs come to offer oil and take darshan.",
+     "hi": "पिहोवा का सबसे बड़ा मेला, जब लाखों श्रद्धालु तेल चढ़ाने और दर्शन को आते हैं।"
+    }
+   },
+   {
+    "n": {
+     "en": "Kartik Shashthi",
+     "hi": "कार्तिक षष्ठी"
+    },
+    "d": {
+     "en": "Kept as Kartikeya's birth and victory day, with special anushthan.",
+     "hi": "भगवान कार्तिकेय के जन्मोत्सव/विजयोत्सव के रूप में विशेष अनुष्ठान।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Women do not enter the sanctum",
+     "hi": "गर्भगृह में महिलाओं का प्रवेश नहीं"
+    },
+    "d": {
+     "en": "By long tradition women take darshan from outside the garbhagriha — held to follow Kartikeya's own instruction after he took vairagya.",
+     "hi": "परंपरा अनुसार महिलाएँ गर्भगृह के बाहर से ही दर्शन करती हैं — मान्यता है कि वैराग्य धारण के पश्चात कार्तिकेय जी ने ऐसा आदेश दिया था।"
+    }
+   },
+   {
+    "t": {
+     "en": "Oil is sold at the gate",
+     "hi": "तेल द्वार पर मिलता है"
+    },
+    "d": {
+     "en": "Mustard oil and sindoor for the abhishek are available from stalls outside.",
+     "hi": "अभिषेक हेतु सरसों का तेल व सिंदूर बाहर की दुकानों पर उपलब्ध है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 20,
+   "min": 15,
+   "max": 40
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Chaitra Chaudas or Kartik Purnima; mornings otherwise",
+   "hi": "चैत्र चौदस या कार्तिक पूर्णिमा; अन्यथा प्रातःकाल"
+  },
+  "bestKey": "morning",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 92,
+  "first": 94,
+  "parking": {
+   "en": "Shared with the Saraswati Tirth complex",
+   "hi": "सरस्वती तीर्थ परिसर के साथ साझा"
+  },
+  "facilities": [
+   "washroom",
+   "water",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-brahmyoni",
+  "city": "pehowa",
+  "img": "p-brahmyoni",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Brahmyoni Tirth, Pehowa",
+   "hi": "ब्रह्मयोनि तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar",
+   "aarti"
+  ],
+  "lat": 29.98155,
+  "lng": 76.57935,
+  "short": {
+   "en": "Where Brahma is said to have resolved on creation itself.",
+   "hi": "जहाँ ब्रह्मा जी ने सृष्टि रचना का संकल्प लिया।"
+  },
+  "why": {
+   "en": "Brahmyoni means the place from which Brahma took the resolve of creation. The tradition is that when Brahma conceived the universe and its beings, he sat and meditated on this bank of the Saraswati. Ancient Sanskrit texts call the site Yoni Tirth or Brahmyoni, and hold that the soil and water here carry his direct tejas. Bathing, worship and meditation here are said to release the soul from the long round of birth and rebirth, and tarpan performed on this bank brings peace to the ancestors. Among the 48 Kos tirthas of the Kurukshetra land, Brahmyoni holds a distinct place.",
+   "hi": "पावन सरस्वती नदी के तट पर स्थित ब्रह्मयोनि तीर्थ सनातन धर्म का अत्यंत प्राचीन और दुर्लभ तीर्थ है। 'ब्रह्मयोनि' का अर्थ है वह स्थान जहाँ से ब्रह्मा जी ने सृष्टि के जनन का संकल्प लिया। कथाओं के अनुसार जब ब्रह्मा जी ने ब्रह्मांड और जीवों की रचना का विचार किया, तब उन्होंने इसी पावन तट पर बैठकर कठोर तप और ध्यान किया था। प्राचीन ग्रंथों में इसे 'योनि तीर्थ' या 'ब्रह्मयोनि' कहा गया है; माना जाता है कि यहाँ की मिट्टी और जल में ब्रह्मा जी का प्रत्यक्ष तेज समाहित है। मान्यता है कि यहाँ स्नान, पूजन और ध्यान से जीव को बार-बार गर्भवास के कष्टों से मुक्ति मिलती है, और तर्पण से पूर्वजों की आत्मा को शांति। कुरुक्षेत्र भूमि के 48 कोस के तीर्थों में इसका विशेष स्थान है।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Evening deep-daan",
+     "hi": "संध्या दीपदान"
+    },
+    "d": {
+     "en": "Lit lamps are floated on the water at dusk — the dispelling of ignorance.",
+     "hi": "संध्या के समय जल में प्रज्वलित दीपक प्रवाहित किए जाते हैं — अज्ञानता के अंधकार का शमन।"
+    }
+   },
+   {
+    "n": {
+     "en": "Kartik mahaarti",
+     "hi": "कार्तिक महाआरती"
+    },
+    "d": {
+     "en": "In the month of Kartik a great aarti and mass lamp-offering is held on the bank.",
+     "hi": "कार्तिक मास में तीर्थ तट पर महाआरती और बड़े पैमाने पर दीपदान होता है।"
+    }
+   },
+   {
+    "n": {
+     "en": "Achman and sankalp",
+     "hi": "आचमन व संकल्प"
+    },
+    "d": {
+     "en": "Pilgrims first take achman in the kund, then make the resolve of prayashchit before the rites.",
+     "hi": "श्रद्धालु पहले कुंड के जल में आचमन करते हैं, फिर प्रायश्चित का संकल्प लेते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Go at dusk",
+     "hi": "संध्या समय जाएँ"
+    },
+    "d": {
+     "en": "The floating lamps are what most visitors remember of this ghat.",
+     "hi": "जल पर तैरते दीप ही इस घाट की सबसे स्मरणीय छवि हैं।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 20,
+   "min": 15,
+   "max": 40
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Dusk, for the lamps",
+   "hi": "संध्या, दीपदान हेतु"
+  },
+  "bestKey": "evening",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 90,
+  "first": 86,
+  "anchor": {
+   "at": 1095,
+   "win": [
+    1020,
+    1170
+   ],
+   "lb": {
+    "en": "Evening deep-daan",
+    "hi": "संध्या दीपदान"
+   }
+  },
+  "parking": {
+   "en": "Street parking near the ghats",
+   "hi": "घाटों के निकट सड़क किनारे पार्किंग"
+  },
+  "facilities": [
+   "water",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-prithudak",
+  "city": "pehowa",
+  "img": "p-prithudak",
+  "gallery": [],
+  "name": {
+   "en": "Prithudak Tirth (Kailash Dham), Pehowa",
+   "hi": "पृथूदक तीर्थ, पिहोवा (कैलाश धाम)"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar",
+   "mahabharata",
+   "heritage",
+   "aarti"
+  ],
+  "lat": 29.978709,
+  "lng": 76.573446,
+  "short": {
+   "en": "The tirtha that gave Pehowa its ancient name.",
+   "hi": "वह तीर्थ जिससे पिहोवा को उसका प्राचीन नाम मिला।"
+  },
+  "why": {
+   "en": "Pehowa's older name was Prithudak, and the word survives, worn down, as Pehowa itself. Raja Prithu, son of the Suryavanshi king Vena, offered udak — water — to his dead father on this bank of the Saraswati for his moksha; Prithu plus udak gives Prithudak. The Mahabharata and the Vamana Purana say that the merit of Kashi, Gaya and Haridwar together is had here from a single bath and pind-daan in the Saraswati. It is held to be the foremost place for the shraddh of those who died untimely or by accident. After the war, on Krishna's instruction, Yudhishthira and the Pandavas performed tarpan here for their kin, their teachers and Bhishma. Ninth-century Gurjara-Pratihara inscriptions from Pehowa confirm the town as both a religious centre and a great trading mandi.",
+   "hi": "पावन सरस्वती नदी के तट पर स्थित पृथूदक तीर्थ 48 कोस के तीर्थों में सर्वोपरि माना जाता है। पिहोवा का प्राचीन नाम ही 'पृथूदक' था, जो कालांतर में अपभ्रंश होकर 'पिहोवा' बना। सूर्यवंशी राजा वेन के पुत्र महाराजा पृथु ने अपने मृत पिता की सद्गति हेतु इसी तट पर जलांजलि, तर्पण और पिंडदान किया — 'पृथु + उदक = पृथूदक'। महाभारत (वन पर्व) और वामन पुराण के अनुसार काशी, गया और हरिद्वार से जो पुण्य मिलता है, वह अकेले पृथूदक में सरस्वती स्नान और पिंडदान से प्राप्त हो जाता है। अकाल मृत्यु या दुर्घटना में मृत परिजनों की मुक्ति हेतु यहाँ श्राद्ध सर्वोत्तम माना गया है। युद्ध के पश्चात श्रीकृष्ण के निर्देश पर युधिष्ठिर एवं पांडवों ने यहीं तर्पण किया। 9वीं शताब्दी के गुर्जर-प्रतिहार शिलालेख प्रमाणित करते हैं कि पृथूदक धार्मिक केंद्र के साथ विशाल व्यापारिक मंडी भी था।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Narayan bali and tarpan",
+     "hi": "नारायण बलि व तर्पण"
+    },
+    "d": {
+     "en": "The principal rites here — jal-tarpan, pind-daan and the Narayan bali anushthan for peace of the ancestors.",
+     "hi": "यहाँ की मुख्य परंपरा — जल-तर्पण, पिंडदान और नारायण बलि अनुष्ठान।"
+    }
+   },
+   {
+    "n": {
+     "en": "The purohits' registers",
+     "hi": "पुरोहितों की वंशावलियाँ"
+    },
+    "d": {
+     "en": "As at Haridwar, family genealogies of three and four hundred years are kept in handwritten bahis.",
+     "hi": "हरिद्वार की तर्ज पर 300-400 वर्ष पुरानी वंशावलियाँ हस्तलिखित बहियों में सुरक्षित हैं।"
+    }
+   },
+   {
+    "n": {
+     "en": "Lamps at dusk",
+     "hi": "संध्या दीप"
+    },
+    "d": {
+     "en": "In the evening pilgrims float lit diyas on the water for the guidance and peace of their forebears.",
+     "hi": "संध्या को श्रद्धालु पितरों के मार्गदर्शन व शांति हेतु जल में प्रज्वलित दीये प्रवाहित करते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Chaitra Chaudas",
+     "hi": "चैत्र चौदस"
+    },
+    "d": {
+     "en": "On the fourteenth of Chaitra lakhs bathe and perform tarpan here. Expect very heavy crowds.",
+     "hi": "चैत्र कृष्ण चतुर्दशी पर लाखों श्रद्धालु स्नान व तर्पण करते हैं। अत्यधिक भीड़ रहती है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 15,
+   "min": 10,
+   "max": 35
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning for rites; dusk for the lamps",
+   "hi": "अनुष्ठान हेतु प्रातः; दीपदान हेतु संध्या"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 85,
+  "first": 84,
+  "anchor": {
+   "at": 1095,
+   "win": [
+    1020,
+    1170
+   ],
+   "lb": {
+    "en": "Floating lamps at dusk",
+    "hi": "संध्या दीपदान"
+   }
+  },
+  "parking": {
+   "en": "Near the ghat approach",
+   "hi": "घाट पहुँच मार्ग के निकट"
+  },
+  "facilities": [
+   "washroom",
+   "water",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-vishwamitra-tila",
+  "city": "pehowa",
+  "img": "p-vishwamitra-tila",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Vishwamitra ka Tila, Pehowa",
+   "hi": "विश्वामित्र का टीला तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "archaeology",
+   "heritage"
+  ],
+  "lat": 29.9801,
+  "lng": 76.57815,
+  "short": {
+   "en": "The mound where a king's austerity made him a Brahmarshi.",
+   "hi": "वह टीला जहाँ राजर्षि तप कर ब्रह्मर्षि बने।"
+  },
+  "why": {
+   "en": "Close to the Saraswati Tirth complex, this mound is held to be the tapobhumi of Maharshi Vishwamitra, who gave up his kshatriya calling and performed years of austerity here to earn the rank of Brahmarshi. The Vamana Purana and the Mahabharata place the long contest between Vishwamitra and Vasishtha on this stretch of the Saraswati bank. The site stands as a natural mound; ancient bricks and remains recovered from the puramound of the Kurukshetra–Pehowa region support a Vedic and post-Vedic history for it. Vishwamitra is held to be the seer of the Gayatri mantra, which is why Gayatri sadhaks and Vedic scholars treat darshan here as particularly fruitful.",
+   "hi": "सरस्वती तीर्थ क्षेत्र के समीप स्थित विश्वामित्र का टीला वैदिक परंपरा और पौराणिक इतिहास का अत्यंत महत्वपूर्ण स्थल है। राजा विश्वामित्र ने अपनी क्षत्रिय वृत्ति का त्याग कर ब्रह्मर्षि पद पाने के लिए इसी स्थान पर वर्षों कठोर तपस्या की थी। वामन पुराण और महाभारत के अनुसार महर्षि विश्वामित्र और ब्रह्मर्षि वशिष्ठ के बीच श्रेष्ठता का संवाद इसी सरस्वती तट पर हुआ। यह स्थल एक प्राकृतिक टीले के रूप में है; पुरातात्विक दृष्टि से इस पुरा-भूमि से प्राचीन काल के अवशेष और ईंटें प्राप्त होती रही हैं, जो इसके वैदिक व उत्तर-वैदिक कालीन इतिहास की पुष्टि करती हैं। महर्षि विश्वामित्र को 'गायत्री मंत्र' का द्रष्टा माना जाता है, इसलिए गायत्री साधकों और वैदिक विद्वानों के लिए इस टीले का दर्शन विशेष फलदायी है।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Gayatri jaap on the mound",
+     "hi": "टीले पर गायत्री जाप"
+    },
+    "d": {
+     "en": "Sadhaks sit on or beside the mound for jaap, dhyan and self-reflection.",
+     "hi": "साधक टीले पर या उसके समीप बैठकर गायत्री मंत्र जाप, ध्यान और आत्मचिंतन करते हैं।"
+    }
+   },
+   {
+    "n": {
+     "en": "Tilak of the raj",
+     "hi": "रज का तिलक"
+    },
+    "d": {
+     "en": "After bathing at the Saraswati ghats, pilgrims come here and mark themselves with the soil of the tapobhumi.",
+     "hi": "सरस्वती घाटों पर स्नान के पश्चात श्रद्धालु यहाँ आकर तपोभूमि की रज का तिलक लगाते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "A short stop",
+     "hi": "संक्षिप्त पड़ाव"
+    },
+    "d": {
+     "en": "There is little built here — it is a mound and a place to sit. Five to ten minutes is usual.",
+     "hi": "यहाँ निर्माण अल्प है — यह एक टीला और बैठने का स्थान है। पाँच-दस मिनट पर्याप्त हैं।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 5,
+   "max": 25
+  },
+  "hours": {
+   "o": "06:00",
+   "c": "19:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Early morning, straight after the ghats",
+   "hi": "प्रातःकाल, घाटों के तुरंत बाद"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 90,
+  "first": 78,
+  "parking": {
+   "en": "Walk from the Saraswati Tirth parking",
+   "hi": "सरस्वती तीर्थ पार्किंग से पैदल"
+  },
+  "facilities": []
+ },
+ {
+  "id": "p-chaturmukh",
+  "city": "pehowa",
+  "img": "p-chaturmukh",
+  "gallery": [],
+  "name": {
+   "en": "Chaturmukh Mahadev Tirth, Pehowa",
+   "hi": "चतुर्मुख महादेव तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "heritage"
+  ],
+  "lat": 29.979153,
+  "lng": 76.579278,
+  "short": {
+   "en": "A four-faced kasauti-stone lingam, twin to Pashupatinath's.",
+   "hi": "कसौटी पत्थर का चतुर्मुख शिवलिंग, पशुपतिनाथ से मेल खाता।"
+  },
+  "why": {
+   "en": "The lingam here carries four faces, and both its carving and the black kasauti stone it is cut from correspond closely to the famous Shri Pashupatinath lingam at Kathmandu. Kasauti is the touchstone that goldsmiths use to test the purity of gold. The four faces stand for Shiva's forms — Tatpurusha, Aghora, Vamadeva and Sadyojata — with the fifth, Ishana, unseen. Centuries on, the sheen of the stone and the figures cut into it remain as sharp as they were. The temple's history is placed with Gupta and Gurjara-Pratihara architecture. Devotees in north India hold that those who cannot travel to Nepal for Pashupatinath receive the same merit from darshan here, and that jalabhishek on this stone quiets chronic illness, graha dosha and kaal sarp dosha.",
+   "hi": "चतुर्मुख महादेव मंदिर भगवान शिव को समर्पित उत्तर भारत का अत्यंत प्राचीन, दुर्लभ शिव धाम है। इसकी सबसे बड़ी विशेषता चार मुखों वाला शिवलिंग है, जो बनावट और ऐतिहासिकता में नेपाल के श्री पशुपतिनाथ मंदिर से गहरा साम्य रखता है। कसौटी वही काला पत्थर है जिससे सोनार सोने की शुद्धता परखते हैं। शिवलिंग के चारों मुख शिव के तत्पुरुष, अघोर, वामदेव और सद्योजात स्वरूपों को दर्शाते हैं, पाँचवाँ 'ईशान' अदृश्य रहता है। सदियों पुराना होने पर भी कसौटी पत्थर की चमक और उकेरी आकृतियाँ आज भी वैसी ही जीवंत हैं। मंदिर का इतिहास गुप्तकालीन व गुर्जर-प्रतिहारकालीन स्थापत्य से जुड़ा माना जाता है। मान्यता है कि जो नेपाल जाकर पशुपतिनाथ के दर्शन नहीं कर सकते, उन्हें यहाँ के दर्शन से वही फल मिलता है, और इस शिवलिंग पर जलाभिषेक से असाध्य रोग, ग्रह दोष और कालसर्प दोष शांत होते हैं।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "The four faces",
+     "hi": "चार मुख"
+    },
+    "d": {
+     "en": "Tatpurusha, Aghora, Vamadeva and Sadyojata cut into the kasauti stone; Ishana is held to be the unseen fifth.",
+     "hi": "कसौटी पत्थर पर उकेरे तत्पुरुष, अघोर, वामदेव और सद्योजात; 'ईशान' अदृश्य पाँचवाँ रूप।"
+    }
+   },
+   {
+    "n": {
+     "en": "Jalabhishek",
+     "hi": "जलाभिषेक"
+    },
+    "d": {
+     "en": "Water is poured over the lingam for relief from graha dosha and kaal sarp dosha.",
+     "hi": "ग्रह दोष व कालसर्प दोष की शांति हेतु शिवलिंग पर जलाभिषेक।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Look closely at the stone",
+     "hi": "पत्थर को ध्यान से देखें"
+    },
+    "d": {
+     "en": "The kasauti carving is the reason to come. Give it a minute in good light.",
+     "hi": "कसौटी की नक्काशी ही यहाँ आने का कारण है। अच्छे प्रकाश में एक क्षण दें।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 20,
+   "min": 12,
+   "max": 35
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning, or Mondays and Shivratri",
+   "hi": "प्रातःकाल, या सोमवार व शिवरात्रि"
+  },
+  "bestKey": "morning",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 80,
+  "first": 82,
+  "parking": {
+   "en": "Street parking nearby",
+   "hi": "निकट सड़क किनारे पार्किंग"
+  },
+  "facilities": [
+   "water"
+  ]
+ },
+ {
+  "id": "p-prithvishwar",
+  "city": "pehowa",
+  "img": "p-prithvishwar",
+  "gallery": [],
+  "name": {
+   "en": "Prithvishwar Mahadev Mandir, Pehowa",
+   "hi": "पृथ्वीश्वर महादेव मंदिर, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "heritage",
+   "aarti"
+  ],
+  "lat": 29.9808086,
+  "lng": 76.5790083,
+  "short": {
+   "en": "Shiva as Raja Prithu worshipped him, with a nightly mahaarti.",
+   "hi": "राजा पृथु द्वारा पूजित शिव, प्रतिदिन संध्या महाआरती।"
+  },
+  "why": {
+   "en": "Raja Prithu — whose name gave Pehowa its ancient Prithudak — is said to have performed hard austerity at this spot for the deliverance of his father Raja Vena. Shiva appeared to him here, and the lingam took the name Prithvishwar, from Prithu and Ishwar. The temple is a witness to Pehowa's older culture and is noticed and protected in the Gurjara-Pratihara period, the ninth and tenth centuries. The belief held here is that pilgrims who perform pind-daan and tarpan at Prithudak and then offer water at Prithvishwar Mahadev secure a swifter moksha for their ancestors, and that darshan quiets fear, untimely trouble and graha dosha.",
+   "hi": "पृथ्वीश्वर महादेव मंदिर पिहोवा का अत्यंत प्राचीन और ऐतिहासिक शिव धाम है। राजा पृथु — जिनके नाम पर पिहोवा का प्राचीन नाम 'पृथूदक' पड़ा — ने अपने पिता राजा वेन के उद्धार हेतु इसी स्थान पर कठिन तपस्या की थी। उनकी तपस्या से प्रसन्न होकर भगवान शिव यहाँ प्रकट हुए, और इसी कारण शिवलिंग का नाम 'पृथ्वीश्वर महादेव' (पृथु + ईश्वर) पड़ा। गुर्जर-प्रतिहार राजवंश के काल (9वीं-10वीं शताब्दी) में इस ऐतिहासिक तीर्थ का विशेष उल्लेख और संरक्षण मिलता है। मान्यता है कि पृथूदक में पिंडदान व तर्पण के पश्चात यदि श्रद्धालु पृथ्वीश्वर महादेव पर जल अर्पित कर आशीर्वाद लें, तो पितरों को शीघ्र मोक्ष प्राप्त होता है; दर्शन से भय, असामयिक कष्ट और ग्रह दोष शांत होते हैं।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Water carried from the Saraswati",
+     "hi": "सरस्वती से लाया जल"
+    },
+    "d": {
+     "en": "The custom is to bathe first at the Saraswati Tirth and bring that water here for the abhishek.",
+     "hi": "परंपरा यह है कि पहले सरस्वती तीर्थ में स्नान करें और वहीं से जल लाकर जलाभिषेक करें।"
+    }
+   },
+   {
+    "n": {
+     "en": "Evening shringar and mahaarti",
+     "hi": "संध्या शृंगार व महाआरती"
+    },
+    "d": {
+     "en": "Held every evening — the temple's principal daily event.",
+     "hi": "प्रतिदिन संध्या काल में महादेव का विशेष शृंगार और महाआरती — मंदिर का प्रमुख दैनिक आयोजन।"
+    }
+   },
+   {
+    "n": {
+     "en": "Til, jau and belpatra",
+     "hi": "तिल, जौ व बेलपत्र"
+    },
+    "d": {
+     "en": "Offered on the lingam for the peace of the ancestors and for graha shanti.",
+     "hi": "पूर्वजों की शांति और ग्रह शांति हेतु शिवलिंग पर अर्पित किए जाते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Time it for the mahaarti",
+     "hi": "महाआरती का समय चुनें"
+    },
+    "d": {
+     "en": "The evening shringar and aarti are the strongest reason to come after dark.",
+     "hi": "संध्या शृंगार और आरती ही संध्या के बाद आने का प्रमुख कारण है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 15,
+   "min": 10,
+   "max": 35
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:30"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Evening, for the shringar and mahaarti",
+   "hi": "संध्या, शृंगार व महाआरती हेतु"
+  },
+  "bestKey": "evening",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 80,
+  "first": 80,
+  "anchor": {
+   "at": 1110,
+   "win": [
+    1035,
+    1200
+   ],
+   "lb": {
+    "en": "Evening shringar and mahaarti",
+    "hi": "संध्या शृंगार व महाआरती"
+   }
+  },
+  "parking": {
+   "en": "Street parking nearby",
+   "hi": "निकट सड़क किनारे पार्किंग"
+  },
+  "facilities": [
+   "water"
+  ]
+ },
+ {
+  "id": "p-avakirna",
+  "city": "pehowa",
+  "img": "",
+  "gallery": [],
+  "name": {
+   "en": "Avakirna Tirth, Pehowa",
+   "hi": "अवकीर्ण तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "mahabharata",
+   "sarovar"
+  ],
+  "lat": 29.980667,
+  "lng": 76.578357,
+  "short": {
+   "en": "The tapobhumi of Maharshi Bak Dalbhya.",
+   "hi": "महर्षि बक दाल्भ्य की तपोभूमि।"
+  },
+  "why": {
+   "en": "This tirtha falls on the 48 Kos parikrama and is bound to the story of Maharshi Bak Dalbhya. The Mahabharata's Shalya Parva relates that when Dhritarashtra slighted the rishis and obstructed their yajna, Bak Dalbhya performed a fierce sacrifice at this place for the undoing of his kingdom. Avakirna in Sanskrit means to scatter, to offer, to spread. The Mahabharata holds that the gift of food, cloth or gold made at Avakirna Tirth bears fruit that never runs out, and that darshan and meditation here take ego, anger and unrest from the mind.",
+   "hi": "अवकीर्ण तीर्थ कुरुक्षेत्र की 48 कोस परिक्रमा में आने वाला प्राचीन और आध्यात्मिक रूप से महत्वपूर्ण स्थल है, जो महर्षि बक दाल्भ्य की तपोभूमि से जुड़ा है। महाभारत (शल्य पर्व) के अनुसार, जब राजा धृतराष्ट्र ने ऋषियों का अनादर किया और उनके यज्ञ में बाधा डाली, तब क्रोधित होकर महर्षि बक दाल्भ्य ने इसी स्थान पर उनके राज्य के विनाश हेतु भीषण यज्ञ किया था। संस्कृत में 'अवकीर्ण' का अर्थ बिखेरना, आहुति देना या फैलाना है। महाभारत के अनुसार यहाँ किया गया अन्नदान, वस्त्रदान और स्वर्णदान अक्षय फल देता है; यहाँ दर्शन व ध्यान से मन से अहंकार, क्रोध और अशांति दूर होती है।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "A quiet ghat",
+     "hi": "शांत घाट"
+    },
+    "d": {
+     "en": "There is little built here. Pilgrims take achman, remember Bak Dalbhya, and some have a small havan performed.",
+     "hi": "यहाँ निर्माण अल्प है। श्रद्धालु आचमन कर महर्षि बक दाल्भ्य का ध्यान करते हैं; कुछ छोटा हवन भी करवाते हैं।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 5,
+   "max": 20
+  },
+  "hours": {
+   "o": "06:00",
+   "c": "19:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning, on the parikrama route",
+   "hi": "प्रातःकाल, परिक्रमा मार्ग पर"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 50,
+  "first": 48,
+  "parking": {
+   "en": "Roadside",
+   "hi": "सड़क किनारे"
+  },
+  "facilities": []
+ },
+ {
+  "id": "p-brihaspati",
+  "city": "pehowa",
+  "img": "",
+  "gallery": [],
+  "name": {
+   "en": "Brihaspati Tirth, Pehowa",
+   "hi": "बृहस्पति तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar"
+  ],
+  "lat": 29.980853,
+  "lng": 76.578826,
+  "short": {
+   "en": "Where the guru of the gods is said to have earned his place.",
+   "hi": "जहाँ देवगुरु ने तप कर अपना स्थान प्राप्त किया।"
+  },
+  "why": {
+   "en": "The Mahabharata's Shalya Parva places Devguru Brihaspati's austerity on this bank of the Saraswati, undertaken for knowledge, tapobal and divine power. Pleased with it, Brahma and Shiva are said to have given him the station of guru to the gods and the foremost place among the nine grahas. Brihaspati stands for knowledge, intellect and discernment, so students and sadhaks come here for that blessing, and those whose charts carry a weak or afflicted Guru — guru-chandal dosha among them — are counselled to bathe and worship here.",
+   "hi": "सरस्वती नदी के तट पर स्थित बृहस्पति तीर्थ ज्योतिषीय व आध्यात्मिक दृष्टि से महत्वपूर्ण तीर्थ है। महाभारत (शल्य पर्व) के अनुसार देवगुरु बृहस्पति ने ज्ञान, तपोबल और दिव्य शक्तियों की प्राप्ति हेतु इसी पावन तट पर कठोर तपस्या की थी। मान्यता है कि उनकी तपस्या से प्रसन्न होकर ब्रह्मा और शिव ने उन्हें देवगुरु का स्थान और नवग्रहों में सर्वश्रेष्ठ पद प्रदान किया। बृहस्पति ज्ञान, बुद्धि, विवेक और विद्या के कारक हैं; विद्यार्थियों और साधकों को यहाँ दर्शन-पूजन से विद्या व बुद्धि का आशीर्वाद मिलता है। जिनकी कुंडली में गुरु ग्रह कमजोर या दूषित (जैसे गुरु-चांडाल दोष) हो, उनके लिए यहाँ पूजा-अर्चना अत्यंत फलदायी मानी गई है।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Thursdays are the day",
+     "hi": "गुरुवार का दिन"
+    },
+    "d": {
+     "en": "Crowds gather on Thursdays. Yellow offerings — chana dal, besan laddu, turmeric, yellow cloth — are the custom.",
+     "hi": "गुरुवार को विशेष भीड़ रहती है। पीली वस्तुएँ — चने की दाल, बेसन के लड्डू, हल्दी, पीले वस्त्र — अर्पित की जाती हैं।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 5,
+   "max": 20
+  },
+  "hours": {
+   "o": "06:00",
+   "c": "19:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Thursday morning",
+   "hi": "गुरुवार प्रातः"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 40,
+  "first": 40,
+  "parking": {
+   "en": "Roadside",
+   "hi": "सड़क किनारे"
+  },
+  "facilities": []
+ },
+ {
+  "id": "p-ram-tirth",
+  "city": "pehowa",
+  "img": "p-ram-tirth",
+  "gallery": [],
+  "name": {
+   "en": "Ram Tirth, Pehowa",
+   "hi": "राम तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar"
+  ],
+  "lat": 29.983864,
+  "lng": 76.581283,
+  "short": {
+   "en": "Where Rama is said to have offered the pind for Dasharatha.",
+   "hi": "जहाँ श्रीराम ने महाराज दशरथ का पिंडदान किया।"
+  },
+  "why": {
+   "en": "The Vamana Purana relates that after the conquest of Lanka and the death of Ravana, Rama travelled to this bank of the Saraswati for the peace and moksha of his father Maharaj Dasharatha. The tradition here is that Rama, with Sita and Lakshmana, performed the pind-daan and tarpan at this spot, and that as he poured the water, Dasharatha's own hands rose from it to accept the pind. The account belongs to the late Treta age and shows that Pehowa — Prithudak — has been the foremost centre of pitra-mukti since the Vedic period. Performing shraddh here is held to carry the same release for one's own forebears.",
+   "hi": "सरस्वती नदी के तट पर स्थित राम तीर्थ भगवान श्रीराम के पिहोवा आगमन और उनकी पितृ-भक्ति का जीवंत साक्ष्य है। वामन पुराण के अनुसार त्रेतायुग में लंका विजय और रावण वध के पश्चात भगवान श्रीराम ने अपने पिता महाराज दशरथ की आत्मिक शांति और मोक्ष हेतु इस पावन स्थान की यात्रा की। मान्यता है कि श्रीराम ने माता सीता और लक्ष्मण के साथ यहीं महाराज दशरथ का पिंडदान और तर्पण किया, और जब वे जल-तर्पण कर रहे थे तब जल से राजा दशरथ के हाथ प्रकट होकर पिंड स्वीकार करने लगे। यह वर्णन दर्शाता है कि पिहोवा (पृथूदक) वैदिक काल से ही पितृ-मुक्ति का सर्वोपरि केंद्र रहा है। यहाँ पूर्वजों का श्राद्ध करने से उन्हें मोक्ष मिलता है।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Paath through the day",
+     "hi": "दिनभर पाठ"
+    },
+    "d": {
+     "en": "Ramcharitmanas and Sundarkand paath run continuously in the precinct.",
+     "hi": "परिसर में निरंतर रामचरितमानस पाठ और सुंदरकांड चलता रहता है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 5,
+   "max": 20
+  },
+  "hours": {
+   "o": "05:30",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning",
+   "hi": "प्रातःकाल"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 40,
+  "first": 44,
+  "parking": {
+   "en": "Near the ghats",
+   "hi": "घाटों के निकट"
+  },
+  "facilities": [
+   "water"
+  ]
+ },
+ {
+  "id": "p-papantak",
+  "city": "pehowa",
+  "img": "",
+  "gallery": [],
+  "name": {
+   "en": "Papantak Tirth, Pehowa",
+   "hi": "पापान्तक तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar",
+   "mahabharata"
+  ],
+  "lat": 29.980958,
+  "lng": 76.57904,
+  "short": {
+   "en": "Named for what its water is said to end — sin itself.",
+   "hi": "नाम ही अर्थ है — जहाँ पहुँचते ही पापों का अंत हो।"
+  },
+  "why": {
+   "en": "Pap plus antak: the ender of sin. The Vamana Purana holds that the rishis and devas themselves made and named this tirtha, and the Mahabharata — in the Vana and Shalya Parvas — describes it among the Saraswati bank tirthas as a kund whose water has the power to destroy every kind of transgression. Many rishis brought their disciples to this quiet bank so their sadhana could go on without obstruction. The belief is that one who bathes here in true repentance for past wrongs is freed of the sins of many births. After the war, the Pandavas came to Kurukshetra and to Papantak for the prayashchit of what the fighting had cost them.",
+   "hi": "'पाप + अंतक' — पापों का अंत करने वाला। वामन पुराण के अनुसार इस तीर्थ का निर्माण और नामकरण स्वयं ऋषियों और देवताओं द्वारा किया गया था। महाभारत के वन पर्व और शल्य पर्व में इसे ऐसे पावन कुंड के रूप में वर्णित किया गया है जिसका जल सभी प्रकार के पातकों का नाश करने की शक्ति रखता है। प्राचीन काल में अनेक ऋषियों ने अपने शिष्यों के साथ इस शांत तट पर तपस्या की ताकि साधना निर्विघ्न रहे। मान्यता है कि जो सच्चे मन से प्रायश्चित करते हुए यहाँ स्नान या आचमन करता है, उसके जन्मांतर के पाप नष्ट हो जाते हैं। महाभारत युद्ध की समाप्ति के पश्चात पांडवों ने आत्म-शुद्धि हेतु इस तीर्थ की यात्रा की थी।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Sankalp snan",
+     "hi": "संकल्प स्नान"
+    },
+    "d": {
+     "en": "The custom here is to enter the water, ask forgiveness for unknowing wrongs, and take the resolve of the dharma path.",
+     "hi": "यहाँ की मुख्य परंपरा 'संकल्प स्नान' है — जल में उतरकर अनजाने पापों की क्षमा-याचना और धर्म मार्ग का संकल्प।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 5,
+   "max": 20
+  },
+  "hours": {
+   "o": "05:30",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning; lamps are floated at dusk",
+   "hi": "प्रातःकाल; संध्या को दीपदान"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 40,
+  "first": 42,
+  "parking": {
+   "en": "Roadside",
+   "hi": "सड़क किनारे"
+  },
+  "facilities": []
+ },
+ {
+  "id": "p-yayati",
+  "city": "pehowa",
+  "img": "",
+  "gallery": [],
+  "name": {
+   "en": "Yayati Tirth, Pehowa",
+   "hi": "ययाति तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar",
+   "mahabharata"
+  ],
+  "lat": 29.98192,
+  "lng": 76.57998,
+  "short": {
+   "en": "The ghat where a chakravarti king is said to have held a hundred yajnas.",
+   "hi": "वह घाट जहाँ चक्रवर्ती राजा ने सौ यज्ञ किए।"
+  },
+  "why": {
+   "en": "The Mahabharata, in the Adi and Vana Parvas, places Chakravarti Raja Yayati — son of the Chandravanshi king Nahusha — on this bank of the Saraswati, where he is said to have completed more than a hundred great yajnas. Devraj Indra and the devas are said to have come to the ground for them. The stretch of bank where Yayati raised his altars came to be called Yayati Tirth, or Yayati Ghat. The Vamana Purana holds that a bath in its water carries merit equal to the Rajasuya and Ashvamedha yajnas, and that darshan here brings continuation of the line, the joy of children, and honour and prosperity in life.",
+   "hi": "महाभारत (आदि पर्व व वन पर्व) के अनुसार चंद्रवंशी राजा नहुष के पुत्र चक्रवर्ती राजा ययाति ने सरस्वती नदी के इस तट पर अनेक विशाल महायज्ञ आयोजित किए थे। धार्मिक ग्रंथों में उल्लेख है कि उन्होंने यहीं बैठकर 100 से भी अधिक यज्ञ संपन्न किए, जिनके कारण देवराज इंद्र और देवतागण भी इस स्थान पर पधारे थे। जिस तट पर राजा ययाति ने यज्ञ की वेदियाँ स्थापित की थीं, वह कालांतर में ययाति तीर्थ या ययाति घाट कहलाया। वामन पुराण के अनुसार जो ययाति तीर्थ के जल में स्नान करता है, उसे राजसूय और अश्वमेध यज्ञ के समान महापुण्य मिलता है; यहाँ दर्शन-पूजन से वंश-वृद्धि, संतान सुख तथा मान-सम्मान व वैभव की प्राप्ति होती है।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Havan is arranged here",
+     "hi": "यहाँ हवन कराया जाता है"
+    },
+    "d": {
+     "en": "Being a yajna ground, families have a small havan performed for wishes fulfilled and household peace.",
+     "hi": "यज्ञ-भूमि होने के कारण श्रद्धालु मनोकामना पूर्ति और गृह-शांति हेतु छोटा हवन करवाते हैं।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 5,
+   "max": 20
+  },
+  "hours": {
+   "o": "06:00",
+   "c": "19:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning",
+   "hi": "प्रातःकाल"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 30,
+  "first": 34,
+  "parking": {
+   "en": "Roadside",
+   "hi": "सड़क किनारे"
+  },
+  "facilities": []
+ },
+ {
+  "id": "p-vashishtha-prachi",
+  "city": "pehowa",
+  "img": "p-vashishtha-prachi",
+  "gallery": [
+   "p-vashishtha-prachi-1"
+  ],
+  "approx": true,
+  "name": {
+   "en": "Vashishtha Prachi Tirth, Pehowa",
+   "hi": "वशिष्ठ प्राची तीर्थ, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "sarovar",
+   "heritage"
+  ],
+  "lat": 29.9824,
+  "lng": 76.58055,
+  "short": {
+   "en": "Where the Saraswati turned east to save a rishi.",
+   "hi": "जहाँ सरस्वती ने ऋषि की रक्षा हेतु दिशा बदली।"
+  },
+  "why": {
+   "en": "Prachi in Sanskrit means the eastern direction. The Mahabharata's Shalya Parva and the Vamana Purana tell that during the long contest between Vishwamitra and Vasishtha, the Saraswati — under pressure from Vishwamitra — began to carry Vasishtha away in her current towards his ashram. To protect the rishi, the river suddenly changed her course at this place and turned east. Bathing in a river flowing eastward is held in the shastras to be rare and many times more meritorious. Maharshi Vasishtha, first among the Saptarishis and a figure of brahmajnana, performed his austerity here, and darshan and dhyan at this tirtha are said to bring calm, knowledge and intellectual growth.",
+   "hi": "यह तीर्थ ब्रह्मा जी के मानस पुत्र सप्तर्षि महर्षि वशिष्ठ की कठोर तपस्या और सरस्वती नदी के पूर्व-वाहिनी (प्राची) प्रवाह से जुड़ा है। संस्कृत में 'प्राची' का अर्थ पूर्व दिशा है। महाभारत (शल्य पर्व) व वामन पुराण के अनुसार जब महर्षि विश्वामित्र और महर्षि वशिष्ठ के बीच प्रतिस्पर्धा हुई, तब विश्वामित्र के दबाव में सरस्वती नदी वशिष्ठ जी को अपने प्रवाह में बहाकर ले जाने लगीं; किंतु उनकी रक्षा हेतु सरस्वती ने इसी स्थान पर अचानक अपनी दिशा बदल दी और पूर्व की ओर बहने लगीं। शास्त्रों के अनुसार पूर्व दिशा की ओर बहती नदी (प्राची सरस्वती) में स्नान अत्यंत दुर्लभ और करोड़ों गुना अधिक पुण्यदायी है। महर्षि वशिष्ठ ब्रह्मज्ञान के प्रतीक हैं; यहाँ दर्शन व ध्यान से मानसिक शांति, ज्ञान और बौद्धिक विकास का आशीर्वाद मिलता है।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Bathing in the eastward flow",
+     "hi": "पूर्व-वाहिनी में स्नान"
+    },
+    "d": {
+     "en": "The principal custom — snan or achman in the Prachi Saraswati, held to be rare and highly meritorious.",
+     "hi": "प्रमुख परंपरा — पूर्व-वाहिनी सरस्वती के जल में स्नान या आचमन, जो दुर्लभ और अत्यंत पुण्यदायी माना गया है।"
+    }
+   },
+   {
+    "n": {
+     "en": "Tarpan with kusha and til",
+     "hi": "कुशा व तिल से तर्पण"
+    },
+    "d": {
+     "en": "Pilgrims offer kusha, water and sesame for their forebears, and give cloth and grain in daan.",
+     "hi": "श्रद्धालु पूर्वजों हेतु कुशा, जल और तिल से तर्पण करते हैं और वस्त्र व अन्न का दान देते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Chaitra Chaudas",
+     "hi": "चैत्र चौदस"
+    },
+    "d": {
+     "en": "On the fourteenth of Chaitra lakhs bathe here and at Prithudak. Bhadrapad Shukla Panchami is kept for the Saptarishis.",
+     "hi": "चैत्र कृष्ण चतुर्दशी पर लाखों श्रद्धालु यहाँ और पृथूदक पर स्नान करते हैं। भाद्रपद शुक्ल पंचमी सप्तर्षियों के सम्मान में मनाई जाती है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 15,
+   "min": 10,
+   "max": 30
+  },
+  "hours": {
+   "o": "05:30",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Early morning",
+   "hi": "प्रातःकाल"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 100,
+  "first": 88,
+  "parking": {
+   "en": "Roadside near the ghat",
+   "hi": "घाट के निकट सड़क किनारे"
+  },
+  "facilities": [
+   "water"
+  ]
+ },
+ {
+  "id": "p-bauli-sahib",
+  "city": "pehowa",
+  "img": "p-bauli-sahib",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Gurudwara Bauli Sahib, Pehowa",
+   "hi": "गुरुद्वारा बाउली साहिब, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "heritage"
+  ],
+  "lat": 29.98305,
+  "lng": 76.5784,
+  "short": {
+   "en": "Ground touched by three Gurus, with a stepped baoli.",
+   "hi": "तीन गुरु साहिबान की चरण-छोह प्राप्त भूमि, सीढ़ीदार बाउली सहित।"
+  },
+  "why": {
+   "en": "This is one of the few places in north India where three Sikh Gurus have set foot. Guru Nanak Dev Ji came to Kurukshetra and Pehowa on his first udasi, at the time of a solar eclipse, and taught here that devotion to one God and the service of others stand above ritual. Guru Tegh Bahadur Ji stayed here on his travels through the Malwa and Bangar country. Guru Gobind Singh Ji came on his journey from Anandpur Sahib. A baoli — a stepped well — was built for the sangat in memory of the Gurus, and gives the gurudwara its name. The grand building came later, in the time of the Sikh empire and the Patiala state, and the shrine is now looked after by the SGPC.",
+   "hi": "गुरुद्वारा बाउली साहिब सिख धर्म का अत्यंत पवित्र और ऐतिहासिक स्थल है। यह ऐतिहासिक गुरुद्वारा श्री गुरु नानक देव जी, श्री गुरु तेग बहादुर जी और श्री गुरु गोविंद सिंह जी की पावन चरण-छोह प्राप्त भूमि पर सुशोभित है। गुरु नानक देव जी अपनी पहली 'उदासी' के दौरान सूर्य ग्रहण के अवसर पर कुरुक्षेत्र और पिहोवा पधारे और यहाँ कर्मकांडों से ऊपर उठकर एक ईश्वर की भक्ति और मानव सेवा का संदेश दिया। गुरु तेग बहादुर जी मालवा व बांगर क्षेत्र की यात्रा के दौरान यहाँ ठहरे। गुरु गोविंद सिंह जी आनंदपुर साहिब से कुरुक्षेत्र-पिहोवा यात्रा के दौरान यहाँ पधारे। 'बाउली' का अर्थ सीढ़ीदार कुआं होता है — गुरु साहिबान की स्मृति और संगत की सुविधा हेतु यहाँ पवित्र बाउली बनवाई गई, जिससे इस गुरुद्वारे का नाम पड़ा। बाद में सिख साम्राज्य और पटियाला रियासत के समय भव्य गुरुद्वारे का निर्माण हुआ, जिसकी देखरेख अब शिरोमणि गुरुद्वारा प्रबंधक कमेटी करती है।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "The Bauli Sahib",
+     "hi": "बाउली साहिब"
+    },
+    "d": {
+     "en": "The stepped well itself. Bathing or taking achman from its water is held to ease body and mind.",
+     "hi": "सीढ़ीदार जलकुंड। मान्यता है कि इसके जल में स्नान या आचमन से शारीरिक व मानसिक कष्ट दूर होते हैं।"
+    }
+   },
+   {
+    "n": {
+     "en": "Guru ka Langar",
+     "hi": "गुरु का लंगर"
+    },
+    "d": {
+     "en": "Served free, round the clock, to everyone without distinction of caste or faith.",
+     "hi": "24 घंटे, बिना किसी भेदभाव के, सभी के लिए निःशुल्क।"
+    }
+   },
+   {
+    "n": {
+     "en": "Baisakhi",
+     "hi": "बैसाखी"
+    },
+    "d": {
+     "en": "On 13/14 April great diwans are held here for the founding of the Khalsa, with Akhand Path.",
+     "hi": "13/14 अप्रैल — खालसा पंथ स्थापना दिवस पर विशाल दीवान और अखंड पाठ साहिब का भोग।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Cover your head",
+     "hi": "सिर ढकें"
+    },
+    "d": {
+     "en": "Heads are covered and shoes left outside, as at every gurudwara. Cloth is available at the entrance.",
+     "hi": "हर गुरुद्वारे की भाँति सिर ढकें और जूते बाहर छोड़ें। प्रवेश द्वार पर कपड़ा उपलब्ध रहता है।"
+    }
+   },
+   {
+    "t": {
+     "en": "Langar is always on",
+     "hi": "लंगर सदैव चालू"
+    },
+    "d": {
+     "en": "If your route lands here at a meal time, langar covers it.",
+     "hi": "यदि आपका मार्ग भोजन के समय यहाँ पहुँचता है, तो लंगर से भोजन हो जाएगा।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 20,
+   "min": 15,
+   "max": 45
+  },
+  "hours": {
+   "o": "04:00",
+   "c": "22:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee; langar is free",
+   "hi": "प्रवेश निःशुल्क; लंगर निःशुल्क"
+  },
+  "best": {
+   "en": "Early morning or evening kirtan",
+   "hi": "प्रातःकाल या संध्या कीर्तन"
+  },
+  "bestKey": "morning",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 90,
+  "first": 90,
+  "parking": {
+   "en": "Gurudwara parking",
+   "hi": "गुरुद्वारा पार्किंग"
+  },
+  "facilities": [
+   "washroom",
+   "water",
+   "food",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-sangameshwar",
+  "city": "pehowa",
+  "img": "p-sangameshwar",
+  "gallery": [
+   "p-sangameshwar-1"
+  ],
+  "approx": true,
+  "name": {
+   "en": "Sangameshwar Tirth (Arunai Shiv Mandir)",
+   "hi": "संगमेश्वर तीर्थ (अरुणाई शिव मंदिर)"
+  },
+  "themes": [
+   "spiritual",
+   "heritage",
+   "sarovar"
+  ],
+  "lat": 29.964,
+  "lng": 76.5545,
+  "short": {
+   "en": "A swayambhu Shiva at the confluence of the Saraswati and the Aruna.",
+   "hi": "सरस्वती और अरुणा के संगम पर स्वयंभू शिवधाम।"
+  },
+  "why": {
+   "en": "In the puranic age the Saraswati and her tributary the Aruna met at this place, and it is from that sangam that the ground and its swayambhu Shiva shrine take the name Sangameshwar. The Vamana Purana and the Mahabharata's Shalya Parva relate that when the two rivers met here, Shiva appeared in lingam form at the prayer of the devas, so that those who bathed at the confluence would carry away merit that never runs out. Maharshi Dadhichi and many Vedic rishis are said to have performed austerity on this bank. As Prayagraj has its sangam, so the shastras hold that a bath at this meeting of the Saraswati and the Aruna carries the same fruit. It is a major stop on the 48 Kos parikrama.",
+   "hi": "अरुणाई शिव मंदिर अत्यंत प्राचीन, ऐतिहासिक और महिमामय धार्मिक स्थल है और कुरुक्षेत्र की 48 कोस परिक्रमा का प्रमुख अंग है। पौराणिक मान्यताओं के अनुसार प्राचीन काल में इसी स्थान पर पवित्र सरस्वती नदी और उनकी सहायक अरुणा नदी का दिव्य संगम हुआ था; इसी 'संगम' के कारण इस भूमि और यहाँ स्थापित स्वयंभू शिवधाम को 'संगमेश्वर तीर्थ' कहा गया। वामन पुराण और महाभारत (शल्य पर्व) के अनुसार जब दोनों नदियाँ यहाँ मिलीं, तब देवताओं की प्रार्थना पर स्वयं भगवान शिव लिंग रूप में प्रकट हुए, ताकि संगम पर स्नान करने वालों को अक्षय पुण्य मिले। महर्षि दधीचि तथा अनेक वैदिक ऋषियों ने इसी संगम तट पर तपस्या की। शास्त्रों के अनुसार जैसे प्रयागराज के संगम का महत्व है, वैसे ही यहाँ स्नान से प्रयागराज स्नान जैसा फल प्राप्त होता है।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Falgun Krishna Chaturdashi",
+     "hi": "फाल्गुन कृष्ण चतुर्दशी"
+    },
+    "d": {
+     "en": "Sangameshwar's largest festival — a great mela, four-prahar puja and jalabhishek by lakhs of devotees.",
+     "hi": "संगमेश्वर धाम का सबसे बड़ा उत्सव — विशाल मेला, चार प्रहर की पूजा और लाखों भक्तों का जलाभिषेक।"
+    }
+   },
+   {
+    "n": {
+     "en": "Kanwar in Sawan",
+     "hi": "सावन में कांवड़"
+    },
+    "d": {
+     "en": "Kanwariyas bring water from Haridwar and Kurukshetra for the abhishek through the month of Sawan.",
+     "hi": "सावन में कांवड़िये हरिद्वार व कुरुक्षेत्र से जल लाकर विशेष जलाभिषेक करते हैं।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Outside the town",
+     "hi": "नगर से बाहर"
+    },
+    "d": {
+     "en": "This one sits away from the Pehowa ghat cluster — allow the drive both ways.",
+     "hi": "यह पिहोवा के घाट-समूह से दूर है — आने-जाने का समय अलग रखें।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 20,
+   "min": 15,
+   "max": 45
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Mornings; Mahashivratri and Sawan above all",
+   "hi": "प्रातःकाल; विशेषतः महाशिवरात्रि व सावन"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 100,
+  "first": 92,
+  "parking": {
+   "en": "Parking at the temple",
+   "hi": "मंदिर पर पार्किंग"
+  },
+  "facilities": [
+   "washroom",
+   "water",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-bala-sundari",
+  "city": "pehowa",
+  "img": "p-bala-sundari",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Shri Mata Bala Sundari Mandir, Pehowa",
+   "hi": "श्री माता बाला सुंदरी मंदिर, पिहोवा"
+  },
+  "themes": [
+   "spiritual"
+  ],
+  "lat": 29.9808,
+  "lng": 76.5762,
+  "short": {
+   "en": "The Devi in her child form, a siddhpeeth for many families' kuldevi.",
+   "hi": "माता का बाल स्वरूप, अनेक परिवारों की कुलदेवी का सिद्धपीठ।"
+  },
+  "why": {
+   "en": "This siddhpeeth is given to Bhagavati Jagadamba in her child form — Mata Bala Tripura Sundari — and the Devi is seated here both as pindi and as image. Local tradition holds that before the Mahabharata war the Pandavas worshipped Bala Sundari, their kuldevi, for victory and strength, and that at Krishna's prompting Arjuna meditated on this form of the Devi and received her blessing. As at the well-known siddhpeeths of north India, such as Trilokpur, the Devi is held to have appeared here in pindi form. Later, local devotees, sants and the landholders of northern Haryana rebuilt and maintained the temple, making it one of Pehowa's principal centres of faith.",
+   "hi": "श्री माता बाला सुंदरी मंदिर भगवती जगदम्बा के बाल स्वरूप (माता बाला त्रिपुरा सुंदरी) को समर्पित प्राचीन सिद्धपीठ है। यहाँ माता रानी पिंडी रूप व मनमोहक प्रतिमा स्वरूप में विराजमान होकर भक्तों की मनोकामनाएँ पूर्ण करती हैं। स्थानीय मान्यताओं के अनुसार द्वापर युग में महाभारत युद्ध से पूर्व पांडवों ने अपनी विजय और शक्ति की प्राप्ति हेतु अपनी कुलदेवी माता बाला सुंदरी का पूजन किया था; भगवान श्रीकृष्ण की प्रेरणा से अर्जुन ने माता भगवती के इस स्वरूप का ध्यान कर आशीर्वाद प्राप्त किया। उत्तर भारत के प्रसिद्ध सिद्धपीठों (जैसे त्रिलोकपुर की माता बाला सुंदरी) की भाँति यहाँ भी माता का प्राकट्य पिंडी स्वरूप में माना जाता है। कालांतर में स्थानीय श्रद्धालुओं, संतों और क्षेत्रपतियों ने मंदिर के संरक्षण व जीर्णोद्धार में योगदान दिया।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Families come for the children",
+     "hi": "संतान हेतु परिवार आते हैं"
+    },
+    "d": {
+     "en": "The old custom is to bow here for the health and long life of newborns and small children.",
+     "hi": "नवजात शिशुओं और छोटे बच्चों के आरोग्य व दीर्घायु के लिए माता के द्वार पर माथा टेकने की प्राचीन परंपरा है।"
+    }
+   },
+   {
+    "t": {
+     "en": "Navratri",
+     "hi": "नवरात्रि"
+    },
+    "d": {
+     "en": "Through Navratri small girls are worshipped and fed at the temple.",
+     "hi": "नवरात्रों में छोटी बाल-कन्याओं को पूजकर भोजन कराने की परंपरा निभाई जाती है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 8,
+   "max": 25
+  },
+  "hours": {
+   "o": "05:00",
+   "c": "21:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Navratri; mornings and evenings otherwise",
+   "hi": "नवरात्रि; अन्यथा प्रातः व संध्या"
+  },
+  "bestKey": "morning",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 90,
+  "first": 76,
+  "parking": {
+   "en": "Street parking nearby",
+   "hi": "निकट सड़क किनारे पार्किंग"
+  },
+  "facilities": [
+   "water"
+  ]
+ },
+ {
+  "id": "p-dholi-haveli",
+  "city": "pehowa",
+  "img": "p-dholi-haveli",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Dholi Haveli, Pehowa",
+   "hi": "ढोली हवेली, पिहोवा"
+  },
+  "themes": [
+   "heritage",
+   "archaeology"
+  ],
+  "lat": 29.9833,
+  "lng": 76.5761,
+  "short": {
+   "en": "Frescoed jharokhas and carved wood — Pehowa's secular heritage.",
+   "hi": "भित्तिचित्र और नक्काशीदार झरोखे — पिहोवा की लौकिक विरासत।"
+  },
+  "why": {
+   "en": "Where Pehowa is known for its temples and its tirtha ghats, the Dholi Haveli in the Nand Colony / Badi Chadhai quarter stands for something else — the architecture, courtly life and folk art of the region's medieval and colonial period. It was built by prosperous local households and is an unusual example of traditional Haryana and Punjab haveli architecture. Its walls and jharokhas carry frescoes and fine woodcarving in which puranic episodes, everyday life and the manner of the time can all be read. The white lime plaster and the sheer scale of the front gave it the local name Dholi — the white haveli. For researchers, historians and visitors it is a fixture of the town's heritage walk, and the old arches, the wide courtyard and the jharokha work draw photographers.",
+   "hi": "पिहोवा (नंद कॉलोनी / बड़ी चढ़ाई क्षेत्र) में स्थित ढोली हवेली एक प्राचीन, ऐतिहासिक और सांस्कृतिक विरासत स्थल है। जहाँ पिहोवा अपने प्राचीन मंदिरों और तीर्थ घाटों के लिए प्रसिद्ध है, वहीं ढोली हवेली इस क्षेत्र के मध्यकालीन/औपनिवेशिक काल की वास्तुकला, शाही जीवनशैली और लोक कला का प्रमुख प्रतीक है। इसका निर्माण वर्षों पूर्व स्थानीय समृद्ध घरानों द्वारा करवाया गया और यह हरियाणा व पंजाब की पारंपरिक हवेली स्थापत्य कला का अनूठा उदाहरण है। इसकी दीवारों और झरोखों पर बने पारंपरिक भित्तिचित्र और लकड़ी की बारीक नक्काशी सबसे बड़ी विशेषता है — इन चित्रों में पौराणिक प्रसंग, लोक जीवन और उस समय की जीवनशैली की झलक मिलती है। बाहरी स्वरूप, चूने की विशेष सफेदी और भव्यता के कारण इसे स्थानीय बोलचाल में 'ढोली हवेली' (धवल या सफेद हवेली) कहा जाने लगा।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Open 10am to 5pm",
+     "hi": "समय 10 से 5 बजे"
+    },
+    "d": {
+     "en": "Unlike the tirthas, this one keeps set hours. Plan it into the middle of the day.",
+     "hi": "तीर्थों के विपरीत यहाँ निश्चित समय है। इसे दिन के मध्य में रखें।"
+    }
+   },
+   {
+    "t": {
+     "en": "For the frescoes",
+     "hi": "भित्तिचित्रों हेतु"
+    },
+    "d": {
+     "en": "The wall paintings and the jharokha carving are the point of the visit.",
+     "hi": "दीवारों के चित्र और झरोखों की नक्काशी ही यहाँ आने का कारण है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 15,
+   "min": 10,
+   "max": 35
+  },
+  "hours": {
+   "o": "10:00",
+   "c": "17:00"
+  },
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Midday, when the light reaches the courtyard",
+   "hi": "मध्याह्न, जब आंगन में प्रकाश आता है"
+  },
+  "bestKey": "midday",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 70,
+  "first": 68,
+  "parking": {
+   "en": "Street parking in the colony",
+   "hi": "कॉलोनी में सड़क किनारे पार्किंग"
+  },
+  "facilities": []
+ },
+ {
+  "id": "p-krishna-kripa",
+  "city": "pehowa",
+  "img": "p-krishna-kripa",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Shri Krishna Kripa Mandir, Pehowa",
+   "hi": "श्री कृष्ण कृपा मंदिर, पिहोवा"
+  },
+  "themes": [
+   "spiritual"
+  ],
+  "lat": 29.9789,
+  "lng": 76.5833,
+  "short": {
+   "en": "A quiet Gita centre with a large gaushala attached.",
+   "hi": "शांत गीता केंद्र, साथ में विशाल गौशाला।"
+  },
+  "why": {
+   "en": "Run by the Shri Krishna Kripa Seva Samiti at the prompting of Gita Manishi Swami Gyananand Ji Maharaj, this dham is given to Krishna and to the spreading of the Bhagavad Gita — nishkam karma, bhakti and the service of life. It is not a place of worship alone: a large Shri Krishna Kripa gaushala is run here, where hundreds of cattle are cared for. Away from the press of Pehowa's shraddh ghats, the temple is one of the better places in the town to sit, meditate and hear naam-sankirtan. Satsangs and discussions on the chapters of the Gita are held here for sadhaks and for young people.",
+   "hi": "श्री कृष्ण कृपा मंदिर एक दिव्य, शांत और आध्यात्मिक केंद्र है। 'गीता मनीषी' स्वामी ज्ञानानंद जी महाराज की प्रेरणा और श्री कृष्ण कृपा सेवा समिति द्वारा संचालित यह धाम भक्ति, श्रीमद्भगवद्गीता के उपदेशों और जीव-सेवा का अनुपम संगम है। इसका मुख्य उद्देश्य समाज में गीता के ज्ञान, निष्काम कर्म और भक्ति भाव का प्रचार-प्रसार करना है। यह धाम केवल पूजा-अर्चना तक सीमित नहीं — इसके अंतर्गत एक विशाल श्री कृष्ण कृपा गौशाला संचालित होती है, जहाँ सैकड़ों गोवंश की निस्वार्थ सेवा की जाती है। पिहोवा के पारंपरिक श्राद्ध-घाटों के कोलाहल से दूर, यह मंदिर ध्यान, नाम-संकीर्तन और आत्मिक शांति के लिए बेहतरीन स्थान है। समय-समय पर यहाँ गीता के अध्यायों पर आधारित सत्संग और विचार-गोष्ठियाँ होती हैं।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "The gaushala",
+     "hi": "गौशाला"
+    },
+    "d": {
+     "en": "Visitors feed the cattle by hand — fodder, gur and green grass.",
+     "hi": "श्रद्धालु स्वयं अपने हाथों से गायों को चारा, गुड़ व हरा ग्रास खिलाते हैं।"
+    }
+   },
+   {
+    "n": {
+     "en": "Gita satsang",
+     "hi": "गीता सत्संग"
+    },
+    "d": {
+     "en": "Sessions on the chapters of the Bhagavad Gita for sadhaks and young people.",
+     "hi": "साधकों और युवाओं के लिए श्रीमद्भगवद्गीता के अध्यायों पर सत्संग।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "A calm counterweight",
+     "hi": "शांत विपरीत"
+    },
+    "d": {
+     "en": "If the ghats have been crowded, this is the place to sit for a while.",
+     "hi": "यदि घाटों पर भीड़ रही हो, तो कुछ देर बैठने के लिए यही स्थान है।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 8,
+   "max": 30
+  },
+  "hours": {
+   "o": "05:30",
+   "c": "20:30"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning or evening aarti",
+   "hi": "प्रातः या संध्या आरती"
+  },
+  "bestKey": "morning",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 70,
+  "first": 70,
+  "parking": {
+   "en": "Parking in the complex",
+   "hi": "परिसर में पार्किंग"
+  },
+  "facilities": [
+   "washroom",
+   "water",
+   "parking"
+  ]
+ },
+ {
+  "id": "p-saraswati-van",
+  "city": "pehowa",
+  "img": "p-saraswati-van",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Saraswati Wildlife Sanctuary (Seonsar forest)",
+   "hi": "सरस्वती वन्यजीव अभयारण्य (सिओंसर जंगल)"
+  },
+  "themes": [
+   "nature"
+  ],
+  "lat": 29.931,
+  "lng": 76.479,
+  "short": {
+   "en": "Haryana's second-largest forest, on the Saraswati's old floodplain.",
+   "hi": "सरस्वती के पुराने मैदान पर हरियाणा का दूसरा सबसे बड़ा वन।"
+  },
+  "why": {
+   "en": "On the boundary of Kurukshetra and Kaithal districts, near Pehowa tehsil, the Saraswati Wildlife Sanctuary — known locally as the Seonsar forest — is among the oldest and largest natural forests in the state. It spreads over roughly 11,000 acres (4,400 hectares), which makes it the second largest natural forest tract in Haryana after Kalesar in Yamunanagar. The lost Saraswati is held to have flowed through this country, and as a tapobhumi of the rishis the forest has been treated as protected since the Vedic period. The woods are dry deciduous — shisham, sagwan, kikar, neem, jamun, bahera and dense bamboo. Nilgai are the mainstay of its wildlife; peafowl, partridge, kite, hawk and owl are common, and migratory birds come through in winter.",
+   "hi": "कुरुक्षेत्र और कैथल जिलों की सीमा पर (पिहोवा तहसील के पास) स्थित सरस्वती वन्यजीव अभयारण्य, जिसे स्थानीय रूप से सिओंसर जंगल कहा जाता है, राज्य के सबसे प्राचीन और विशाल प्राकृतिक वनों में से एक है। लगभग 11,000 एकड़ (4,400 हेक्टेयर) में फैला यह अभयारण्य हरियाणा में कलेसर (यमुनानगर) के बाद दूसरा सबसे बड़ा प्राकृतिक वन क्षेत्र है। माना जाता है कि प्राचीन काल में लुप्त हुई पवित्र सरस्वती नदी इसी वन क्षेत्र से होकर बहती थी; ऋषियों की तपोभूमि होने के कारण इसे वैदिक काल से संरक्षित वन माना जाता रहा है। सिओंसर के जंगल शुष्क पर्णपाती वनों की श्रेणी में आते हैं — यहाँ शीशम, सागवान, कीकर, नीम, जामुन, बहेड़ा और बाँस के घने पेड़ हैं। यह जंगल मुख्य रूप से नीलगाय के लिए जाना जाता है; मोर, तीतर, चील, बाज़ और उल्लू बहुतायत में मिलते हैं, और सर्दियों में कई प्रवासी पक्षी भी आते हैं।"
+  },
+  "notice": [
+   {
+    "t": {
+     "en": "Two windows only",
+     "hi": "केवल दो समय-खंड"
+    },
+    "d": {
+     "en": "6:00–10:00 in the morning and 3:00–6:00 in the afternoon. No entry after sunset, for forest safety.",
+     "hi": "प्रातः 06:00 से 10:00 और अपराह्न 03:00 से 06:00 तक। सूर्यास्त के बाद वन सुरक्षा कारणों से प्रवेश नहीं।"
+    }
+   },
+   {
+    "t": {
+     "en": "Timings can shift",
+     "hi": "समय बदल सकता है"
+    },
+    "d": {
+     "en": "Hours may change slightly under Forest Department rules. Confirm before setting out.",
+     "hi": "वन विभाग के नियमों के अनुसार समय में हल्का बदलाव हो सकता है। निकलने से पूर्व पुष्टि कर लें।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 60,
+   "min": 45,
+   "max": 150
+  },
+  "hours": {
+   "o": "06:00",
+   "c": "18:00"
+  },
+  "breaks": [
+   [
+    "10:00",
+    "15:00"
+   ]
+  ],
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "Check with the Forest Department",
+   "hi": "वन विभाग से पुष्टि करें"
+  },
+  "best": {
+   "en": "Early morning, for the birds",
+   "hi": "प्रातःकाल, पक्षी दर्शन हेतु"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": false,
+  "rank": 90,
+  "first": 74,
+  "parking": {
+   "en": "At the forest gate",
+   "hi": "वन प्रवेश द्वार पर"
+  },
+  "facilities": [
+   "parking"
+  ]
+ },
+ {
+  "id": "p-nathon-dera",
+  "city": "pehowa",
+  "img": "p-nathon-dera",
+  "gallery": [],
+  "name": {
+   "en": "Nathon ka Dera, Pehowa",
+   "hi": "नाथों का डेरा, पिहोवा"
+  },
+  "themes": [
+   "spiritual",
+   "heritage"
+  ],
+  "lat": 29.981366,
+  "lng": 76.579508,
+  "short": {
+   "en": "A Nath sampradaya seat with an unbroken dhuna.",
+   "hi": "नाथ संप्रदाय का आसन, जहाँ अखंड धूना जलता है।"
+  },
+  "why": {
+   "en": "This is an old seat of the Nath sampradaya — the tradition of hathayoga and Shiva-upasana — tied to Guru Gorakhnath, held to be an avatar of Shiva, and to the Navnath lineage. Tradition holds that Gorakhnath and his disciples stayed and performed austerity on the Saraswati bank at Pehowa. Pehowa, the ancient Prithudak, has long been a ground of siddhas, munis and yogis, and it was in that line that the Nath siddhas founded this dera as a place of sadhana. Its defining feature is the akhand dhuna, the unbroken sacred fire; in the Nath tradition the dhuna stands for Shiva himself, and its vibhuti is taken by devotees as a remedy against illness and affliction.",
+   "hi": "यह नाथ संप्रदाय का अत्यंत प्राचीन, ऐतिहासिक और अध्यात्म से परिपूर्ण स्थल है। भगवान शिव के अवतार माने जाने वाले गुरु गोरखनाथ जी और नवनाथ परंपरा से जुड़ा यह स्थान नाथपंथ के साधुओं, योगियों और श्रद्धालुओं के लिए विशेष आस्था का केंद्र है। जनश्रुतियों के अनुसार प्राचीन काल में गुरु गोरखनाथ और उनके शिष्यों ने पिहोवा में सरस्वती नदी के तट पर प्रवास और तपस्या की थी। पिहोवा (प्राचीन पृथूदक) सिद्धों, मुनियों और योगियों की तपोभूमि रही है; उसी शृंखला में नाथ सिद्धों ने अपने साधना स्थल के रूप में इस डेरे की स्थापना की। डेरे की सबसे प्रमुख विशेषता यहाँ जलने वाला 'अखंड धूना' है। नाथ परंपरा में धूना भगवान शिव का प्रतीक माना जाता है और इसकी भस्म (विभूति) को भक्तों द्वारा रोग-दोष निवारक माना जाता है।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "The akhand dhuna",
+     "hi": "अखंड धूना"
+    },
+    "d": {
+     "en": "The sacred fire that has been kept burning here; its ash is taken as vibhuti.",
+     "hi": "यहाँ निरंतर जलती पवित्र अग्नि; इसकी भस्म विभूति के रूप में ली जाती है।"
+    }
+   },
+   {
+    "n": {
+     "en": "Annakshetra",
+     "hi": "अन्नक्षेत्र"
+    },
+    "d": {
+     "en": "Food is served continuously to the sadhus, yogis and pilgrims who come.",
+     "hi": "आने वाले साधुओं, योगियों और श्रद्धालुओं के लिए निरंतर अन्नक्षेत्र/लंगर।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "A working dera",
+     "hi": "साधना-स्थल"
+    },
+    "d": {
+     "en": "This is a place of sadhana rather than a monument. Keep quiet and ask before photographing.",
+     "hi": "यह स्मारक नहीं, साधना-स्थल है। शांति रखें और फ़ोटो से पूर्व अनुमति लें।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 15,
+   "min": 10,
+   "max": 30
+  },
+  "hours": {
+   "o": "06:00",
+   "c": "20:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning or after the evening dhuna is fed",
+   "hi": "प्रातः या संध्या धूना के पश्चात"
+  },
+  "bestKey": "morning",
+  "indoor": false,
+  "child": true,
+  "senior": true,
+  "rank": 80,
+  "first": 64,
+  "parking": {
+   "en": "Roadside",
+   "hi": "सड़क किनारे"
+  },
+  "facilities": [
+   "water",
+   "food"
+  ]
+ },
+ {
+  "id": "p-dakshin-kali",
+  "city": "pehowa",
+  "img": "p-dakshin-kali",
+  "gallery": [],
+  "approx": true,
+  "name": {
+   "en": "Shri Dakshin Kali Peeth, Pehowa",
+   "hi": "श्री दक्षिण काली पीठ, पिहोवा"
+  },
+  "themes": [
+   "spiritual"
+  ],
+  "lat": 29.9842,
+  "lng": 76.575,
+  "short": {
+   "en": "A Kali peeth in Model Town, with a rare Akash Bhairav shrine.",
+   "hi": "मॉडल टाउन में काली पीठ, दुर्लभ आकाश भैरव मंदिर सहित।"
+  },
+  "why": {
+   "en": "Standing in Pehowa's Model Town, in the Nahar Colony area, this peeth is given to Maa Adishakti Jagat Janani Kali and to tantric sadhana, and is today a centre of spiritual energy, Vedic anushthan and religious observance. Devotees and sadhaks hold worship of the Devi's several forms here to be particularly fruitful. Within the same precinct stands a shrine and vigraha of Shiva's rare and fierce form, Pakshiraj Akash Bhairav — by puranic account, the avatar Shiva took to quiet the fury of Narasimha. People come from far for the fulfilment of their wishes, for relief from crisis, and for peace.",
+   "hi": "श्री दक्षिण काली पीठ पिहोवा (प्रथूदक) में स्थित अत्यंत जाग्रत और महत्वपूर्ण धार्मिक स्थल है। यह पीठ मुख्य रूप से माँ आदिशक्ति जगत जननी माँ काली और तांत्रिक साधनाओं को समर्पित है, और पिहोवा के मॉडल टाउन (नहर कॉलोनी क्षेत्र) में स्थित है। वर्तमान में यह पीठ आध्यात्मिक ऊर्जा, वैदिक अनुष्ठानों और धार्मिक आयोजनों का प्रमुख केंद्र है। यहाँ माता के विभिन्न स्वरूपों की आराधना अत्यंत फलदायी मानी जाती है। इस परिसर में भगवान शिव के अत्यंत गुप्त और उग्र स्वरूप 'पक्षीराज आकाश भैरव' का मंदिर व विग्रह भी स्थापित है — पौराणिक मान्यता के अनुसार भगवान नरसिंह के उग्र रूप को शांत करने के लिए शिवजी ने यह अवतार लिया था। दूर-दूर से श्रद्धालु मनोकामना पूर्ति, संकट निवारण और शांति हेतु यहाँ आते हैं।"
+  },
+  "inside": [
+   {
+    "n": {
+     "en": "Pakshiraj Akash Bhairav",
+     "hi": "पक्षीराज आकाश भैरव"
+    },
+    "d": {
+     "en": "A rare shrine within the peeth to Shiva's fierce Bhairav form, taken to quiet Narasimha's rage.",
+     "hi": "पीठ परिसर में शिव के उग्र भैरव स्वरूप का दुर्लभ मंदिर, जो नरसिंह के क्रोध शमन हेतु प्रकट हुए।"
+    }
+   }
+  ],
+  "notice": [
+   {
+    "t": {
+     "en": "Navratri is the time",
+     "hi": "नवरात्रि का समय"
+    },
+    "d": {
+     "en": "Anushthan and religious gatherings are heaviest through Navratri.",
+     "hi": "नवरात्रि में अनुष्ठान और धार्मिक आयोजन सर्वाधिक होते हैं।"
+    }
+   }
+  ],
+  "visit": {
+   "rec": 10,
+   "min": 8,
+   "max": 25
+  },
+  "hours": {
+   "o": "05:30",
+   "c": "21:00"
+  },
+  "hoursEst": true,
+  "closed": [],
+  "free": true,
+  "fee": {
+   "en": "No entry fee",
+   "hi": "प्रवेश निःशुल्क"
+  },
+  "best": {
+   "en": "Morning or evening aarti",
+   "hi": "प्रातः या संध्या आरती"
+  },
+  "bestKey": "evening",
+  "indoor": true,
+  "child": true,
+  "senior": true,
+  "rank": 80,
+  "first": 66,
+  "parking": {
+   "en": "Street parking in Model Town",
+   "hi": "मॉडल टाउन में सड़क किनारे पार्किंग"
+  },
+  "facilities": [
+   "water"
   ]
  }
 ]

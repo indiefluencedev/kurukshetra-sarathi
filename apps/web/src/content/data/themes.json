@@ -54,5 +54,12 @@
   "hi": "आरती",
   "icon": "deep",
   "img": "brahma-sarovar-1"
+ },
+ {
+  "id": "nature",
+  "en": "Nature",
+  "hi": "प्रकृति",
+  "icon": "vat",
+  "img": "p-saraswati-van"
  }
 ]

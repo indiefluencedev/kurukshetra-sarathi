@@ -211,7 +211,16 @@ export default {
       // guarded. Serving a 403 here instead would leave the Board with a login
       // screen they cannot reach without already being logged in.
       if (url.pathname === "/admin" || url.pathname === "/admin/")
-        return new Response(ADMIN_HTML, { headers: { "content-type": "text/html; charset=utf-8" } });
+        return new Response(ADMIN_HTML, {
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+            // With no cache header at all, browsers cache HTML heuristically —
+            // so a deploy that fixes the dashboard can leave the person using
+            // it on the broken copy, with no way to tell. A dashboard is never
+            // worth caching.
+            "cache-control": "no-store",
+          },
+        });
 
       if (!email)
         return json({ error: "Sign in as an administrator to edit." }, 403);
