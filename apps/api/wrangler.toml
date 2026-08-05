@@ -19,6 +19,15 @@ binding = "DB"
 database_name = "discover_kurukshetra"
 database_id = "43389d66-b722-40bc-ae9f-ea5c194a6edf"
 
+# Photographs. Every image the app shows is an object in here, keyed by the id
+# the content already uses ("brahma-sarovar" -> brahma-sarovar.webp), so moving
+# off the bundle needed no change to a single `img` or `gallery` value in the
+# database. Served by the /img/ route below, never made public directly — the
+# Worker is what puts caching and a content type on the response.
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "kuk-saarthi-media"
+
 [vars]
 # The app's origin, for the notification's click-through. Also the one origin
 # Better Auth will accept requests from — a typo here is a login that fails
@@ -32,7 +41,7 @@ VAPID_SUBJECT = "mailto:REPLACE@example.org"
 # Who may reach /admin. Comma-separated, case-insensitive. THE authority on
 # admin access — the database is not consulted, so there is no role to set and
 # no password for anyone to hand over. Empty means nobody. See docs/15.
-ADMIN_EMAILS = "anuragmishra262000@gmail.com"
+ADMIN_EMAILS = "anuragmishra262000@gmail.com,indiefluence.in.media@gmail.com"
 
 # Every quarter hour. The notify() window is 45 minutes and `sent` makes a
 # repeat a no-op, so a missed run is survivable and a double run is harmless —

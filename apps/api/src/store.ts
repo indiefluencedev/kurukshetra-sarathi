@@ -103,4 +103,14 @@ export interface Store {
   markSent(eventId: string, day: string): Promise<void>;
 
   listAudit(limit: number): Promise<AuditRow[]>;
+
+  /**
+   * Record a photograph being replaced or removed.
+   *
+   * Images live in R2 rather than in this store, so nothing else here would
+   * ever show that one changed — and "who swapped the picture of Jyotisar, and
+   * when" is exactly the question the audit log exists to answer. The bytes are
+   * not kept; the key and the act are.
+   */
+  noteMedia(who: string, action: "update" | "delete", key: string): Promise<void>;
 }

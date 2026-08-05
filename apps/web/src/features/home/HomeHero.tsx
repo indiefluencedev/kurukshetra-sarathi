@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import { S } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
@@ -36,18 +36,27 @@ export function HomeHero() {
   // Which one the day lands on. Stable for the whole day — a re-render must not
   // reshuffle the page under someone's thumb.
   const dayNo = Math.floor(Date.parse(isoToday() + "T00:00") / 864e5);
-  // The town's own photographs, resolved once per render so the rail, the dots
-  // and the day's starting slide all count the same list.
-  const hero = heroFor();
-  const start = ((dayNo % hero.length) + hero.length) % hero.length;
-
-  // Open on the day's slide without animating there: jump before first paint,
-  // so it is where the visitor finds it rather than something that slid past.
-  useEffect(() => {
-    const tr = trackRef.current;
-    if (!tr || !start) return;
-    tr.scrollLeft = start * tr.getBoundingClientRect().width;
-  }, [start]);
+  /**
+   * The day's pick is put FIRST, rather than the rail being scrolled to it.
+   *
+   * This used to open at index 0 and then set `scrollLeft` in a mount effect to
+   * land on the day's slide. The effect's own comment promised a jump "before
+   * first paint" — but `.hh-track` carries `scroll-behavior:smooth`, which
+   * applies to programmatic scrolling too, so the assignment ANIMATED. Every
+   * cold open raced the rail from the first photograph to the day's one; on a
+   * day that landed near the end of the list that read as the app scrolling
+   * itself to the last slide for no reason, which is exactly what it looked
+   * like because that is what it was doing.
+   *
+   * Rotating the list is the same feature with nothing to animate: the day
+   * still chooses which photograph greets you, the rail opens at rest at
+   * scrollLeft 0, the first dot is lit, and a swipe walks forward through all
+   * of them. The smooth behaviour stays where it was wanted — the 7-second
+   * auto-advance.
+   */
+  const all = heroFor();
+  const pick = ((dayNo % all.length) + all.length) % all.length;
+  const hero = all.slice(pick).concat(all.slice(0, pick));
 
   return (
     <div className="hh-c">
@@ -66,7 +75,7 @@ export function HomeHero() {
                 <img
                   src={imgUrl(h.img)}
                   alt=""
-                  loading={i === start ? undefined : "lazy"}
+                  loading={i === 0 ? undefined : "lazy"}
                   onLoad={(e) => e.currentTarget.classList.add("in")}
                 />
               </span>
@@ -91,7 +100,7 @@ export function HomeHero() {
           the hero, so dots beneath the image would sit behind the card. */}
       <div className="hh-dots" ref={dotsRef} aria-hidden="true">
         {hero.map((_, i) => (
-          <i key={i} className={i === start ? "on" : ""} />
+          <i key={i} className={i === 0 ? "on" : ""} />
         ))}
       </div>
     </div>

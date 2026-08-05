@@ -79,11 +79,13 @@ export class D1Store implements Store {
         Date.now(),
       )
       .run();
+    await this.bumpRev("events");
     await this.audit(who, existed ? "update" : "create", "event", e.id, JSON.stringify(e));
   }
 
   async deleteEvent(id: string, who: string): Promise<void> {
     await this.db.prepare("DELETE FROM events WHERE id = ?").bind(id).run();
+    await this.bumpRev("events");
     await this.audit(who, "delete", "event", id, null);
   }
 
@@ -95,15 +97,45 @@ export class D1Store implements Store {
   }
 
   /**
-   * The revision the app compares against. MAX(updated_at) plus the row count:
-   * the timestamp alone would not move when the only change was a deletion, and
-   * a stale calendar that will not refresh is the worst failure this can have.
+   * Move a feed's revision on. Called by every write, deletes included.
+   *
+   * Deletes are the ones that matter: MAX(updated_at) cannot see a row that is
+   * no longer there, which is why the revision used to carry a COUNT(*). See
+   * migrations/0005_rev.sql. Bumping on writes too costs one tiny upsert per
+   * admin edit and removes the last-millisecond edge case, where two writes
+   * land in the same tick and MAX does not move between them.
+   */
+  private async bumpRev(scope: string): Promise<void> {
+    await this.db
+      .prepare("INSERT INTO rev (scope, n) VALUES (?, 1) ON CONFLICT(scope) DO UPDATE SET n = n + 1")
+      .bind(scope)
+      .run();
+  }
+
+  /** The counter half of a revision. Missing row = 0, which is a valid start. */
+  private async revCount(scope: string): Promise<number> {
+    const r = (await this.db.prepare("SELECT n FROM rev WHERE scope = ?").bind(scope).first()) as
+      | { n: number }
+      | null;
+    return r?.n ?? 0;
+  }
+
+  /**
+   * The revision the app compares against: MAX(updated_at) and a counter.
+   *
+   * It was MAX(updated_at) plus COUNT(*) — the count being there because the
+   * timestamp alone cannot see a deletion, and a stale calendar that will not
+   * refresh is the worst failure this can have. That reasoning still holds;
+   * only the way of noticing a deletion has changed. COUNT(*) read every row
+   * of the table to answer a question asked on every launch, so it is now a
+   * counter the writes maintain. See migrations/0005_rev.sql.
    */
   async eventsRev(): Promise<string> {
-    const r = (await this.db
-      .prepare("SELECT COALESCE(MAX(updated_at),0) AS m, COUNT(*) AS n FROM events")
-      .first()) as { m: number; n: number } | null;
-    return `${r?.m ?? 0}-${r?.n ?? 0}`;
+    const [m, n] = await Promise.all([
+      this.db.prepare("SELECT COALESCE(MAX(updated_at),0) AS m FROM events").first() as Promise<{ m: number } | null>,
+      this.revCount("events"),
+    ]);
+    return `${m?.m ?? 0}-${n}`;
   }
 
   /* ---- content: places, hotels, e-rickshaw ---- */
@@ -124,13 +156,23 @@ export class D1Store implements Store {
     return out;
   }
 
-  /** Same shape as eventsRev, and for the same reason — see above. */
+  /**
+   * Same shape as eventsRev, and for the same reason — see above.
+   *
+   * This is the one that was expensive: 58 rows read per call on production's
+   * places feed, every launch, purely to answer "still current?". The MAX is a
+   * single index seek on content_kind (kind, updated_at); the counter is one
+   * row by primary key. Two rows, whatever the size of the feed.
+   */
   async contentRev(kind: ContentKind): Promise<string> {
-    const r = (await this.db
-      .prepare("SELECT COALESCE(MAX(updated_at),0) AS m, COUNT(*) AS n FROM content WHERE kind = ?")
-      .bind(kind)
-      .first()) as { m: number; n: number } | null;
-    return `${r?.m ?? 0}-${r?.n ?? 0}`;
+    const [m, n] = await Promise.all([
+      this.db
+        .prepare("SELECT COALESCE(MAX(updated_at),0) AS m FROM content WHERE kind = ?")
+        .bind(kind)
+        .first() as Promise<{ m: number } | null>,
+      this.revCount(kind),
+    ]);
+    return `${m?.m ?? 0}-${n}`;
   }
 
   async upsertContent(kind: ContentKind, id: string, doc: unknown, who: string): Promise<void> {
@@ -146,11 +188,13 @@ export class D1Store implements Store {
       )
       .bind(kind, id, json, Date.now())
       .run();
+    await this.bumpRev(kind);
     await this.audit(who, existed ? "update" : "create", kind, id, json);
   }
 
   async deleteContent(kind: ContentKind, id: string, who: string): Promise<void> {
     await this.db.prepare("DELETE FROM content WHERE kind = ? AND id = ?").bind(kind, id).run();
+    await this.bumpRev(kind);
     await this.audit(who, "delete", kind, id, null);
   }
 
@@ -189,6 +233,10 @@ export class D1Store implements Store {
       .prepare("INSERT OR IGNORE INTO sent (event_id, day, at) VALUES (?,?,?)")
       .bind(eventId, day, Date.now())
       .run();
+  }
+
+  async noteMedia(who: string, action: "update" | "delete", key: string): Promise<void> {
+    await this.audit(who, action, "image", key, null);
   }
 
   async listAudit(limit: number): Promise<AuditRow[]> {

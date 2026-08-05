@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { S } from "@/app/state";
 import { go } from "@/app/nav";
-import { t, nm } from "@/shared/i18n/i18n";
+import { t, nm, nStops } from "@/shared/i18n/i18n";
 import { byId } from "@/shared/lib/geo";
 import { CITIES, cityOf } from "@/data/cities";
 import { toast } from "@/shared/ui/overlays";
@@ -66,7 +66,7 @@ function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
               between British and American order, and neither of them the one
               that matters. */}
           <div className="muted" style={{ fontSize: "calc(12.5px*var(--ts))" }}>
-            {ns.length} {t("stops")}
+            {nStops(ns.length)}
           </div>
         </div>
         <button

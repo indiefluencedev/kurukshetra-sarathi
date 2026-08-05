@@ -136,8 +136,16 @@ export async function loadDraft(): Promise<void> {
  */
 export async function savePlan(p: Plan): Promise<SavedPlan> {
   const label = typeof p.label === "string" ? p.label : nm(p.label);
+  const id = p.savedId || "p" + Date.now();
+  // BEFORE inputs(p), and that ordering is the whole point. `savedId` was
+  // assigned after the record was built, so the stored copy of a plan never
+  // contained its own id — only the live object in memory did. Reopen it and
+  // you got a plan that did not know it had ever been saved, so the next save
+  // minted a fresh id and Saved grew a second, near-identical row. Every route
+  // reopened from Saved and rebuilt left one behind.
+  p.savedId = id;
   const rec: SavedPlan = {
-    id: p.savedId || "p" + Date.now(),
+    id,
     at: Date.now(),
     title: label || dur(p.mins || 0),
     // a multi-day plan keeps only the current day in `res` — save every day's
@@ -146,7 +154,6 @@ export async function savePlan(p: Plan): Promise<SavedPlan> {
     plan: inputs(p),
   };
   await put(rec);
-  p.savedId = rec.id;
   return rec;
 }
 

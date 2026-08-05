@@ -34,6 +34,8 @@ export const town = (): string => nm(city());
  * form here, so it just takes the same noun.
  */
 export const nPlaces = (n: number): string => n + " " + t(n === 1 ? "place1" : "places");
+/** "1 stop" / "4 stops" — same shape as nPlaces, for a day's length in places. */
+export const nStops = (n: number): string => n + " " + t(n === 1 ? "stop1" : "stops");
 
 /** HTML-escape (retained for the few ported spots that build markup strings). */
 export const esc = (s: unknown): string =>

@@ -55,6 +55,43 @@ export interface Destination {
   pending?: boolean;
 }
 
+/**
+ * Somewhere to stay.
+ *
+ * A deliberately small shape, and the smallness is the design. A destination
+ * carries 28 fields because the app tells you why it matters; a stay only has
+ * to answer four questions a traveller actually asks at 9pm — where is it, what
+ * does it roughly cost, does it have a room type I need, and what is the phone
+ * number. Everything a booking site would add (amenity checklists, star
+ * ratings, review scores) is data nobody here can keep true, and a stale
+ * amenity list is worse than none.
+ *
+ * `kind` matters more than price in this district: a dharamshala and a hotel
+ * are different propositions for a pilgrim, not different price brackets.
+ */
+export interface Stay {
+  id: string;
+  /** which town — see data/cities.ts. Absent means Kurukshetra. */
+  city?: string;
+  name: Loc;
+  kind: "hotel" | "dharamshala" | "guesthouse" | "homestay";
+  /** locality in words, because a coordinate does not tell you "near the bus stand" */
+  area?: Loc;
+  lat: number;
+  lng: number;
+  /** indicative rupees per night. A range, because a tariff card is never one number. */
+  price?: { min: number; max: number };
+  phone?: string;
+  /** free text, bilingual — what a local would tell you about the place */
+  note?: Loc;
+  img?: string;
+  gallery?: string[];
+  /** a handful of facts worth filtering on, from the same vocabulary places use */
+  facilities?: string[];
+  /** hidden from the app without being deleted — for a stay that has closed */
+  pending?: boolean;
+}
+
 export interface HeroItem {
   id: string;
   /** which town it belongs to — see data/cities.ts. Absent means Kurukshetra. */

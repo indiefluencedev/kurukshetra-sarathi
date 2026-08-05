@@ -224,14 +224,22 @@ header{
    small outlines from competing with the masthead beside them. Hairlines
    separate the targets; each is still its own button at its own full height,
    so nothing about the tap target changed. */
-.hgroup{display:flex;align-items:stretch;flex:0 1 auto;min-width:0;
+/* flex:0 0 auto, and this is load-bearing. It used to be `0 1 auto`, which
+   let the group shrink under the masthead beside it — and because the group
+   clips (`overflow:hidden`) and every member inside it is a fixed width, the
+   shrinking was paid for by the LAST member: between 401px and 467px the menu
+   button was sliced in half, 25px of it gone at 425px. A control that shrinks
+   its own tap target off the edge of itself is not a responsive control.
+   The group is three 48px targets and a word; it gets the room it needs and
+   the masthead gives way, exactly as the note below says it should. */
+.hgroup{display:flex;align-items:stretch;flex:0 0 auto;min-width:0;
   background:var(--surface);border:1px solid var(--stone-2);border-radius:999px;
   box-shadow:0 1px 2px rgba(26,24,20,.05);overflow:hidden}
 .hsep{width:1px;flex:0 0 auto;background:var(--stone);margin:8px 0}
 /* The scope never shrinks. It is the one control whose LABEL is the
    information — a truncated "Kurukshet…" is a control that has stopped
    answering the question it was put there to answer. The masthead beside it
-   gives way first, and below 400px hands over to the seal entirely. */
+   gives way first, and below 468px hands over to the seal entirely. */
 .citybtn{flex:0 0 auto;border:0;background:none;border-radius:0;height:var(--tap);
   padding:0 12px 0 11px;gap:5px;font-weight:650;font-size:calc(13px*var(--ts));color:var(--ink-2);
   cursor:pointer;display:flex;align-items:center;font-family:inherit;white-space:nowrap}
@@ -242,7 +250,19 @@ header{
   display:flex;align-items:center;justify-content:center;letter-spacing:.03em;font-family:inherit}
 .langbtn:active{background:var(--brass-wash)}
 .hgroup .iconbtn{border-radius:0}
-@media (max-width:400px){
+/* 471px is measured, not chosen — it is the narrowest width at which the
+   masthead renders in full: gutter 14 + seal 38 + gap 10 + the wordmark's 153
+   + gap 8 + the group's widest 231 (English, "Kurukshetra" scope) + gutter 14,
+   plus ~3px of sub-pixel text metrics. Below it the masthead cannot be shown
+   whole, and a masthead shown in part is worse than none — "Kurukshetra S…"
+   was the app introducing itself and stopping halfway. The old 400px cut left
+   a 70px band (401–470) where it truncated on every phone in that range, which
+   is most large phones. The seal carries the brand there; it is the same logo,
+   uncropped.
+   Hindi needs only ~372px, so it loses the wordmark in a band where it would
+   have fitted. One breakpoint has to answer for both languages, and it has to
+   answer for the wider one. */
+@media (max-width:470px){
   .hbar .wordmark{display:none}
 }
 
@@ -1229,12 +1249,48 @@ body.bigger{--ts:1.36}
 .tsize button.on{background:var(--clay-wash);border-color:var(--clay);color:var(--clay-deep)}
 
 /* ---------- map ---------- */
-.mfilter{display:flex;gap:7px;overflow-x:auto;padding:2px var(--pad) 12px;-webkit-overflow-scrolling:touch;
-  scrollbar-width:none}
+/* The negative margin is what makes this a rail rather than a double-padded
+   row: it cancels main's gutter so the chips can scroll out to the screen
+   edge, while the padding puts the FIRST chip back on the 17px line every
+   other element sits on. Every other scroller in this file does exactly this
+   (.hscroll, .rail, .ev-c, .hh-wrap); this one had the padding and not the
+   margin, so its chips started 34px in and the row could never bleed. */
+.mfilter{display:flex;gap:7px;overflow-x:auto;padding:2px var(--pad) 12px;margin:0 calc(-1*var(--pad));
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
 .mfilter::-webkit-scrollbar{display:none}
-.mapwrap{margin:0 var(--pad);border:1px solid var(--stone);border-radius:var(--r-lg);overflow:hidden;isolation:isolate;
+/* No side margin. `main` already carries the page gutter, so `margin:0
+   var(--pad)` here was a SECOND one — the map sat 34px in while the title, the
+   buttons, the chips and the note above and below it all sat at 17px, and it
+   read as a panel that had been indented by mistake. Both other users of this
+   class had already cancelled the margin by hand (.routemap-host, and PinMap
+   inline), which is the tell: every caller was working around it. */
+.mapwrap{border:1px solid var(--stone);border-radius:var(--r-lg);overflow:hidden;isolation:isolate;
   box-shadow:var(--shadow-1);background:var(--surface-2)}
-#leaf{height:min(68dvh,560px);width:100%;background:#E8E4DA}
+/* Square, not 68dvh. A map that is two-thirds of the screen tall pushes the
+   deck, the note and the tab bar off the bottom, and on a phone it turned the
+   whole screen into one scroll trap. A square is as much map as this screen
+   needs — the whole town fits in it at the opening zoom — and it leaves the
+   card that opens inside it somewhere visible to open. */
+#leaf{aspect-ratio:1/1;width:100%;background:#E8E4DA}
+
+/* The map is LOCKED for panning until this is tapped.
+   Leaflet puts `touch-action:none` on its container whenever drag and zoom are
+   both on, which means a finger that lands on the map can never scroll the
+   page — the map ate the gesture and the screen stayed put. Pins, zoom buttons
+   and pinch all still work while locked; only one-finger panning is held back,
+   and that is the exact gesture that collides with scrolling.
+   An explicit toggle rather than the usual two-finger trick: this app is built
+   for older eyes and hands, and "use two fingers" is an undiscoverable gesture
+   with no affordance. A labelled button says what it does. */
+.maplock{position:absolute;left:10px;bottom:10px;z-index:900;
+  display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;
+  border-radius:999px;border:1px solid var(--stone-2);background:var(--glass);
+  backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);
+  font-family:inherit;font-size:calc(12.5px*var(--ts));font-weight:650;color:var(--ink-2);
+  cursor:pointer;box-shadow:var(--shadow-1)}
+.maplock svg{width:15px;height:15px;flex:0 0 auto;color:var(--brass-deep)}
+.maplock.on{background:var(--clay);border-color:var(--clay-deep);color:#fff;box-shadow:var(--shadow-accent)}
+.maplock.on svg{color:#fff}
 .mapfall svg{width:100%;height:auto;display:block}
 .leaflet-container{font-family:var(--sans)}
 .leaflet-control-attribution{font-size:9px!important;background:rgba(255,255,255,.8)!important}
@@ -2026,15 +2082,16 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
    reach the other.
    ================================================================ */
 .mapdeck-host{position:relative}
-/* FIXED to the viewport, not to the map.
-   The Map tab's canvas is min(68dvh,560px) tall and sits below a header, two
-   buttons, a toggle, a start button and a chip row — so its own bottom edge is
-   far below the fold, and a deck anchored there opened somewhere the visitor
-   could not see. Anchoring to the screen is also what every maps app does with
-   a pin card, and it clears the floating tab bar by construction. */
-.mdeck{position:fixed;left:10px;right:10px;
-  bottom:calc(74px + env(safe-area-inset-bottom));
-  max-width:calc(var(--maxw) - 20px);margin:0 auto;z-index:60;
+/* ABSOLUTE inside the map, which is what "a deck inside the map" was always
+   meant to mean. It was `position:fixed` to the viewport because the map used
+   to be min(68dvh,560px) tall — its bottom edge sat far below the fold, so a
+   card anchored there opened somewhere the visitor could not see. Pinning it
+   to the screen instead traded one wrong place for another: it floated over
+   the tab bar, clipped against it, and read as a card belonging to the page
+   rather than to the pin that opened it.
+   The map is square now, so its bottom edge is on screen and the card can sit
+   where it belongs. z-index clears Leaflet's own controls, which sit at 800. */
+.mdeck{position:absolute;left:10px;right:10px;bottom:10px;z-index:1000;
   background:var(--surface);border:1px solid var(--stone);border-radius:var(--r-lg);
   box-shadow:var(--shadow-3);padding:9px;animation:deckIn var(--t) var(--ease) both}
 @keyframes deckIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}

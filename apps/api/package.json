@@ -18,7 +18,9 @@
     "db:remote": "D1_REMOTE=1 drizzle-kit studio",
     "db:pull": "LOCAL_D1_PATH=\"file:$(node find-local-db.mjs)\" drizzle-kit pull",
     "db:snapshot": "node snapshot-prod.mjs",
-    "db:prod": "node snapshot-prod.mjs && LOCAL_D1_PATH=\"file:$(pwd)/.prod.sqlite\" drizzle-kit studio --port 4984"
+    "db:prod": "node snapshot-prod.mjs && LOCAL_D1_PATH=\"file:$(pwd)/.prod.sqlite\" drizzle-kit studio --port 4984",
+    "media:upload": "node upload-media.mjs --go",
+    "media:upload:local": "node upload-media.mjs --go --local"
   },
   "dependencies": {
     "@kuk/shared": "*",

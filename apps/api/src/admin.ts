@@ -13,10 +13,12 @@
  * app cannot render — the server validates again regardless, using the same
  * rules as the build-time check.
  */
+import { FORMS_CSS, FORMS_HTML, FORMS_JS } from "./admin-forms";
+
 export const ADMIN_HTML = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Kurukshetra Saarthi — events</title>
+<title>Kurukshetra Saarthi — dashboard</title>
 <style>
  :root{--ink:#1C1815;--muted:#6B6252;--line:#DDD3BC;--paper:#FDFBF4;--bg:#F2ECDD;
        --accent:#D2600A;--accent-d:#A34A05;--bad:#9A3B1E;--ok:#4F5B2E}
@@ -65,6 +67,12 @@ export const ADMIN_HTML = `<!doctype html>
  .gbox label{font-size:13px;font-weight:700}
  .gbox button{width:100%;margin-top:16px}
  header .ghost{margin-left:8px}
+ /* The top-level switch: which of the three surfaces is on screen. Distinct
+    from nav.tabs inside the content surface, which chooses a KIND. */
+ .top{display:flex;gap:4px;margin-left:8px}
+ .top button{background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 13px;border-radius:8px}
+ .top button.on{background:var(--bg);border-color:var(--line);color:var(--ink)}
+${FORMS_CSS}
 </style></head><body>
 <div id="gate" class="gate">
   <form class="gbox" id="gform">
@@ -83,9 +91,17 @@ export const ADMIN_HTML = `<!doctype html>
   </form>
 </div>
 <div id="app" hidden>
-<header><h1>Events</h1><span class="you" id="you"></span>
+<header><h1>Saarthi</h1>
+  <nav class="top" id="topnav">
+    <button data-top="content" class="on">Content</button>
+    <button data-top="events">Events</button>
+    <button data-top="media">Photographs</button>
+  </nav>
+  <span class="you" id="you"></span>
   <button class="ghost" id="signout">Sign out</button>
-  <button class="ghost" onclick="testPush()">Send a test notification</button></header>
+  <button class="ghost" id="testpush">Test notification</button></header>
+${FORMS_HTML}
+<div id="tab-events" hidden>
 <main>
  <section>
   <h2>Add or change an event</h2>
@@ -147,7 +163,9 @@ export const ADMIN_HTML = `<!doctype html>
  </section>
 </main>
 </div>
+</div>
 <script>
+${FORMS_JS}
 const $ = (s) => document.querySelector(s);
 
 /* Proof of life, first statement in the file. Everything below is useless if
@@ -267,6 +285,9 @@ async function boot() {
     await load();
     $("#gate").hidden = true;
     $("#app").hidden = false;
+    // Only now that the shell is on screen — showTop fetches, and a fetch that
+    // fails must land on the gate through api(), not against a hidden page.
+    showTop("content");
   } catch (e) {
     const m = (e && e.message) || String(e);
     if (m === "forbidden" || m === "unauthorised") return; // api() has already shown the gate
@@ -353,6 +374,35 @@ async function testPush() {
    attaches or the script did not run, and #nojs above says which. */
 document.getElementById("gform").addEventListener("submit", signIn);
 document.getElementById("signout").addEventListener("click", signOut);
+document.getElementById("testpush").addEventListener("click", testPush);
+
+/**
+ * Which of the three surfaces is on screen.
+ *
+ * Content first, and Events second, which is a reversal: this page was the
+ * events page and nothing else. But the calendar is a handful of rows edited a
+ * few times a year, while places, stays and start points are the catalogue the
+ * whole app is made of — and until now the only way to change one was to edit
+ * JSON in the repository and cut a release.
+ *
+ * Each surface loads the first time it is opened rather than at boot. The
+ * photograph library is a hundred thumbnails; fetching it to show a calendar
+ * would make every visit to this page slower for no one's benefit.
+ */
+const loaded = {};
+function showTop(which) {
+  ["content", "events", "media"].forEach(n => { $("#tab-" + n).hidden = n !== which; });
+  document.querySelectorAll("[data-top]").forEach(b => b.classList.toggle("on", b.getAttribute("data-top") === which));
+  if (loaded[which]) return;
+  loaded[which] = true;
+  if (which === "content") cLoad("places");
+  if (which === "media") paintLibrary();
+}
+$("#topnav").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-top]");
+  if (b) showTop(b.getAttribute("data-top"));
+});
+wireForms();
 
 // boot(), not load(): the page must decide whether to show the dashboard or
 // the sign-in form, and it decides by whether a real request succeeds.

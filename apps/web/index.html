@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="theme-color" content="#1E2A33" />
 <meta name="description" content="A practical tour companion for Kurukshetra: plan a route around the time you have, understand why each tirtha matters, and navigate there." />
+<!-- iOS does not read the web app manifest. Safari's "Add to Home Screen"
+     takes the icon from this link and nothing else; without it the home
+     screen gets a blurry screenshot of the page. The two apple- meta tags
+     are what make it launch chromeless on older iOS, which still matters
+     for the visitor on a five-year-old iPhone this app is built for. -->
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Kurukshetra" />
+<link rel="icon" type="image/png" href="./icons/icon-192.png" />
 <title>Kurukshetra Saarthi · कुरुक्षेत्र सारथी</title>
 </head>
 <body>

@@ -407,34 +407,48 @@ console.log("event alert checks passed");
 console.log("town-scoping checks passed");
 
 /* ── the plus on a card builds a real day ──────────────────────────────────
-   `addTo` is offered on every list, with no plan, a half-answered plan or a
-   finished route on screen, and `dropFrom` has to undo it from the MIDDLE.
+   The plus itself (`addTo`) now opens a sheet to ask WHICH day and WHERE it
+   starts, so it lives in AddSheet.tsx and cannot be loaded here — node's type
+   stripper does not read .tsx. What that sheet does once it has its answers is
+   `startDayWith` / `pushStop` / `dropFrom`, and those are the parts with the
+   arithmetic worth guarding.
+
    The trap is the clock: stops are timed from the one before, so removing a
    stop without re-timing what follows leaves every later arrival wrong by
    that stop's length — a day that quietly claims to end an hour late. */
 {
-  const { S, setCity } = await import("../src/app/state.ts");
+  const { S, setCity, city } = await import("../src/app/state.ts");
   const { CITIES } = await import("../src/data/cities.ts");
   const { DC } = await import("../src/data/destinations.ts");
-  const { addTo, dropFrom, inPlan, savedCount } = await import("../src/features/place/place-actions.ts");
+  const { isoToday } = await import("../src/shared/lib/datetime.ts");
+  const { startDayWith, pushStop, dropFrom, inPlan, savedCount } = await import(
+    "../src/features/place/place-actions.ts"
+  );
 
   setCity(CITIES[0].id);
   S.plan = null;
   const [a, b, c] = DC().slice(0, 3);
+  const from = { lat: city().centre.lat, lng: city().centre.lng, label: "Town centre" };
 
-  // no plan at all: the first plus has to make one
-  addTo(a.id);
-  assert.ok(S.plan && S.plan.res, "the first add must create a day");
+  // no plan at all: starting a day has to make one, with the start point it
+  // was given rather than a silent guess
+  startDayWith(a, isoToday(), from, "other");
+  assert.ok(S.plan && S.plan.res, "starting a day must create one");
   assert.equal(savedCount(), 1);
   assert.ok(inPlan(a.id));
+  assert.equal(S.plan.start.label, from.label, "the day must start where it was told to");
+  assert.ok(S.plan.startClock != null, "a day with no start hour cannot time its stops");
 
-  addTo(b.id);
-  addTo(c.id);
+  pushStop(S.plan, b);
+  pushStop(S.plan, c);
   assert.equal(savedCount(), 3, "further adds join the day that exists");
 
-  // tapping the same plus again is the undo
-  addTo(b.id);
-  assert.equal(savedCount(), 2, "a second tap removes it");
+  // the same place twice is one stop, not two
+  pushStop(S.plan, c);
+  assert.equal(savedCount(), 3, "adding a place already in the day must not duplicate it");
+
+  dropFrom(b.id);
+  assert.equal(savedCount(), 2, "dropping removes it");
   assert.ok(!inPlan(b.id) && inPlan(a.id) && inPlan(c.id), "and removes only that one");
 
   // what remains has to be consistent: each stop timed from the one before,

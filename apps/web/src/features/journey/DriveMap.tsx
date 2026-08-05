@@ -11,7 +11,7 @@ import { clock } from "@/shared/lib/datetime";
 import { D } from "@/data/destinations";
 import { Icon } from "@/shared/icons/Icon";
 import { Photo } from "@/shared/ui/Photo";
-import { addTo } from "@/features/place/place-actions";
+import { addTo } from "@/features/place/AddSheet";
 import { roadGeometry } from "@/features/planner/routing/osrm";
 import { passingPlaces, progressAlong, type Passing } from "./corridor";
 import { due, markSaid, speak, resetGuide, voiceOn, setVoiceOn, speechAvailable } from "./guide";

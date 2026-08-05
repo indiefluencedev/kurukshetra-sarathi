@@ -14,7 +14,8 @@ import { ReelsRail } from "@/features/home/ReelsRail";
 import { eventsAt } from "@/data/events";
 import { isoToday } from "@/shared/lib/datetime";
 import { shortDate, planForEvent } from "@/features/planner/plan";
-import { FAC, DY, near, flipFav, addTo } from "./place-actions";
+import { FAC, DY, near, flipFav } from "./place-actions";
+import { addTo } from "./AddSheet";
 import type { ReactNode } from "react";
 
 /**

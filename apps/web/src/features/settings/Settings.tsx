@@ -2,7 +2,7 @@ import { S, store, bump, setLangStay } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { Icon } from "@/shared/icons/Icon";
-import { isStandalone, installApp } from "@/features/home/install";
+import { isInstalled, installApp } from "@/features/home/install";
 import { NotifyRow } from "@/features/notify/NotifyRow";
 import type { Loc } from "@/shared/types";
 
@@ -68,7 +68,11 @@ export function Settings() {
 
       <NotifyRow />
 
-      {!isStandalone() && (
+      {/* isInstalled(), not isStandalone(): the latter only reports how THIS
+          window was opened, so someone who installs the app and keeps browsing
+          in the tab they installed from was still offered "Install" here. Same
+          predicate the Home card uses — see the note on it in install.tsx. */}
+      {!isInstalled() && (
         <button className="card rcard" style={{ marginTop: 11 }} onClick={installApp}>
           {/* "phone" is not in the icon set — it rendered an empty box */}
           <span className="ic">

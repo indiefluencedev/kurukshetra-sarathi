@@ -10,7 +10,7 @@ import { Photo } from "@/shared/ui/Photo";
 import { calSheet } from "./calendar";
 import { saveRoute, shareRoute, startGo } from "./route-actions";
 import { modeWord, leaveVehicleShort } from "./mode-words";
-import { addTo } from "@/features/place/place-actions";
+import { addTo } from "@/features/place/AddSheet";
 import { applyFix, longDate } from "@/features/planner/plan";
 import { RouteMap } from "./RouteMap";
 import { explain, gist } from "./explain";

@@ -29,23 +29,39 @@ export function askLoc(cb?: () => void) {
   );
 }
 
+/**
+ * Ask the device where we are. No sheet, no toast — just the fix, or null.
+ *
+ * Split out of grantLoc because a caller that is ITSELF a sheet cannot use
+ * grantLoc: its first act is closeSheet(), which would close the very sheet
+ * asking the question. The add-to-plan sheet needs a fix while staying open.
+ */
+export function locate(): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        S.userLoc = { lat: p.coords.latitude, lng: p.coords.longitude };
+        if (S.plan && S.plan.startType === "useLoc")
+          S.plan.start = { lat: S.userLoc.lat, lng: S.userLoc.lng };
+        bump();
+        resolve(S.userLoc);
+      },
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
+    );
+  });
+}
+
 export function grantLoc(cb: () => void) {
   closeSheet();
-  if (!navigator.geolocation) {
-    denyLoc(cb);
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    (p) => {
-      S.userLoc = { lat: p.coords.latitude, lng: p.coords.longitude };
-      if (S.plan && S.plan.startType === "useLoc")
-        S.plan.start = { lat: S.userLoc.lat, lng: S.userLoc.lng };
-      cb();
-      bump();
-    },
-    () => denyLoc(cb),
-    { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
-  );
+  locate().then((fix) => {
+    if (fix) cb();
+    else denyLoc(cb);
+  });
 }
 
 export function denyLoc(cb: () => void) {

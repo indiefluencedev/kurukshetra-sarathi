@@ -62,6 +62,12 @@ export function MapView() {
   // and across the NH-44 central reservation, which is exactly the impression
   // a map is supposed to correct.
   const [road, setRoad] = useState<[number, number][]>([]);
+  // Panning is off until the visitor asks for it — see .maplock in the
+  // stylesheet for why. Only on a touch screen: a mouse has no scroll gesture
+  // to collide with, so a desktop map that refused to drag would be broken for
+  // no reason.
+  const coarse = typeof window !== "undefined" && !!window.matchMedia?.("(pointer: coarse)").matches;
+  const [panning, setPanning] = useState(!coarse);
   /* drawMap is re-created every render, but it is also called from a 220ms
      setTimeout in the mount effect and from Leaflet callbacks — both of which
      hold whichever closure existed when they were scheduled. When the road
@@ -80,6 +86,11 @@ export function MapView() {
       zoomControl: true,
       attributionControl: true,
       scrollWheelZoom: true,
+      // Dragging off on touch. Leaflet drops `leaflet-touch-drag` from the
+      // container when it is disabled, which takes `touch-action` back from
+      // `none` to `pan-x pan-y` — that CSS change IS the fix, and it is why
+      // this has to be a real Leaflet handler rather than a class of our own.
+      dragging: !coarse,
       fadeAnimation: false,
       zoomAnimation: false,
       markerZoomAnimation: false,
@@ -270,6 +281,16 @@ export function MapView() {
     if (!list) setTimeout(() => mapRef.current?.invalidateSize(false), 60);
   }, [list]);
 
+  // Hand panning to Leaflet, or take it back. Toggling the handler is what
+  // swaps `touch-action` on the container, so the page becomes scrollable over
+  // the map again the moment this goes off.
+  useEffect(() => {
+    const dr = mapRef.current?.dragging;
+    if (!dr) return;
+    if (panning) dr.enable();
+    else dr.disable();
+  }, [panning]);
+
   const plan = S.plan;
   const multi = plan?.multi;
 
@@ -420,6 +441,21 @@ export function MapView() {
       )}
       <div className="mapwrap mapdeck-host" hidden={list}>
         <div id="leaf" ref={hostRef} />
+        {/* Hidden while a place is open: the deck sits in this corner, and two
+            controls stacked on each other is the kind of overlap that costs a
+            mis-tap. */}
+        {coarse && !sel && (
+          <button
+            className={"maplock" + (panning ? " on" : "")}
+            aria-pressed={panning}
+            onClick={() => setPanning((v) => !v)}
+          >
+            <Icon name={panning ? "check" : "mapi"} />
+            {panning
+              ? nm({ en: "Done moving", hi: "हो गया" })
+              : nm({ en: "Move the map", hi: "नक्शा खिसकाएँ" })}
+          </button>
+        )}
         {sel && <PlaceDeck d={sel} n={stopNo(sel.id)} onClose={() => setSel(null)} />}
       </div>
       {list && (

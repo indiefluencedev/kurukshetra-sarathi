@@ -1,5 +1,5 @@
 import { D1Store } from "./store.d1";
-import { isContentKind, type Store, type EventRow } from "./store";
+import { isContentKind, type Store, type EventRow, type ContentKind } from "./store";
 import { makeAuth } from "./auth";
 import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
 import { sendPush } from "./push";
@@ -7,6 +7,8 @@ import { ADMIN_HTML } from "./admin";
 
 export interface Env {
   DB: D1Database;
+  /** every photograph the app shows — see the /img/ route */
+  MEDIA: R2Bucket;
   VAPID_PUBLIC: string;
   VAPID_PRIVATE: string;
   /** mailto: address Web Push requires as the JWT subject */
@@ -99,6 +101,28 @@ function istNow(now = Date.now()) {
 
 const hm = (s: string) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
 
+/**
+ * A day, and revalidate in the background after that.
+ *
+ * Deliberately not `immutable`. The keys are stable ids rather than content
+ * hashes — which is what let the whole catalogue move to R2 without rewriting a
+ * single `img` value — so replacing a photograph reuses its key. Immutable
+ * caching would mean the new picture never arriving on a device that had seen
+ * the old one. A day, plus an ETag so the revalidation is free, is the trade.
+ */
+const IMG_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
+
+const TYPES: Record<string, string> = {
+  webp: "image/webp", jpg: "image/jpeg", jpeg: "image/jpeg",
+  png: "image/png", avif: "image/avif", svg: "image/svg+xml",
+};
+/** Only used when R2 has no stored content type — uploads always set one. */
+const guessType = (key: string) => TYPES[key.split(".").pop()?.toLowerCase() || ""] || "application/octet-stream";
+
+/** What may be uploaded. A closed list: this endpoint writes to a public bucket. */
+const UPLOAD_TYPES = new Set(["image/webp", "image/jpeg", "image/png", "image/avif"]);
+const MAX_UPLOAD = 6 * 1024 * 1024;
+
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
@@ -155,28 +179,87 @@ export default {
       );
     }
 
+    /* ---- photographs ----
+     *
+     * Public, unauthenticated, and the only way an image reaches the app. The
+     * bucket itself is not public: serving through the Worker is what lets a
+     * response carry a content type, a cache lifetime and an ETag, and it
+     * keeps every URL on one origin so nothing needs a second DNS name.
+     *
+     * The key is the id the content already uses. `img: "brahma-sarovar"` in a
+     * place document becomes /img/brahma-sarovar.webp — which is why moving off
+     * the bundle required no edit to any row.
+     */
+    const img = url.pathname.match(/^\/img\/([A-Za-z0-9._-]+)$/);
+    if (img && (req.method === "GET" || req.method === "HEAD")) {
+      const key = img[1];
+      /*
+       * Fetch, then compare the ETag here. This was written as an R2 conditional
+       * read — `get(key, { onlyIf: { etagDoesNotMatch: … } })` — to avoid moving
+       * a body that was not going to be sent. It did not survive contact with
+       * production: with no If-None-Match the condition became `undefined` and
+       * the read came back empty for objects that plainly existed (four of the
+       * ninety-nine 404'd while `r2 object get` returned them in full), and a
+       * malformed ETag threw a 500 rather than being ignored.
+       *
+       * A photograph is 20-50 KB. Saving a fraction of that on a revalidation
+       * was never worth an endpoint whose failures depend on which header the
+       * caller happened to send. `get` either finds the object or does not, and
+       * the comparison below is a string equality nobody has to reason about.
+       */
+      const obj = await env.MEDIA.get(key);
+      if (!obj) return json({ error: "no such image" }, 404);
+
+      const headers = {
+        "content-type": obj.httpMetadata?.contentType || guessType(key),
+        "cache-control": IMG_CACHE,
+        etag: obj.httpEtag,
+        "access-control-allow-origin": "*",
+      };
+      // The body is a stream; returning 304 without reading it moves nothing.
+      if (req.headers.get("if-none-match") === obj.httpEtag)
+        return new Response(null, { status: 304, headers });
+      return new Response(req.method === "HEAD" ? null : obj.body, { headers });
+    }
+
     /* ---- what the app reads ---- */
     const feed = url.pathname.match(/^\/content\/([a-z]+)\.json$/);
     if (feed && req.method === "GET") {
       const kind = feed[1];
-      let items: unknown[], rev: string;
+      const isEvents = kind === "events";
+      if (!isEvents && !isContentKind(kind)) return json({ error: "not found" }, 404);
 
-      if (kind === "events") [items, rev] = await Promise.all([store.listEvents(), store.eventsRev()]);
-      else if (isContentKind(kind))
-        [items, rev] = await Promise.all([store.listContent(kind), store.contentRev(kind)]);
-      else return json({ error: "not found" }, 404);
+      /*
+       * Conditional GET, and it is not a micro-optimisation here. The calendar
+       * is 5 KB but the places feed is ~160 KB, and this is a district app used
+       * on rural mobile data — without it every launch re-downloads the whole
+       * catalogue to discover nothing changed. `rev` is already an exact
+       * content revision, so it makes an honest ETag and the browser does the
+       * rest. See docs/13.
+       *
+       * THE ORDER BELOW IS THE POINT. This used to fetch the rows and the
+       * revision together in a Promise.all and only then compare the ETag — so
+       * a 304 cost exactly what a 200 cost. The response saved 160 KB of
+       * bandwidth and not one row of database read: every launch, every
+       * visitor, read all 58 places to answer "no, nothing has changed".
+       *
+       * The revision is asked for first, alone. The documents are only fetched
+       * once we know they are going to be sent.
+       */
+      const cond = req.headers.get("if-none-match");
+      const revP = isEvents ? store.eventsRev() : store.contentRev(kind as ContentKind);
+      // A client with no copy is always getting the documents, so there is
+      // nothing to gain by waiting to find out — that request keeps both
+      // queries in flight at once, as the whole endpoint used to.
+      const itemsP = cond ? null : (isEvents ? store.listEvents() : store.listContent(kind as ContentKind));
 
-      // Conditional GET, and it is not a micro-optimisation here. The calendar
-      // is 5 KB but the places feed is ~160 KB, and this is a district app used
-      // on rural mobile data — without it every launch re-downloads the whole
-      // catalogue to discover nothing changed. `rev` is already an exact
-      // content revision, so it makes an honest ETag and the browser does the
-      // rest. See docs/13.
+      const rev = await revP;
       const etag = `"${kind}-${rev}"`;
       const headers = { "cache-control": "public, max-age=300", etag };
-      if (req.headers.get("if-none-match") === etag)
+      if (cond === etag)
         return new Response(null, { status: 304, headers: { ...headers, "access-control-allow-origin": "*" } });
 
+      const items = await (itemsP ?? (isEvents ? store.listEvents() : store.listContent(kind as ContentKind)));
       return json({ rev, items }, 200, headers);
     }
 
@@ -273,6 +356,55 @@ export default {
           const b = (await req.json().catch(() => null)) as { id?: string } | null;
           if (!b?.id) return json({ error: "no id" }, 400);
           await store.deleteContent(kind, b.id, email);
+          return json({ ok: true });
+        }
+      }
+
+      /* ---- photographs ----
+       *
+       * The dashboard's image library. Upload replaces by key on purpose: a
+       * place's photograph is "the picture of Brahma Sarovar", so correcting it
+       * should not leave the old one orphaned in the bucket and the id pointing
+       * at whichever the editor remembered to re-select.
+       */
+      if (url.pathname === "/admin/media") {
+        if (req.method === "GET") {
+          // R2 lists 1000 at a time; the catalogue is ~100 objects, so one page
+          // is the whole library and pagination would be machinery for nobody.
+          const list = await env.MEDIA.list({ limit: 1000 });
+          return json({
+            items: list.objects
+              .map((o) => ({ key: o.key, size: o.size, at: o.uploaded }))
+              .sort((a, b) => a.key.localeCompare(b.key)),
+            truncated: list.truncated,
+          });
+        }
+
+        if (req.method === "PUT") {
+          const type = req.headers.get("content-type") || "";
+          const key = (url.searchParams.get("key") || "").trim();
+          // The key becomes a public URL and an R2 object name. Anything outside
+          // this alphabet is refused rather than sanitised: silently renaming an
+          // editor's file is how an `img` value and its object stop matching.
+          if (!/^[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png|avif)$/.test(key))
+            return json({ error: "key must be lower-case letters, digits and hyphens, with an image extension" }, 400);
+          if (!UPLOAD_TYPES.has(type)) return json({ error: "unsupported image type: " + type }, 415);
+
+          const body = await req.arrayBuffer();
+          if (!body.byteLength) return json({ error: "empty upload" }, 400);
+          if (body.byteLength > MAX_UPLOAD)
+            return json({ error: `too large: ${Math.round(body.byteLength / 1024)} KB, limit ${MAX_UPLOAD / 1024 / 1024} MB` }, 413);
+
+          await env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
+          await store.noteMedia(email, "update", key);
+          return json({ ok: true, key, size: body.byteLength });
+        }
+
+        if (req.method === "DELETE") {
+          const key = (url.searchParams.get("key") || "").trim();
+          if (!key) return json({ error: "no key" }, 400);
+          await env.MEDIA.delete(key);
+          await store.noteMedia(email, "delete", key);
           return json({ ok: true });
         }
       }
