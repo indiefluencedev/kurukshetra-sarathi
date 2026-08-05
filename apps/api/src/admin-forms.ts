@@ -126,6 +126,35 @@ const SPEC = {
     { k:"verified", t:"bool", lb:"Pin confirmed by a person" },
   ],
 
+  events: [
+    { k:"id", t:"text", lb:"Id", req:1, ph:"gita-mahotsav-2027",
+      hint:"Lower-case with hyphens, and include the year — an event recurs, its id must not. Reusing an id edits that event." },
+    { k:"kind", t:"sel", lb:"Kind", req:1, opts:["festival","snan","show","mela","yatra","closure"],
+      hint:"A yatra or a closure is a procession or a road shut for a few hours, and needs the time and route below." },
+    { k:"name", t:"loc", lb:"Name", req:1, ph:"International Gita Mahotsav", phHi:"अंतर्राष्ट्रीय गीता महोत्सव" },
+    { k:"img", t:"img", lb:"Photograph", hint:"Shown across the banner on the home screen, so a wide picture works best — 16:9." },
+    { k:"from", t:"date", lb:"First day", req:1 },
+    { k:"to", t:"date", lb:"Last day", req:1, hint:"The same as the first day for a one-day event." },
+    { k:"places", t:"csv", lb:"Places it affects", req:1, ph:"brahma-sarovar, jyotisar",
+      hint:"Place ids from the catalogue, comma separated." },
+    { k:"visitFactor", t:"num", lb:"How much longer a visit takes", req:1, step:"0.1", ph:"1.5",
+      hint:"1.0 is normal. 1.5 means half as long again, because of the crowd." },
+    { k:"travelFactor", t:"num", lb:"How much slower the roads are", req:1, step:"0.1", ph:"1.3",
+      hint:"1.0 is normal. 1.3 means a third slower." },
+    { k:"blurb", t:"locarea", lb:"Short line", req:1, ph:"Midnight aarti, jhankis and kirtan at every Krishna temple in the district.",
+      phHi:"जिले के हर कृष्ण मंदिर में मध्यरात्रि आरती, झांकियाँ और कीर्तन।", hint:"One sentence, shown on the banner." },
+    { k:"notice", t:"locarea", lb:"Warning", req:1, ph:"Come before 7pm or park at the university and walk.",
+      phHi:"शाम 7 बजे से पहले आएँ, या विश्वविद्यालय में पार्क कर पैदल चलें।", hint:"What a visitor should do differently." },
+    { k:"window", t:"obj", lb:"Hours it runs", hint:"Only for a yatra or a closure — the hours the road is actually affected.", of:[
+      { k:"from", t:"time", lb:"Starts at" },
+      { k:"to", t:"time", lb:"Ends at" },
+    ] },
+    { k:"advice", t:"sel", lb:"Advice", opts:["avoid","join"],
+      hint:"avoid — keep away from this road. join — worth going to." },
+    { k:"corridor", t:"pts", lb:"Route", ph:"29.9695, 76.8181\n29.9662, 76.8265",
+      hint:"The road it runs along, one \"lat, lng\" per line and in order, at least two. Right-click a point on openstreetmap.org and choose \"show address\" to read them off." },
+  ],
+
   erickshaw: [
     { k:"id", t:"text", lb:"Id", req:1, ph:"stand-brahma-sarovar" },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"] },
@@ -142,6 +171,7 @@ const SPEC = {
    the storage kind; "Stays" is the word, because a dharamshala is not a hotel
    and the list holds both. */
 const KINDS = [
+  { k:"events", lb:"Events" },
   { k:"places", lb:"Places" },
   { k:"hotels", lb:"Stays" },
   { k:"startpoints", lb:"Start points" },
@@ -165,8 +195,8 @@ function fieldHtml(f, v) {
   // "brahma-sarovar" greyed out in the box says the whole rule at a glance.
   const ph = (x) => x ? ' placeholder="' + ek(x) + '"' : "";
 
-  if (t === "text" || t === "time" || t === "num") {
-    const it = t === "num" ? "number" : t === "time" ? "time" : "text";
+  if (t === "text" || t === "time" || t === "num" || t === "date") {
+    const it = t === "num" ? "number" : t === "time" ? "time" : t === "date" ? "date" : "text";
     inner = '<input data-i type="' + it + '"' + (f.step ? ' step="' + f.step + '"' : "") + ph(f.ph) +
             ' value="' + ek(v == null ? "" : v) + '">';
   } else if (t === "area") {
@@ -196,6 +226,12 @@ function fieldHtml(f, v) {
       (t === "imgs" ? "brahma-sarovar-1, brahma-sarovar-2" : "brahma-sarovar") + '">' +
       '<button type="button" class="ghost sm" data-pick="' + t + '">Pick…</button></div>' +
       '<div class="thumbs" data-thumbs></div>';
+  } else if (t === "pts") {
+    // "lat, lng" one per line. A textarea rather than a repeating group: a
+    // corridor is a dozen points copied off a map in one go, and twelve pairs
+    // of number boxes is a worse way to paste twelve lines.
+    const txt = (Array.isArray(v) ? v : []).map(p => p.lat + ", " + p.lng).join("\n");
+    inner = '<textarea data-i rows="5"' + ph(f.ph) + ">" + ek(txt) + "</textarea>";
   } else if (t === "obj") {
     inner = '<div class="sub" data-group>' + groupHtml(f.of, v || {}) + "</div>";
   } else if (t === "list") {
@@ -241,7 +277,7 @@ function readField(f, el) {
   const t = f.t;
   const one = () => el.querySelector("[data-i]");
 
-  if (t === "text" || t === "time") { const s = one().value.trim(); return s || undefined; }
+  if (t === "text" || t === "time" || t === "date") { const s = one().value.trim(); return s || undefined; }
   if (t === "num") { const s = one().value.trim(); return s === "" ? undefined : Number(s); }
   if (t === "area") { const s = one().value.trim(); return s || undefined; }
   if (t === "bool") return one().checked ? true : undefined;
@@ -261,6 +297,13 @@ function readField(f, el) {
     const a = [];
     el.querySelectorAll("[data-i]").forEach(x => { if (x.checked) a.push(Number(x.getAttribute("data-i"))); });
     return a.length ? a : undefined;
+  }
+  if (t === "pts") {
+    const rows = one().value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
+      const p = l.split(",");
+      return { lat: parseFloat(p[0]), lng: parseFloat(p[1]) };
+    }).filter(p => !isNaN(p.lat) && !isNaN(p.lng));
+    return rows.length ? rows : undefined;
   }
   if (t === "img") { const s = one().value.trim(); return s || undefined; }
   if (t === "imgs") {
@@ -289,10 +332,14 @@ let CITEMS = [];           // what the server last gave us for it
 let MEDIA = null;          // the image library, loaded once and reused
 
 function cSpec() { return SPEC[CKIND]; }
+/* Events predate the content table and keep their own endpoint — and their own
+   server-side rules, which is why cSave below reads "problems" as well as
+   "error". One list of fields either way. */
+function cUrl() { return CKIND === "events" ? "/admin/events" : "/admin/content/" + CKIND; }
 
 async function cLoad(kind) {
   if (kind) CKIND = kind;
-  const r = await api("/admin/content/" + CKIND).then(r => r.json());
+  const r = await api(cUrl()).then(r => r.json());
   CITEMS = r.items || [];
   paintTable();
   $("#ccount").textContent = CITEMS.length + " " + (CITEMS.length === 1 ? "entry" : "entries");
@@ -313,6 +360,8 @@ async function cLoad(kind) {
  * text and obviously broken as a picture.
  */
 function paintTable() {
+  // 16:9 previews for the calendar, 4:3 for everything else — see .wide169.
+  $("#pane-content").classList.toggle("wide169", CKIND === "events");
   const q = ($("#csearch").value || "").trim().toLowerCase();
   const rows = CITEMS.map((it, i) => ({ it: it, i: i })).filter(({ it }) => {
     if (!q) return true;
@@ -334,14 +383,20 @@ function paintTable() {
       : '<span class="nopic">none</span>';
     const gal = (it.gallery || []).length;
 
-    const where = [it.city || "", it.lat != null ? Number(it.lat).toFixed(4) + ", " + Number(it.lng).toFixed(4) : ""]
-      .filter(Boolean).map(x => "<div>" + ek(x) + "</div>").join("");
+    const where = [
+      it.city || "",
+      it.from ? (it.to && it.to !== it.from ? it.from + " → " + it.to : it.from) : "",
+      it.window ? it.window.from + "–" + it.window.to : "",
+      it.lat != null ? Number(it.lat).toFixed(4) + ", " + Number(it.lng).toFixed(4) : "",
+    ].filter(Boolean).map(x => "<div>" + ek(x) + "</div>").join("");
 
     // Whatever this kind actually carries, rather than a fixed set of columns
     // that is half empty for three of the four kinds.
     const d = [];
     if (it.kind) d.push(ek(it.kind));
     if (it.themes && it.themes.length) d.push(ek(it.themes.join(", ")));
+    if (it.places && it.places.length) d.push(it.places.length + " place" + (it.places.length === 1 ? "" : "s"));
+    if (it.advice) d.push(ek(it.advice));
     if (it.visit && it.visit.rec) d.push(it.visit.rec + " min");
     if (it.price && (it.price.min || it.price.max)) d.push("₹" + (it.price.min || "?") + "–" + (it.price.max || "?"));
     if (it.phone) d.push(ek(it.phone));
@@ -367,6 +422,7 @@ function paintTable() {
 
 /** Draw the form for one document, or an empty one. */
 function cForm(obj) {
+  $("#editor").classList.toggle("wide169", CKIND === "events");
   $("#cform").innerHTML = groupHtml(cSpec(), obj || {});
   $("#editor").querySelectorAll("[data-thumbs]").forEach(paintThumbs);
   cmsg("");
@@ -377,7 +433,7 @@ function cBlank() { cForm(null); $("#ctitle").textContent = "Add a new " + kindW
 function kindWord() {
   const k = KINDS.filter(x => x.k === CKIND)[0];
   const w = (k ? k.lb : CKIND).toLowerCase();
-  return w === "places" ? "place" : w === "stays" ? "stay" :
+  return w === "places" ? "place" : w === "stays" ? "stay" : w === "events" ? "event" :
          w === "start points" ? "start point" : w === "e-rickshaw" ? "e-rickshaw stand" : "entry";
 }
 
@@ -404,11 +460,14 @@ async function cSave() {
   if (missing.length) return cmsg("Fill these in first: " + missing.join(", "), true);
   if (!/^[a-z0-9-]+$/.test(doc.id)) return cmsg("The id may only hold lower-case letters, digits and hyphens.", true);
 
-  const r = await api("/admin/content/" + CKIND, {
+  const r = await api(cUrl(), {
     method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(doc),
   });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) return cmsg(j.error || ("Save failed (" + r.status + ")"), true);
+  // The calendar validates on the server and answers with a list of what is
+  // wrong. Showing only the error field here reported "invalid" and threw the
+  // reasons away, which is the least useful half of the response.
+  if (!r.ok) return cmsg((j.problems && j.problems.length ? j.problems : [j.error || ("Save failed (" + r.status + ")")]).join("\n"), true);
   cmsg("");
   closeEditor();
   await cLoad();
@@ -416,7 +475,7 @@ async function cSave() {
 
 async function cDel(id) {
   if (!confirm("Delete " + id + "?\n\nThis removes it from the app. If it has only closed for a while, tick \"Hide from the app\" instead — that keeps the record.")) return;
-  await api("/admin/content/" + CKIND, {
+  await api(cUrl(), {
     method: "DELETE", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: id }),
   });
   cLoad();
@@ -482,6 +541,26 @@ function pickChoose(id) {
  * otherwise become an id nobody can guess, and the whole scheme depends on
  * img:"brahma-sarovar" meaning brahma-sarovar.webp.
  */
+/** Everything a photograph could belong to, for the upload selector. */
+async function fillUploadFor() {
+  const uses = await usage();
+  const sel = $("#upfor");
+  const sets = [
+    { url:"/admin/content/places", lb:"Places" },
+    { url:"/admin/events", lb:"Events" },
+    { url:"/admin/content/hotels", lb:"Stays" },
+  ];
+  let html = '<option value="">— choose —</option>';
+  for (const s2 of sets) {
+    let items = [];
+    try { items = (await api(s2.url).then(r => r.json())).items || []; } catch (e) { /* skip */ }
+    if (!items.length) continue;
+    html += '<optgroup label="' + ek(s2.lb) + '">' + items.map(it =>
+      '<option value="' + ek(it.id) + '">' + ek((it.name && it.name.en) || it.id) + "</option>").join("") + "</optgroup>";
+  }
+  sel.innerHTML = html;
+}
+
 async function mediaUpload(ev) {
   ev.preventDefault();
   const file = $("#upfile").files[0];
@@ -501,27 +580,104 @@ async function mediaUpload(ev) {
   upmsg("Uploaded as " + key + " — use the id \"" + key.replace(/\.[a-z]+$/, "") + "\".");
   $("#upfile").value = ""; $("#upkey").value = "";
   await mediaList(true);
-  if ($("#tab-media").hidden === false) paintLibrary();
+  paintLibrary(true);
   if (!$("#picker").hidden) { const f = PICK_FOR; if (f) pickImage(f, $("#picker").getAttribute("data-multi") === "1"); }
 }
 const upmsg = (t, bad) => { const m = $("#upm"); m.className = t ? "msg " + (bad ? "bad" : "good") : ""; m.textContent = t; };
 
-async function paintLibrary() {
-  const items = await mediaList(true);
-  $("#libcount").textContent = items.length + " " + (items.length === 1 ? "photograph" : "photographs") +
-    " · " + (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
-  $("#libgrid").innerHTML = items.map(o =>
-    '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
-    "<small>" + ek(o.key.replace(/\.[a-z]+$/, "")) + "</small>" +
-    '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>').join("") ||
-    "<p class=\"muted\">Nothing uploaded yet. Use the box above.</p>";
+/**
+ * What every photograph is FOR.
+ *
+ * A bucket of a hundred files named after tirthas is not a library, it is a
+ * directory listing — and the question an editor actually has is never "what
+ * files exist", it is "does Jyotisar have a picture" and "is this one still
+ * being used by anything". So the library is grouped by what refers to each
+ * key, and anything nothing refers to is called out rather than buried in
+ * alphabetical order among the ones that are in use.
+ *
+ * Built by reading the catalogues once and walking their img and gallery
+ * fields. No new server route and nothing to keep in step: whatever a document
+ * points at is, by definition, what that photograph is for.
+ */
+let USES = null;
+async function usage(force) {
+  if (USES && !force) return USES;
+  const map = {};
+  const add = (key, group, label) => {
+    if (!key) return;
+    (map[key] = map[key] || []).push({ group: group, label: label });
+  };
+  const sets = [
+    { url: "/admin/events", group: "events" },
+    { url: "/admin/content/places", group: "places" },
+    { url: "/admin/content/hotels", group: "stays" },
+    { url: "/admin/content/startpoints", group: "startpoints" },
+    { url: "/admin/content/erickshaw", group: "erickshaw" },
+  ];
+  for (const s of sets) {
+    let items = [];
+    try { items = (await api(s.url).then(r => r.json())).items || []; } catch (e) { /* one feed down must not blank the library */ }
+    for (const it of items) {
+      const label = (it.name && (it.name.en || it.name.hi)) || it.id;
+      add(it.img, s.group, label);
+      (it.gallery || []).forEach(g => add(g, s.group, label));
+    }
+  }
+  USES = map;
+  return map;
+}
+
+const GROUPS = [
+  { g:"all", lb:"All" },
+  { g:"places", lb:"Places" },
+  { g:"events", lb:"Events" },
+  { g:"stays", lb:"Stays" },
+  { g:"unused", lb:"Not used" },
+];
+let MGROUP = "all";
+
+async function paintLibrary(force) {
+  const items = await mediaList(force);
+  const uses = await usage(force);
+
+  const of = (key) => uses[key.replace(/\.[a-z]+$/, "")] || [];
+  const inGroup = (key) => {
+    const u = of(key);
+    if (MGROUP === "all") return true;
+    if (MGROUP === "unused") return u.length === 0;
+    return u.some(x => x.group === MGROUP);
+  };
+
+  $("#mgroups").innerHTML = GROUPS.map(x => {
+    const n = items.filter(o => {
+      const u = of(o.key);
+      return x.g === "all" ? true : x.g === "unused" ? u.length === 0 : u.some(y => y.group === x.g);
+    }).length;
+    return '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" + ek(x.lb) +
+      ' <small>' + n + "</small></button>";
+  }).join("");
+
+  const shown = items.filter(o => inGroup(o.key));
+  $("#libcount").textContent = shown.length + " of " + items.length + " · " +
+    (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
+
+  $("#libgrid").innerHTML = shown.map(o => {
+    const id = o.key.replace(/\.[a-z]+$/, "");
+    const u = of(o.key);
+    const used = u.length
+      ? '<small class="use">' + ek(u.map(x => x.label).join(", ")) + "</small>"
+      : '<small class="use none">not used anywhere</small>';
+    return '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
+      "<small>" + ek(id) + "</small>" + used +
+      '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>';
+  }).join("") || '<p class="muted">Nothing in this group.</p>';
 }
 
 async function mediaDelete(key) {
   if (!confirm("Delete " + key + "?\n\nAny place still pointing at it will show an empty frame.")) return;
   await api("/admin/media?key=" + encodeURIComponent(key), { method: "DELETE" });
   await mediaList(true);
-  paintLibrary();
+  paintLibrary(true);
 }
 
 /* ---- wiring --------------------------------------------------------------
@@ -579,6 +735,25 @@ function wireForms() {
   });
 
   $("#upform").addEventListener("submit", mediaUpload);
+  // Choosing what it is a photograph OF names the file, because the name is
+  // the link between the two — a picture called IMG_4821 belongs to nothing.
+  $("#upfor").addEventListener("change", async () => {
+    const id = $("#upfor").value;
+    if (!id) return;
+    const taken = (await mediaList()).map(o => o.key.replace(/\.[a-z]+$/, ""));
+    let key = id, n = 1;
+    while (taken.indexOf(key) >= 0) key = id + "-" + (++n);
+    $("#upkey").value = key;
+    upmsg(taken.indexOf(id) >= 0
+      ? "That one already has a photograph, so this will be added as " + key + "."
+      : "");
+  });
+  $("#mgroups").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mg]");
+    if (!b) return;
+    MGROUP = b.getAttribute("data-mg");
+    paintLibrary();
+  });
   $("#libgrid").addEventListener("click", (e) => {
     const d = e.target.closest("[data-mdel]");
     if (d) mediaDelete(d.getAttribute("data-mdel"));
@@ -670,6 +845,12 @@ export const FORMS_CSS = String.raw`
  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
  .th{width:74px;text-align:center}
  .th img{width:74px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+ /* An event's picture is a banner across the top of the home screen, so it is
+    previewed in the shape it will actually be seen in. A 4:3 thumbnail of a
+    16:9 crop tells the editor nothing about what will be cut off. */
+ .wide169 .th img,.wide169 .tpic img{width:112px;height:63px}
+ .wide169 .th{width:112px}
+ .wide169 .tpic{width:120px}
  .th small{display:block;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  /* An id pointing at nothing has to look wrong, not just render an empty box —
     a broken image and a photograph that has not loaded yet are the same picture. */
@@ -685,6 +866,14 @@ export const FORMS_CSS = String.raw`
  #picker{position:fixed;inset:0;background:rgba(28,24,21,.55);z-index:30;padding:24px;overflow:auto}
  #picker .box{background:var(--paper);border-radius:14px;padding:18px;max-width:820px;margin:0 auto}
  .muted{color:var(--muted);font-size:14px}
+ .mgroups{display:flex;gap:5px;flex-wrap:wrap}
+ .mgroups button{background:#fff;border:1px solid var(--line);color:var(--muted);
+   border-radius:99px;padding:6px 12px;font-size:12.5px}
+ .mgroups button small{opacity:.65;font-weight:700;margin-left:3px}
+ .mgroups button.on{background:var(--accent);border-color:var(--accent-d);color:#fff}
+ .pk .use{display:block;font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;
+   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .pk .use.none{color:var(--bad);font-weight:700}
  .wide{grid-column:1/-1}
 
  /* The content screen is one column, not two. A table of fifty-seven places
@@ -744,15 +933,23 @@ export const FORMS_HTML = String.raw`
     <label>Image file
      <span class="hint">webp, jpg, png or avif. Up to 6 MB. webp is what the app uses — it is a third the size for the same picture.</span>
      <input type="file" id="upfile" accept="image/webp,image/jpeg,image/png,image/avif"></label>
-    <label>Name it
-     <span class="hint">Lower-case with hyphens, no extension — e.g. brahma-sarovar. THIS is what you type into a place's photograph field. Leave blank to take it from the file name. Uploading an existing name replaces that picture everywhere it is used.</span>
+    <label>What is it a photograph of?
+     <span class="hint">Pick the place or event it belongs to and the name below fills itself in. Every photograph here is a picture of something in the app — choosing it is what keeps the library sorted.</span>
+     <select id="upfor"><option value="">— choose —</option></select></label>
+   <label>Name it
+     <span class="hint">Lower-case with hyphens, no extension. THIS is what goes in a record's photograph field. A second picture of the same place wants a -2 on the end. Uploading an existing name replaces that picture everywhere it is used.</span>
      <input type="text" id="upkey" placeholder="brahma-sarovar"></label>
     <div class="bar"><button class="primary" type="submit">Upload</button></div>
     <div id="upm"></div>
    </form>
   </section>
   <section>
-   <h2>Every photograph <span class="you" id="libcount"></span></h2>
+   <div class="toolbar">
+    <h2 style="margin:0">The library</h2>
+    <nav class="mgroups" id="mgroups"></nav>
+    <span style="flex:1"></span>
+    <span class="you" id="libcount"></span>
+   </div>
    <div class="grid" id="libgrid"></div>
   </section>
  </main>
