@@ -13,7 +13,7 @@
  * app cannot render — the server validates again regardless, using the same
  * rules as the build-time check.
  */
-import { FORMS_CSS, FORMS_HTML, FORMS_JS } from "./admin-forms";
+import { FORMS_CSS, FORMS_HTML, FORMS_JS, EDITOR_HTML } from "./admin-forms";
 
 export const ADMIN_HTML = `<!doctype html>
 <html lang="en"><head>
@@ -91,17 +91,30 @@ ${FORMS_CSS}
   </form>
 </div>
 <div id="app" hidden>
-<header><h1>Saarthi</h1>
-  <nav class="top" id="topnav">
-    <button data-top="content" class="on">Content</button>
-    <button data-top="events">Events</button>
-    <button data-top="media">Photographs</button>
+<div class="shell">
+ <aside class="side">
+  <div class="sbrand">Saarthi</div>
+  <nav id="sidenav">
+   <span class="sgrp">Catalogue</span>
+   <button data-nav="places" data-kind="places">Places</button>
+   <button data-nav="hotels" data-kind="hotels">Stays</button>
+   <button data-nav="startpoints" data-kind="startpoints">Start points</button>
+   <button data-nav="erickshaw" data-kind="erickshaw">E-rickshaw</button>
+   <span class="sgrp">Calendar</span>
+   <button data-nav="events">Events</button>
+   <span class="sgrp">Media</span>
+   <button data-nav="media">Photographs</button>
   </nav>
-  <span class="you" id="you"></span>
-  <button class="ghost" id="signout">Sign out</button>
-  <button class="ghost" id="testpush">Test notification</button></header>
+  <div class="sfoot">
+   <span class="you" id="you"></span>
+   <button class="ghost" id="testpush">Test notification</button>
+   <button class="ghost" id="signout">Sign out</button>
+  </div>
+ </aside>
+ <div class="work">
+  <div class="topbar"><h1 id="ptitle">Places</h1></div>
 ${FORMS_HTML}
-<div id="tab-events" hidden>
+<div id="pane-events" class="pane" hidden>
 <main>
  <section>
   <h2>Add or change an event</h2>
@@ -163,6 +176,9 @@ ${FORMS_HTML}
  </section>
 </main>
 </div>
+ </div>
+</div>
+${EDITOR_HTML}
 </div>
 <script>
 ${FORMS_JS}
@@ -287,7 +303,7 @@ async function boot() {
     $("#app").hidden = false;
     // Only now that the shell is on screen — showTop fetches, and a fetch that
     // fails must land on the gate through api(), not against a hidden page.
-    showTop("content");
+    show("places");
   } catch (e) {
     const m = (e && e.message) || String(e);
     if (m === "forbidden" || m === "unauthorised") return; // api() has already shown the gate
@@ -377,30 +393,43 @@ document.getElementById("signout").addEventListener("click", signOut);
 document.getElementById("testpush").addEventListener("click", testPush);
 
 /**
- * Which of the three surfaces is on screen.
+ * The sidebar, and what each entry puts on screen.
  *
- * Content first, and Events second, which is a reversal: this page was the
- * events page and nothing else. But the calendar is a handful of rows edited a
- * few times a year, while places, stays and start points are the catalogue the
- * whole app is made of — and until now the only way to change one was to edit
- * JSON in the repository and cut a release.
+ * One flat list of destinations. It used to be two levels — a top bar choosing
+ * "Content / Events / Photographs" and, underneath it and somewhere else on the
+ * page, a strip of pills choosing which KIND of content — so reaching Stays
+ * meant two clicks in two different navigation bars, and neither told you where
+ * you were. Four kinds, a calendar and a photograph library are six
+ * destinations; six things belong in one list.
  *
- * Each surface loads the first time it is opened rather than at boot. The
- * photograph library is a hundred thumbnails; fetching it to show a calendar
- * would make every visit to this page slower for no one's benefit.
+ * The four content kinds share one pane, because they are one screen with a
+ * different table in it. Events and Photographs have their own.
  */
+const PANES = { events: "#pane-events", media: "#pane-media" };
 const loaded = {};
-function showTop(which) {
-  ["content", "events", "media"].forEach(n => { $("#tab-" + n).hidden = n !== which; });
-  document.querySelectorAll("[data-top]").forEach(b => b.classList.toggle("on", b.getAttribute("data-top") === which));
-  if (loaded[which]) return;
-  loaded[which] = true;
-  if (which === "content") cLoad("places");
-  if (which === "media") paintLibrary();
+
+function show(nav) {
+  const kindly = nav !== "events" && nav !== "media";
+  $("#pane-content").hidden = !kindly;
+  $("#pane-events").hidden = nav !== "events";
+  $("#pane-media").hidden = nav !== "media";
+  document.querySelectorAll("[data-nav]").forEach(b =>
+    b.classList.toggle("on", b.getAttribute("data-nav") === nav));
+  $("#ptitle").textContent =
+    [...document.querySelectorAll("[data-nav]")].filter(b => b.getAttribute("data-nav") === nav)
+      .map(b => b.textContent)[0] || "";
+
+  // Loaded when first opened, not at boot: the photograph library is a hundred
+  // thumbnails and fetching it to show a calendar helps nobody.
+  if (kindly) return void cLoad(nav);
+  if (loaded[nav]) return;
+  loaded[nav] = true;
+  if (nav === "media") paintLibrary();
 }
-$("#topnav").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-top]");
-  if (b) showTop(b.getAttribute("data-top"));
+
+$("#sidenav").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-nav]");
+  if (b) show(b.getAttribute("data-nav"));
 });
 wireForms();
 

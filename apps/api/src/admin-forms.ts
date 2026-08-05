@@ -43,98 +43,98 @@ export const FORMS_JS = String.raw`
    req marks a field the form refuses to save without. */
 const SPEC = {
   places: [
-    { k:"id", t:"text", lb:"Id", req:1, hint:"Lower-case with hyphens, e.g. brahma-sarovar. Reusing an id edits that place. Changing it creates a second one." },
+    { k:"id", t:"text", lb:"Id", req:1, hint:"Lower-case with hyphens, e.g. brahma-sarovar. Reusing an id edits that place. Changing it creates a second one.", ph:"brahma-sarovar" },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"], hint:"Which town's lists this appears in." },
-    { k:"name", t:"loc", lb:"Name", req:1 },
-    { k:"short", t:"locarea", lb:"One line", req:1, hint:"The sentence under the name on every card. One sentence." },
-    { k:"why", t:"locarea", lb:"Why it matters", hint:"The long piece on the place's own page. History, scripture, what happened here." },
-    { k:"themes", t:"csv", lb:"Themes", hint:"Comma separated. Known: ${THEMES}" },
-    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any", hint:"Right-click the spot on openstreetmap.org and choose \"show address\"." },
-    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any" },
-    { k:"placeId", t:"text", lb:"Google place id", hint:"Optional. Lets Directions open the right pin rather than a coordinate." },
+    { k:"name", t:"loc", lb:"Name", req:1, ph:"Brahma Sarovar", phHi:"ब्रह्म सरोवर" },
+    { k:"short", t:"locarea", lb:"One line", req:1, hint:"The sentence under the name on every card. One sentence.", ph:"Asia's largest sacred tank, and the ceremonial heart of Kurukshetra.", phHi:"एशिया का सबसे बड़ा पवित्र सरोवर, कुरुक्षेत्र का उत्सव-केंद्र।" },
+    { k:"why", t:"locarea", lb:"Why it matters", hint:"The long piece on the place's own page. History, scripture, what happened here.", ph:"Abul Fazl, in Akbar's court, called it a small sea. A dip during an eclipse is held to carry the merit of an Ashvamedha yajna.", phHi:"अकबर के दरबारी अबुल-फ़ज़ल ने इसे लघु समुद्र कहा।" },
+    { k:"themes", t:"csv", lb:"Themes", hint:"Comma separated. Known: ${THEMES}", ph:"sarovar, heritage, aarti" },
+    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any", hint:"Right-click the spot on openstreetmap.org and choose \"show address\".", ph:"29.9613554" },
+    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any", ph:"76.8285533" },
+    { k:"placeId", t:"text", lb:"Google place id", hint:"Optional. Lets Directions open the right pin rather than a coordinate.", ph:"ChIJL6JHE1ZHDjkRLrWe5di8dqg" },
     { k:"img", t:"img", lb:"Main photograph" },
     { k:"gallery", t:"imgs", lb:"More photographs" },
     { k:"visit", t:"obj", lb:"How long people spend", of:[
-      { k:"rec", t:"num", lb:"Usually (minutes)", req:1, hint:"What the planner budgets." },
-      { k:"min", t:"num", lb:"Rushed (minutes)" },
-      { k:"max", t:"num", lb:"Unhurried (minutes)" },
+      { k:"rec", t:"num", lb:"Usually (minutes)", req:1, hint:"What the planner budgets.", ph:"60" },
+      { k:"min", t:"num", lb:"Rushed (minutes)", ph:"30" },
+      { k:"max", t:"num", lb:"Unhurried (minutes)", ph:"120" },
     ] },
     { k:"hours", t:"obj", lb:"Opening hours", of:[
-      { k:"o", t:"time", lb:"Opens" },
-      { k:"c", t:"time", lb:"Closes" },
+      { k:"o", t:"time", lb:"Opens", ph:"05:00" },
+      { k:"c", t:"time", lb:"Closes", ph:"21:00" },
     ] },
     { k:"closed", t:"days", lb:"Closed on", hint:"Most museums here close on Monday. Leave all unticked if it never closes." },
     { k:"free", t:"bool", lb:"Free to enter" },
-    { k:"fee", t:"loc", lb:"What it costs", hint:"Only if not free. Plain words: \"₹20, camera ₹50\"." },
-    { k:"best", t:"loc", lb:"Best time to come" },
-    { k:"bestKey", t:"text", lb:"Best-time tag", hint:"Optional short tag the app groups by, e.g. sunset, morning." },
+    { k:"fee", t:"loc", lb:"What it costs", hint:"Only if not free. Plain words: \"₹20, camera ₹50\".", ph:"20 rupees, camera 50", phHi:"₹20, कैमरा ₹50" },
+    { k:"best", t:"loc", lb:"Best time to come", ph:"Sunset, when the ghats are lit", phHi:"सूर्यास्त, जब घाट जगमगाते हैं" },
+    { k:"bestKey", t:"text", lb:"Best-time tag", hint:"Optional short tag the app groups by, e.g. sunset, morning.", ph:"sunset" },
     { k:"inside", t:"list", lb:"What is inside", add:"Add something inside", of:[
-      { k:"n", t:"loc", lb:"Name" },
-      { k:"d", t:"locarea", lb:"Description" },
+      { k:"n", t:"loc", lb:"Name", ph:"Sarveshwar Mahadev Mandir", phHi:"सर्वेश्वर महादेव मंदिर" },
+      { k:"d", t:"locarea", lb:"Description", ph:"On an island mid-tank, reached by a bridge.", phHi:"सरोवर के मध्य टापू पर, पुल से पहुँचा जाता है।" },
     ] },
     { k:"notice", t:"list", lb:"Things to know", add:"Add a notice", of:[
-      { k:"t", t:"loc", lb:"Heading" },
-      { k:"d", t:"locarea", lb:"Detail" },
+      { k:"t", t:"loc", lb:"Heading", ph:"Very crowded at eclipses", phHi:"ग्रहण पर अत्यधिक भीड़" },
+      { k:"d", t:"locarea", lb:"Detail", ph:"On an island mid-tank, reached by a bridge.", phHi:"सरोवर के मध्य टापू पर, पुल से पहुँचा जाता है।" },
     ] },
-    { k:"parking", t:"loc", lb:"Parking" },
-    { k:"facilities", t:"csv", lb:"Facilities", hint:"Comma separated. Known: ${FACILITIES}" },
+    { k:"parking", t:"loc", lb:"Parking", ph:"Free, at the south gate", phHi:"निःशुल्क, दक्षिण द्वार पर" },
+    { k:"facilities", t:"csv", lb:"Facilities", hint:"Comma separated. Known: ${FACILITIES}", ph:"washroom, water, parking" },
     { k:"indoor", t:"bool", lb:"Mostly indoors", hint:"Used to suggest somewhere when it is raining or very hot." },
     { k:"child", t:"bool", lb:"Good with children" },
     { k:"senior", t:"bool", lb:"Easy for older visitors", hint:"Few steps, somewhere to sit, short walk from parking." },
-    { k:"rank", t:"num", lb:"Importance", hint:"Higher comes first when the planner has to choose. 0-100." },
-    { k:"first", t:"num", lb:"First-visit rank", hint:"Higher means \"see this on a first trip\"." },
+    { k:"rank", t:"num", lb:"Importance", hint:"Higher comes first when the planner has to choose. 0-100.", ph:"90" },
+    { k:"first", t:"num", lb:"First-visit rank", hint:"Higher means \"see this on a first trip\".", ph:"1" },
     { k:"anchor", t:"obj", lb:"Fixed-time event", hint:"Only for something that happens at a set hour, like an aarti or a light show.", of:[
-      { k:"at", t:"num", lb:"Starts at (minutes after midnight)", hint:"6pm is 1080. The planner builds the day around this." },
-      { k:"win", t:"csv", lb:"Window (two numbers)", hint:"Earliest and latest it is worth arriving, same units. e.g. 1020, 1110" },
-      { k:"lb", t:"loc", lb:"What it is called" },
+      { k:"at", t:"num", lb:"Starts at (minutes after midnight)", hint:"6pm is 1080. The planner builds the day around this.", ph:"1080" },
+      { k:"win", t:"csv", lb:"Window (two numbers)", hint:"Earliest and latest it is worth arriving, same units. e.g. 1020, 1110", ph:"1020, 1110" },
+      { k:"lb", t:"loc", lb:"What it is called", ph:"Evening aarti", phHi:"संध्या आरती" },
     ] },
     { k:"pending", t:"bool", lb:"Hide from the app", hint:"Keeps the record without showing it. For somewhere closed for restoration." },
   ],
 
   hotels: [
-    { k:"id", t:"text", lb:"Id", req:1, hint:"Lower-case with hyphens, e.g. neelkanth-yatri-niwas." },
+    { k:"id", t:"text", lb:"Id", req:1, hint:"Lower-case with hyphens, e.g. neelkanth-yatri-niwas.", ph:"neelkanth-yatri-niwas" },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"] },
-    { k:"name", t:"loc", lb:"Name", req:1 },
+    { k:"name", t:"loc", lb:"Name", req:1, ph:"Neelkanth Yatri Niwas", phHi:"नीलकंठ यात्री निवास" },
     { k:"kind", t:"sel", lb:"Kind", req:1, opts:["hotel","dharamshala","guesthouse","homestay"],
       hint:"A dharamshala and a hotel are different propositions for a pilgrim, not different prices." },
-    { k:"area", t:"loc", lb:"Locality", hint:"In words — \"near the bus stand\", \"Sector 13\". What tells someone how far out it is." },
-    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any" },
-    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any" },
+    { k:"area", t:"loc", lb:"Locality", hint:"In words — \"near the bus stand\", \"Sector 13\". What tells someone how far out it is.", ph:"Near Brahma Sarovar, 400 m from the ghats", phHi:"ब्रह्म सरोवर के पास, घाटों से 400 मी" },
+    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any", ph:"29.9601" },
+    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any", ph:"76.8290" },
     { k:"price", t:"obj", lb:"Rupees per night", hint:"Indicative. A tariff card is never one number.", of:[
-      { k:"min", t:"num", lb:"From" },
-      { k:"max", t:"num", lb:"To" },
+      { k:"min", t:"num", lb:"From", ph:"30" },
+      { k:"max", t:"num", lb:"To", ph:"120" },
     ] },
-    { k:"phone", t:"text", lb:"Phone", hint:"The number someone should actually ring. With the STD code." },
-    { k:"note", t:"locarea", lb:"What a local would tell you" },
+    { k:"phone", t:"text", lb:"Phone", hint:"The number someone should actually ring. With the STD code.", ph:"01744-220123" },
+    { k:"note", t:"locarea", lb:"What a local would tell you", ph:"Simple rooms, no food. Ask for one on the sarovar side.", phHi:"साधारण कमरे, भोजन नहीं। सरोवर की ओर का कमरा माँगें।" },
     { k:"img", t:"img", lb:"Photograph" },
     { k:"gallery", t:"imgs", lb:"More photographs" },
-    { k:"facilities", t:"csv", lb:"Facilities", hint:"Comma separated. Known: ${FACILITIES}" },
+    { k:"facilities", t:"csv", lb:"Facilities", hint:"Comma separated. Known: ${FACILITIES}", ph:"washroom, water, parking" },
     { k:"pending", t:"bool", lb:"Hide from the app", hint:"For somewhere that has closed." },
   ],
 
   startpoints: [
-    { k:"id", t:"text", lb:"Id", req:1, hint:"Lower-case with hyphens, e.g. kurukshetra-junction." },
+    { k:"id", t:"text", lb:"Id", req:1, hint:"Lower-case with hyphens, e.g. kurukshetra-junction.", ph:"kurukshetra-junction" },
     { k:"kind", t:"sel", lb:"Kind", req:1, opts:["station","busstand","hotel","dharamshala"] },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"] },
-    { k:"name", t:"loc", lb:"Name", req:1 },
-    { k:"area", t:"loc", lb:"Locality" },
-    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any", hint:"Put the pin on the GATE people actually walk out of, not the middle of the site." },
-    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any" },
-    { k:"code", t:"text", lb:"Station code", hint:"For a railway station — KKDE, SHDM. What a ticket is booked against." },
-    { k:"phone", t:"text", lb:"Phone" },
-    { k:"checked", t:"text", lb:"Coordinates last checked", hint:"YYYY-MM-DD. The day a person last confirmed the pin against a map." },
+    { k:"name", t:"loc", lb:"Name", req:1, ph:"Kurukshetra Junction", phHi:"कुरुक्षेत्र जंक्शन" },
+    { k:"area", t:"loc", lb:"Locality", ph:"Railway Road", phHi:"रेलवे रोड" },
+    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any", hint:"Put the pin on the GATE people actually walk out of, not the middle of the site.", ph:"29.9701" },
+    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any", ph:"76.8342" },
+    { k:"code", t:"text", lb:"Station code", hint:"For a railway station — KKDE, SHDM. What a ticket is booked against.", ph:"KKDE" },
+    { k:"phone", t:"text", lb:"Phone", ph:"139" },
+    { k:"checked", t:"text", lb:"Coordinates last checked", hint:"YYYY-MM-DD. The day a person last confirmed the pin against a map.", ph:"2026-08-05" },
     { k:"verified", t:"bool", lb:"Pin confirmed by a person" },
   ],
 
   erickshaw: [
-    { k:"id", t:"text", lb:"Id", req:1 },
+    { k:"id", t:"text", lb:"Id", req:1, ph:"stand-brahma-sarovar" },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"] },
-    { k:"name", t:"loc", lb:"Stand name", req:1 },
-    { k:"area", t:"loc", lb:"Locality" },
-    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any" },
-    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any" },
-    { k:"phone", t:"text", lb:"Phone" },
-    { k:"note", t:"locarea", lb:"Anything worth knowing", hint:"Typical fare, hours it is manned." },
+    { k:"name", t:"loc", lb:"Stand name", req:1, ph:"Brahma Sarovar stand", phHi:"ब्रह्म सरोवर स्टैंड" },
+    { k:"area", t:"loc", lb:"Locality", ph:"South gate", phHi:"दक्षिण द्वार" },
+    { k:"lat", t:"num", lb:"Latitude", req:1, step:"any", ph:"29.9605" },
+    { k:"lng", t:"num", lb:"Longitude", req:1, step:"any", ph:"76.8281" },
+    { k:"phone", t:"text", lb:"Phone", ph:"9812345678" },
+    { k:"note", t:"locarea", lb:"Anything worth knowing", hint:"Typical fare, hours it is manned.", ph:"About 30 rupees to the museum. Manned 6am to 9pm.", phHi:"संग्रहालय तक लगभग ₹30। सुबह 6 से रात 9 बजे तक।" },
   ],
 };
 
@@ -160,23 +160,30 @@ function fieldHtml(f, v) {
   const lb = ek(f.lb) + (f.req ? ' <em class="req">required</em>' : "");
   let inner = "";
 
+  // A placeholder carrying a REAL example, not a restatement of the label.
+  // "Id — required" says nothing to someone who has never seen this data;
+  // "brahma-sarovar" greyed out in the box says the whole rule at a glance.
+  const ph = (x) => x ? ' placeholder="' + ek(x) + '"' : "";
+
   if (t === "text" || t === "time" || t === "num") {
     const it = t === "num" ? "number" : t === "time" ? "time" : "text";
-    inner = '<input data-i type="' + it + '"' + (f.step ? ' step="' + f.step + '"' : "") +
+    inner = '<input data-i type="' + it + '"' + (f.step ? ' step="' + f.step + '"' : "") + ph(f.ph) +
             ' value="' + ek(v == null ? "" : v) + '">';
   } else if (t === "area") {
-    inner = '<textarea data-i>' + ek(v == null ? "" : v) + '</textarea>';
+    inner = '<textarea data-i' + ph(f.ph) + ">" + ek(v == null ? "" : v) + "</textarea>";
   } else if (t === "bool") {
     inner = '<label class="chk"><input data-i type="checkbox"' + (v ? " checked" : "") + '> yes</label>';
   } else if (t === "csv") {
-    inner = '<input data-i type="text" value="' + ek(Array.isArray(v) ? v.join(", ") : (v == null ? "" : v)) + '">';
+    inner = '<input data-i type="text"' + ph(f.ph) + ' value="' +
+      ek(Array.isArray(v) ? v.join(", ") : (v == null ? "" : v)) + '">';
   } else if (t === "sel") {
     inner = '<select data-i><option value=""></option>' +
       f.opts.map(o => '<option' + (v === o ? " selected" : "") + '>' + ek(o) + "</option>").join("") + "</select>";
   } else if (t === "loc" || t === "locarea") {
     const box = (lang, val) => t === "locarea"
-      ? '<textarea data-i="' + lang + '">' + ek(val) + "</textarea>"
-      : '<input data-i="' + lang + '" type="text" value="' + ek(val) + '">';
+      ? '<textarea data-i="' + lang + '"' + ph(lang === "en" ? f.ph : f.phHi) + ">" + ek(val) + "</textarea>"
+      : '<input data-i="' + lang + '" type="text"' + ph(lang === "en" ? f.ph : f.phHi) +
+        ' value="' + ek(val) + '">';
     inner = '<div class="pair"><span><small>English</small>' + box("en", (v && v.en) || "") + "</span>" +
             '<span><small>हिन्दी</small>' + box("hi", (v && v.hi) || "") + "</span></div>";
   } else if (t === "days") {
@@ -285,13 +292,10 @@ function cSpec() { return SPEC[CKIND]; }
 
 async function cLoad(kind) {
   if (kind) CKIND = kind;
-  document.querySelectorAll("[data-tab]").forEach(b =>
-    b.classList.toggle("on", b.getAttribute("data-tab") === CKIND));
   const r = await api("/admin/content/" + CKIND).then(r => r.json());
   CITEMS = r.items || [];
   paintTable();
   $("#ccount").textContent = CITEMS.length + " " + (CITEMS.length === 1 ? "entry" : "entries");
-  cBlank();
 }
 
 /**
@@ -364,20 +368,28 @@ function paintTable() {
 /** Draw the form for one document, or an empty one. */
 function cForm(obj) {
   $("#cform").innerHTML = groupHtml(cSpec(), obj || {});
-  $("#cformwrap").querySelectorAll("[data-thumbs]").forEach(paintThumbs);
+  $("#editor").querySelectorAll("[data-thumbs]").forEach(paintThumbs);
   cmsg("");
 }
-function cBlank() { cForm(null); $("#ctitle").textContent = "Add a new entry"; }
+function cBlank() { cForm(null); $("#ctitle").textContent = "Add a new " + kindWord(); }
+
+/** The word for one record of the kind on screen, for headings people read. */
+function kindWord() {
+  const k = KINDS.filter(x => x.k === CKIND)[0];
+  const w = (k ? k.lb : CKIND).toLowerCase();
+  return w === "places" ? "place" : w === "stays" ? "stay" :
+         w === "start points" ? "start point" : w === "e-rickshaw" ? "e-rickshaw stand" : "entry";
+}
+
+function openEditor() { $("#editor").hidden = false; document.body.style.overflow = "hidden"; }
+function closeEditor() { $("#editor").hidden = true; document.body.style.overflow = ""; }
 
 function cEdit(i) {
   const it = CITEMS[i];
   if (!it) return;
   cForm(it);
   $("#ctitle").textContent = "Editing " + ((it.name && it.name.en) || it.id || "");
-  // To the form, not to the top: the table is above it and Edit was pressed
-  // from there, so scrolling to the top puts the row they tapped back on screen
-  // and the form they asked for out of it.
-  $("#cformwrap").scrollIntoView({ behavior: "smooth", block: "start" });
+  openEditor();
 }
 
 const cmsg = (t, bad) => {
@@ -397,7 +409,8 @@ async function cSave() {
   });
   const j = await r.json().catch(() => ({}));
   if (!r.ok) return cmsg(j.error || ("Save failed (" + r.status + ")"), true);
-  cmsg("Saved. It reaches phones within five minutes.");
+  cmsg("");
+  closeEditor();
   await cLoad();
 }
 
@@ -516,11 +529,6 @@ async function mediaDelete(key) {
    reason the sign-in form uses addEventListener: an inline handler that fails
    to run looks exactly like a button that does nothing. */
 function wireForms() {
-  $("#ctabs").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-tab]");
-    if (b) cLoad(b.getAttribute("data-tab"));
-  });
-
   $("#clist").addEventListener("click", (e) => {
     const ed = e.target.closest("[data-edit]");
     if (ed) return cEdit(Number(ed.getAttribute("data-edit")));
@@ -528,7 +536,7 @@ function wireForms() {
     if (dl) return cDel(dl.getAttribute("data-cdel"));
   });
 
-  $("#cformwrap").addEventListener("click", (e) => {
+  $("#editor").addEventListener("click", (e) => {
     const add = e.target.closest("[data-add]");
     if (add) {
       const fld = add.closest(".fld");
@@ -543,22 +551,26 @@ function wireForms() {
   });
 
   // Typing an id by hand should preview too, not only picking one.
-  $("#cformwrap").addEventListener("input", (e) => {
+  $("#editor").addEventListener("input", (e) => {
     const fld = e.target.closest('.fld[data-t="img"], .fld[data-t="imgs"]');
     if (fld) paintThumbs(fld.querySelector("[data-thumbs]"));
   });
 
   $("#csave").addEventListener("click", cSave);
-  $("#csave2").addEventListener("click", cSave);
-  $("#cnew").addEventListener("click", cBlank);
+  $("#cclose").addEventListener("click", closeEditor);
+  $("#cclose2").addEventListener("click", closeEditor);
+  // Clicking the dimmed area behind the drawer closes it, as every drawer does.
+  $("#editor").addEventListener("click", (e) => { if (e.target.id === "editor") closeEditor(); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!$("#picker").hidden) return void ($("#picker").hidden = true);
+    if (!$("#editor").hidden) closeEditor();
+  });
   // Filtering redraws from CITEMS rather than asking the server again — the
   // whole catalogue is already here, and a request per keystroke would be a
   // database read per keystroke.
   $("#csearch").addEventListener("input", paintTable);
-  $("#cadd").addEventListener("click", () => {
-    cBlank();
-    $("#cformwrap").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
+  $("#cadd").addEventListener("click", () => { cBlank(); openEditor(); });
 
   $("#picker").addEventListener("click", (e) => {
     if (e.target.id === "picker" || e.target.closest("[data-pclose]")) return void ($("#picker").hidden = true);
@@ -588,10 +600,57 @@ function findSpec(fld) {
 `;
 
 export const FORMS_CSS = String.raw`
- nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
- nav.tabs button{background:#fff;border:1px solid var(--line);color:var(--muted);
-   border-radius:99px;padding:7px 14px;font-size:13px}
- nav.tabs button.on{background:var(--accent);border-color:var(--accent-d);color:#fff}
+ /* ---- the shell ----------------------------------------------------------
+    One list of destinations down the left, one working area to the right, and
+    the editor only on screen when something is being edited.
+
+    What this replaced: two rows of navigation in two different places (a top
+    bar choosing "Content / Events / Photographs", and a separate strip of pills
+    choosing which kind of content), a working area pinned to a narrow column
+    with empty space either side of it, and a form that was always open even
+    when nobody was adding anything — so the page loaded showing a blank form
+    for a record that did not exist, above the list of records that did. */
+ .shell{display:flex;min-height:100vh;align-items:stretch}
+ .side{width:216px;flex:0 0 216px;background:var(--paper);border-right:1px solid var(--line);
+   display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+ .sbrand{font-weight:700;font-size:17px;padding:18px 18px 12px}
+ #sidenav{display:flex;flex-direction:column;gap:1px;padding:4px 10px;flex:1;overflow:auto}
+ .sgrp{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+   font-weight:700;padding:14px 8px 5px}
+ #sidenav button{background:none;border:0;text-align:left;padding:9px 10px;border-radius:8px;
+   color:var(--ink);font-size:14px;font-weight:600}
+ #sidenav button:hover{background:var(--bg)}
+ #sidenav button.on{background:var(--accent);color:#fff}
+ .sfoot{border-top:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:7px}
+ .sfoot .you{font-size:12px;color:var(--muted);word-break:break-all}
+ .sfoot button{width:100%;font-size:12.5px;padding:8px}
+ .work{flex:1;min-width:0;display:flex;flex-direction:column}
+ .topbar{display:flex;align-items:center;gap:12px;padding:16px 22px;border-bottom:1px solid var(--line);
+   background:var(--paper);position:sticky;top:0;z-index:4}
+ .topbar h1{font-size:19px;margin:0}
+ .pane{padding:22px}
+ @media(max-width:820px){
+   .shell{display:block}
+   .side{width:auto;flex:none;height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}
+   #sidenav{flex-direction:row;flex-wrap:wrap;gap:4px}
+   .sgrp{display:none}
+   .sfoot{flex-direction:row;align-items:center}
+ }
+
+ /* ---- the editor drawer ----
+    Over the table rather than under it. The record being edited is the only
+    thing that matters while it is open, and sliding it over the list keeps the
+    list exactly where it was for when it closes. */
+ #editor{position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;
+   background:rgba(28,24,21,.45)}
+ #editor .drawer{background:var(--bg);width:min(760px,100%);height:100%;display:flex;
+   flex-direction:column;box-shadow:-8px 0 30px rgba(28,24,21,.18)}
+ #editor .dhead{display:flex;align-items:center;gap:10px;padding:15px 20px;background:var(--paper);
+   border-bottom:1px solid var(--line)}
+ #editor .dhead h2{margin:0;font-size:16px;text-transform:none;letter-spacing:0;color:var(--ink)}
+ #editor .dbody{flex:1;overflow:auto;padding:18px 20px}
+ #editor .dfoot{padding:13px 20px;background:var(--paper);border-top:1px solid var(--line);
+   display:flex;gap:8px;align-items:center}
  .fld{margin:14px 0}
  .fl{font-size:13px;font-weight:700;display:block;margin-bottom:4px}
  .fl .req{font-style:normal;font-weight:400;color:var(--bad);font-size:11px;
@@ -665,40 +724,19 @@ export const FORMS_CSS = String.raw`
 `;
 
 export const FORMS_HTML = String.raw`
-<div id="tab-content" hidden>
- <nav class="tabs" id="ctabs">
-  <button data-tab="places" class="on">Places</button>
-  <button data-tab="hotels">Stays</button>
-  <button data-tab="startpoints">Start points</button>
-  <button data-tab="erickshaw">E-rickshaw</button>
- </nav>
- <main class="one">
-  <section>
-   <div class="toolbar">
-    <h2 style="margin:0">In the app <span class="you" id="ccount"></span></h2>
-    <input type="search" id="csearch" placeholder="Search name, id or town…">
-    <button class="primary" type="button" id="cadd">+ Add a new entry</button>
-   </div>
-   <div id="clist"></div>
-  </section>
-
-  <section id="cformwrap">
-   <div class="toolbar">
-    <h2 style="margin:0" id="ctitle">Add a new entry</h2>
-    <span style="flex:1"></span>
-    <button class="primary" type="button" id="csave">Save</button>
-    <button class="ghost" type="button" id="cnew">Clear</button>
-   </div>
-   <div id="cm"></div>
-   <div id="cform"></div>
-   <div class="bar">
-    <button class="primary" type="button" id="csave2">Save</button>
-   </div>
-  </section>
- </main>
+<div id="pane-content" class="pane">
+ <section>
+  <div class="toolbar">
+   <input type="search" id="csearch" placeholder="Search name, id or town…">
+   <span class="you" id="ccount"></span>
+   <span style="flex:1"></span>
+   <button class="primary" type="button" id="cadd">+ Add new</button>
+  </div>
+  <div id="clist"></div>
+ </section>
 </div>
 
-<div id="tab-media" hidden>
+<div id="pane-media" class="pane" hidden>
  <main>
   <section>
    <h2>Add a photograph</h2>
@@ -727,6 +765,29 @@ export const FORMS_HTML = String.raw`
    <button class="ghost" type="button" data-pclose>Done</button>
   </div>
   <div class="grid" id="pickgrid"></div>
+ </div>
+</div>
+`;
+
+/** The editor, kept out of the panes so it can sit over all of them. */
+export const EDITOR_HTML = String.raw`
+<div id="editor" hidden>
+ <div class="drawer">
+  <div class="dhead">
+   <h2 id="ctitle">Add a new entry</h2>
+   <span style="flex:1"></span>
+   <button class="ghost" type="button" id="cclose">Close</button>
+  </div>
+  <div class="dbody">
+   <div id="cm"></div>
+   <div id="cform"></div>
+  </div>
+  <div class="dfoot">
+   <button class="primary" type="button" id="csave">Save</button>
+   <button class="ghost" type="button" id="cclose2">Cancel</button>
+   <span style="flex:1"></span>
+   <span class="muted" style="font-size:12px">Reaches phones within five minutes.</span>
+  </div>
  </div>
 </div>
 `;
