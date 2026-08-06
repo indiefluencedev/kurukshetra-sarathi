@@ -111,7 +111,10 @@ for (const [kind, fields] of Object.entries(SPEC)) {
       in the markup it is served with; a $("#thing") that finds nothing throws
       on the line that uses it, which in a delegated click handler means a
       button that does nothing and says nothing. */
-const ids = new Set([...HTML.matchAll(/id="([\w-]+)"/g)].map((m) => m[1]));
+// From the static blocks AND from the markup the script builds itself — some
+// controls only exist once a screen has been drawn (the loose pile's name box
+// is one), and those are just as real as the ones written out by hand.
+const ids = new Set([...(HTML + JS).matchAll(/id="([\w-]+)"/g)].map((m) => m[1]));
 // Ids that live in admin.ts's own shell rather than in these blocks.
 const SHELL = new Set(["gate", "gform", "gu", "gp", "gm", "nojs", "app", "you", "audit",
   "sidenav", "signout", "testpush", "ptitle", "pane-events"]);
@@ -126,7 +129,7 @@ for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "se
   "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm",
   "boolrow", "fcard", "fcover", "fbadge", "fmeta", "fhead", "fempty", "fname", "foldnote", "wall",
   "tpick", "tbtn", "tclear", "clockread", "cr-part", "dial", "dial-hand", "dial-h", "dial-tip",
-  "tsegs", "thint", "tbox", "looseup"])
+  "tsegs", "thint", "tbox", "newf", "fplus", "nfkinds", "wsec", "wgrid"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".
   assert.match(CSS, new RegExp("[.\\s]" + c + "[^\\w-]"), "no style for ." + c);
 

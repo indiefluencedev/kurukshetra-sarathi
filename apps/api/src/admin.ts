@@ -333,7 +333,7 @@ function show(nav) {
   if (kindly) return void cLoad(nav);
   if (loaded[nav]) return;
   loaded[nav] = true;
-  if (nav === "media") { paintLibrary(true); fillUploadFor(); }
+  if (nav === "media") paintLibrary(true);
 }
 
 $("#sidenav").addEventListener("click", (e) => {

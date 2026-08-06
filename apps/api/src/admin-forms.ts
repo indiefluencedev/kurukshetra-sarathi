@@ -1835,57 +1835,6 @@ function pickChoose(id) {
 }
 
 /**
- * Upload. The key is the id the content will refer to, so it is asked for
- * rather than taken from the filename — a file called "IMG_4821.jpg" would
- * otherwise become an id nobody can guess, and the whole scheme depends on
- * img:"brahma-sarovar" meaning brahma-sarovar.webp.
- */
-/** Everything a photograph could belong to, for the upload selector. */
-async function fillUploadFor() {
-  const uses = await usage();
-  const sel = $("#upfor");
-  const sets = [
-    { url:"/admin/content/places", lb:"Places" },
-    { url:"/admin/events", lb:"Events" },
-    { url:"/admin/content/hero", lb:"Home screen" },
-    { url:"/admin/content/hotels", lb:"Stays" },
-  ];
-  let html = '<option value="">— choose —</option>';
-  for (const s2 of sets) {
-    let items = [];
-    try { items = (await api(s2.url).then(r => r.json())).items || []; } catch (e) { /* skip */ }
-    if (!items.length) continue;
-    html += '<optgroup label="' + ek(s2.lb) + '">' + items.map(it =>
-      '<option value="' + ek(it.id) + '">' + ek((it.name && it.name.en) || it.id) + "</option>").join("") + "</optgroup>";
-  }
-  sel.innerHTML = html;
-}
-
-async function mediaUpload(ev) {
-  ev.preventDefault();
-  const file = $("#upfile").files[0];
-  let key = $("#upkey").value.trim().toLowerCase();
-  if (!file) return upmsg("Choose an image first.", true);
-  const ext = (file.type.split("/")[1] || "webp").replace("jpeg", "jpg");
-  if (!key) key = (file.name.replace(/\.[^.]+$/, "") || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  if (!key) return upmsg("Give it a name, e.g. brahma-sarovar.", true);
-  if (key.indexOf(".") < 0) key = key + "." + ext;
-
-  upmsg("Uploading…");
-  const r = await api("/admin/media?key=" + encodeURIComponent(key), {
-    method: "PUT", headers: { "content-type": file.type }, body: file,
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) return upmsg(j.error || ("Upload failed (" + r.status + ")"), true);
-  upmsg("Uploaded as " + key + " — use the id \"" + key.replace(/\.[a-z]+$/, "") + "\".");
-  $("#upfile").value = ""; $("#upkey").value = "";
-  await mediaList(true);
-  paintLibrary(true);
-  if (!$("#picker").hidden) { const f = PICK_FOR; if (f) pickImage(f, $("#picker").getAttribute("data-multi") === "1"); }
-}
-const upmsg = (t, bad) => { const m = $("#upm"); m.className = t ? "msg " + (bad ? "bad" : "good") : ""; m.textContent = t; };
-
-/**
  * What every photograph is FOR.
  *
  * A bucket of a hundred files named after tirthas is not a library, it is a
@@ -1940,7 +1889,10 @@ async function usage(force) {
          same id arrives twice and would draw the same folder twice, each
          holding the same pictures. Places come before hero in this list, which
          is also the label a person would rather read. */
-      if (!seen[it.id]) { seen[it.id] = 1; recs.push({ id: it.id, label: label, group: s.group }); }
+      if (!seen[it.id]) {
+        seen[it.id] = 1;
+        recs.push({ id: it.id, label: label, group: s.group, city: it.city || "" });
+      }
       add(it.img, s.group, label);
       (it.gallery || []).forEach(g => add(g, s.group, label));
     }
@@ -1976,8 +1928,21 @@ const GROUPS = [
   { g:"events", lb:"Events" },
   { g:"home", lb:"Home screen" },
   { g:"startpoints", lb:"Start points" },
+  { g:"erickshaw", lb:"E-rickshaw" },
   { g:"loose", lb:"In no folder" },
 ];
+
+/* The wall is sorted into named sections rather than one alphabetical run of
+   seventy-six. Kurukshetra and Pehowa are two towns and two bodies of work —
+   somebody photographing Pehowa for an afternoon should not be scrolling past
+   Kurukshetra to find where their folders are. The town comes off the record
+   itself, so a place that moves town moves section without anything else being
+   touched. Kinds that have no town (an event, a home-screen photograph) are one
+   section each. */
+const GROUPLB = { places:"Places", stays:"Stays", events:"Events", home:"Home screen",
+                  startpoints:"Start points", erickshaw:"E-rickshaw" };
+const GORDER = ["places", "stays", "events", "home", "startpoints", "erickshaw"];
+const townLb = (c) => (c ? c.charAt(0).toUpperCase() + c.slice(1) : "");
 let MGROUP = "all";
 let BINS = {};        // folder id -> the objects in it
 let LOOSE = [];       // photographs whose name matches no record
@@ -2029,6 +1994,39 @@ function folderCard(r) {
     '<span class="fmeta"><b>' + ek(r.label) + "</b><code>" + ek(r.id) + "</code></span></button>";
 }
 
+/**
+ * Making a new folder.
+ *
+ * A folder is not a thing that can be created here, because a folder IS a
+ * record — the folder p-avakirna exists because a place called Avakirna Tirth
+ * does, and photographs find it by name. So "new folder" asks what the folder
+ * is going to be ABOUT and opens a blank one of those, with its Photographs
+ * step waiting. Save the record and the folder is there.
+ *
+ * The alternative was a folder that belongs to nothing, which is the pile
+ * called "In no folder" and is the thing we have been digging out of.
+ */
+const FOLDKINDS = [
+  { nav:"places", lb:"A place" },
+  { nav:"hotels", lb:"A stay" },
+  { nav:"events", lb:"An event" },
+  { nav:"startpoints", lb:"A start point" },
+  { nav:"erickshaw", lb:"An e-rickshaw stand" },
+  { nav:"hero", lb:"A home-screen photograph" },
+];
+
+async function newFolder(nav) {
+  $("#nfold").hidden = true;
+  show(nav);                 // the sidebar, the title and the table all follow
+  await cLoad(nav);
+  cBlank();
+  openEditor();
+  // Straight to the step they came here for. Steps are 0-based; Photographs is
+  // found by name rather than by number, since the specs differ per kind.
+  const i = stepsOf(cSpec()).findIndex(s => s.lb === "Photographs");
+  if (i >= 0) showStep(i);
+}
+
 async function paintLibrary(force) {
   const items = await rebuildBins(force);
 
@@ -2051,9 +2049,17 @@ async function paintLibrary(force) {
         (MFOLDER
           ? '<button type="button" class="primary sm" data-fup>Upload into this folder</button>' +
             '<input type="file" data-ffile hidden multiple accept="image/webp,image/jpeg,image/png,image/avif">'
-          : "") +
+          // Nothing names these, because nothing owns them — so this is the one
+          // upload anywhere that still asks for a name. It is what the app's own
+          // seal is, and it is why the standalone form does not need to exist.
+          : '<input type="text" id="loosekey" placeholder="logo" style="max-width:170px;margin:0">' +
+            '<button type="button" class="primary sm" data-fup>Upload</button>' +
+            '<input type="file" data-ffile hidden accept="image/webp,image/jpeg,image/png,image/avif">') +
       "</div>" +
       '<div class="upnote" data-fnote></div>' +
+      (MFOLDER ? "" : '<p class="muted" style="margin-top:0">These belong to no record: their name does not begin ' +
+        "with any place, stay or event id. Either the name is wrong, or they are things the app uses directly, " +
+        "like its seal.</p>") +
       (objs.length
         ? '<div class="grid">' + objs.map(photoTile).join("") + "</div>"
         : '<p class="muted">Nothing in here yet. Anything uploaded from this folder, or from the record itself, lands in it.</p>');
@@ -2087,16 +2093,54 @@ async function paintLibrary(force) {
   $("#libcount").textContent = items.length + " photograph" + (items.length === 1 ? "" : "s") +
     " in " + recs.length + " folder" + (recs.length === 1 ? "" : "s") + " · " +
     (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
+  // Sections: a kind, and within a kind a town. Built from what is actually
+  // there, so an empty one never draws a heading over nothing.
+  const sections = [];
+  for (const g of GORDER) {
+    const inG = recs.filter(r => r.group === g);
+    if (!inG.length) continue;
+    const byTown = {};
+    for (const r of inG) (byTown[r.city] = byTown[r.city] || []).push(r);
+    for (const c of Object.keys(byTown).sort()) {
+      const rs = byTown[c];
+      sections.push({
+        lb: GROUPLB[g] + (c ? " · " + townLb(c) : ""),
+        note: rs.length + " folder" + (rs.length === 1 ? "" : "s") + " · " +
+          rs.reduce((n, r) => n + (BINS[r.id] || []).length, 0) + " photographs",
+        cards: rs.map(folderCard).join(""),
+      });
+    }
+  }
+  if (looseCard) sections.push({
+    lb: "In no folder",
+    note: LOOSE.length + " photograph" + (LOOSE.length === 1 ? "" : "s"),
+    cards: looseCard,
+  });
+
+  const secHtml = sections.map(s =>
+    '<section class="wsec"><h3>' + ek(s.lb) + "<span>" + ek(s.note) + "</span></h3>" +
+    '<div class="wgrid">' + s.cards + "</div></section>").join("");
+
+  const newCard = q ? ""
+    : '<div class="wgrid" style="margin-bottom:18px"><button type="button" class="fcard newf" data-newfold>' +
+      '<span class="fcover"><span class="fplus">+</span></span>' +
+      '<span class="fmeta"><b>New folder</b><code>a place, a stay, an event…</code></span></button></div>';
+
   $("#libgrid").className = "wall";
-  $("#libgrid").innerHTML = (MGROUP === "loose" ? looseCard : recs.map(folderCard).join("") + looseCard) ||
-    '<p class="muted">Nothing matches.</p>';
+  $("#libgrid").innerHTML = (newCard + secHtml) || '<p class="muted">Nothing matches.</p>';
 }
 
 /** Upload into the folder that is open. Its id is the name, so nothing is typed. */
 async function uploadToFolder(files) {
-  if (!files || !files.length || !MFOLDER) return;
+  if (!files || !files.length || MFOLDER === null) return;
   const note = $("#libgrid").querySelector("[data-fnote]");
   const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
+
+  // Inside a real folder the id IS the name. The loose pile has no id, so it is
+  // the only place left that asks for one.
+  const base = MFOLDER || slug((($("#loosekey") || {}).value) || "");
+  if (!base) return say("Give it a name first — lower-case, with hyphens. For example: logo.", 1);
+
   let n = 0;
   for (const f of files) {
     if (f.size > 6 * 1024 * 1024) {
@@ -2105,7 +2149,7 @@ async function uploadToFolder(files) {
     }
     say("Uploading " + (n + 1) + " of " + files.length + "…");
     try {
-      await putImage(f, await nextKey(MFOLDER));
+      await putImage(f, await nextKey(base));
     } catch (e) {
       say((e && e.message) || "Upload failed.", 1);
       break;
@@ -2270,19 +2314,6 @@ function wireForms() {
     if (b) pickChoose(b.getAttribute("data-key"));
   });
 
-  $("#upform").addEventListener("submit", mediaUpload);
-  // Choosing what it is a photograph OF names the file, because the name is
-  // the link between the two — a picture called IMG_4821 belongs to nothing.
-  $("#upfor").addEventListener("change", async () => {
-    const id = $("#upfor").value;
-    if (!id) return;
-    const taken = (await mediaList()).map(o => o.key.replace(/\.[a-z]+$/, ""));
-    const key = await nextKey(id);
-    $("#upkey").value = key;
-    upmsg(taken.indexOf(id) >= 0
-      ? "That one already has a photograph, so this will be added as " + key + "."
-      : "");
-  });
   $("#mgroups").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mg]");
     if (!b) return;
@@ -2296,6 +2327,11 @@ function wireForms() {
     const up = e.target.closest("[data-fup]");
     if (up) return void up.parentNode.querySelector("[data-ffile]").click();
     if (e.target.closest("[data-back]")) { MFOLDER = null; return void paintLibrary(); }
+    if (e.target.closest("[data-newfold]")) {
+      $("#nfkinds").innerHTML = FOLDKINDS.map(k =>
+        '<button type="button" class="ghost" data-nf="' + k.nav + '">' + ek(k.lb) + "</button>").join("");
+      return void ($("#nfold").hidden = false);
+    }
     /* Going INTO a folder rather than unfolding it in place. Only this folder's
        photographs are ever on screen, which is the lazy loading and the mental
        model at the same time. "" is the loose pile, so the attribute is read
@@ -2310,6 +2346,11 @@ function wireForms() {
     f.value = "";
   });
   $("#msearch").addEventListener("input", () => paintLibrary());
+  $("#nfold").addEventListener("click", (e) => {
+    if (e.target.id === "nfold" || e.target.closest("[data-nfcancel]")) return void ($("#nfold").hidden = true);
+    const k = e.target.closest("[data-nf]");
+    if (k) newFolder(k.getAttribute("data-nf"));
+  });
   wireDial();
 }
 
@@ -2599,11 +2640,6 @@ export const FORMS_CSS = String.raw`
  .tbar button{flex:1}
  @media (prefers-reduced-motion:reduce){.dial-hand{transition:none}}
 
- /* The standalone upload, shut and out of the way — the library gets the page. */
- .looseup{margin-top:18px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
- .looseup > summary{padding:13px 16px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--muted)}
- .looseup > summary:hover{color:var(--ink)}
- .looseup section{border:0;background:none;padding-top:0;max-width:520px}
 
  /* Which folder these land in — stated on the field that uploads them. */
  .foldnote{font-size:12px;color:var(--muted);margin-top:8px}
@@ -2690,7 +2726,16 @@ export const FORMS_CSS = String.raw`
     showed nothing of what was inside, which is the only thing anybody is
     looking for. The cover is one lazy-loaded picture per card, so the browser
     fetches the ones scrolled to and no others. */
- #libgrid.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+ #libgrid.wall{display:block}
+ .wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+ /* A heading per kind, and per town within a kind. Seventy-six folders in one
+    alphabetical run made Pehowa something you scrolled through Kurukshetra to
+    reach, and the two towns are two different afternoons of work. */
+ .wsec{margin-bottom:26px}
+ .wsec h3{display:flex;align-items:baseline;gap:10px;margin:0 0 11px;font-size:12px;
+   text-transform:uppercase;letter-spacing:.09em;color:var(--ink);
+   border-bottom:1px solid var(--line);padding-bottom:8px}
+ .wsec h3 span{font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
  .fcard{display:block;width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;
    font:inherit;font-weight:400}
  /* the sheet behind the cover — what makes a folder read as a stack */
@@ -2713,6 +2758,18 @@ export const FORMS_CSS = String.raw`
    white-space:nowrap}
  .fmeta code{font-size:10.5px;color:var(--muted);background:none;padding:0}
  .fcard.loose .fcover{border-color:var(--bad)}
+ /* Making a folder is adding the record it is named after — first card, so it
+    is where the eye lands rather than somewhere to be hunted for. */
+ .fcard.newf .fcover{border-style:dashed;border-color:var(--accent);background:#FBEEDF}
+ .fcard.newf .fcover:before{border-style:dashed;border-color:var(--accent);background:#FBEEDF}
+ .fplus{position:relative;z-index:1;display:grid;place-items:center;height:100%;
+   font-size:34px;font-weight:300;color:var(--accent);line-height:1}
+ .fcard.newf:hover .fcover{background:#F7E2C8}
+ .nfkinds{display:grid;gap:7px}
+ .nfkinds button{width:100%;text-align:left}
+ #nfold{position:fixed;inset:0;z-index:60;background:rgba(28,24,21,.55);display:grid;
+   place-items:center;padding:20px;overflow:auto}
+ #nfold .tbox{max-width:340px}
 
  /* inside one folder */
  .fhead{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:14px;
@@ -2835,29 +2892,6 @@ export const FORMS_HTML = String.raw`
   <div id="libgrid"></div>
  </section>
 
- <!-- Shut, and at the bottom, because it is the exception now.
-      Every photograph in the app belongs to a record, and a record uploads its
-      own — from its Photographs step, or from its folder above. What is left
-      for this is the handful that belong to nothing: the seal, a picture being
-      staged before the place exists. It kept half the screen for that. -->
- <details class="looseup">
-  <summary>Upload a photograph that belongs to no record</summary>
-  <section>
-   <form id="upform">
-    <label>Image file
-     <span class="hint">webp, jpg, png or avif. Up to 6 MB. webp is what the app uses — it is a third the size for the same picture.</span>
-     <input type="file" id="upfile" accept="image/webp,image/jpeg,image/png,image/avif"></label>
-    <label>What is it a photograph of?
-     <span class="hint">Pick the place or event it belongs to and the name below fills itself in. Every photograph here is a picture of something in the app — choosing it is what keeps the library sorted.</span>
-     <select id="upfor"><option value="">— choose —</option></select></label>
-   <label>Name it
-     <span class="hint">Lower-case with hyphens, no extension. THIS is what goes in a record's photograph field. A second picture of the same place wants a -2 on the end. Uploading an existing name replaces that picture everywhere it is used.</span>
-     <input type="text" id="upkey" placeholder="brahma-sarovar"></label>
-    <div class="bar"><button class="primary" type="submit">Upload</button></div>
-    <div id="upm"></div>
-   </form>
-  </section>
- </details>
 </div>
 
 <div id="picker" hidden>
@@ -2867,6 +2901,18 @@ export const FORMS_HTML = String.raw`
    <button class="ghost" type="button" data-pclose>Done</button>
   </div>
   <div class="grid" id="pickgrid"></div>
+ </div>
+</div>
+
+<!-- What the new folder is going to be about. A folder IS a record, so this
+     opens a blank one of whatever is chosen, on its Photographs step. -->
+<div id="nfold" hidden>
+ <div class="tbox">
+  <h3 style="margin:0 0 4px;font-size:16px">What is the folder for?</h3>
+  <p class="muted" style="margin:0 0 14px;font-size:13px">A folder is named after the thing it holds
+   photographs of, so making one means adding that thing. It is saved when you save the record.</p>
+  <div class="nfkinds" id="nfkinds"></div>
+  <div class="tbar"><button type="button" class="ghost" data-nfcancel>Cancel</button></div>
  </div>
 </div>
 
