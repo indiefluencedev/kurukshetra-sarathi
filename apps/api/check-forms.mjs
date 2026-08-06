@@ -192,7 +192,7 @@ assert.ok(JS.includes("if (!window.L) return"), "map code must degrade when the 
  * way they break is by rendering nothing at all rather than by throwing.
  */
 const ENGINE = new Function(JS + "\nreturn { groupHtml, stepsOf, jsonTemplate, refHtml, keySet," +
-  " checksHtml, pvBody, setKind: function (k) { CKIND = k; } };")();
+  " checksHtml, pvBody, jHighlight, setKind: function (k) { CKIND = k; } };")();
 
 for (const [kind, fields] of Object.entries(SPEC)) {
   ENGINE.setKind(kind);
@@ -274,6 +274,45 @@ for (const c of ["step", "sfields"]) {
   assert.ok(groupSrc.includes('class="' + c), "groupHtml no longer wraps top-level fields in ." + c);
   assert.ok(readSrc.includes("." + c + " >"), "readGroup no longer looks through ." + c);
 }
+
+/* 8b. .ctl is load-bearing twice over, and neither is obvious.
+       It is what makes each field a two-row subgrid — take it away and every
+       control in a row goes back to starting at its own height. And readField
+       reaches THROUGH it for list rows, so a rename here empties every
+       repeating group on save while the form still looks right. */
+const fieldSrc = JS.match(/function fieldHtml[\s\S]*?\n}/)[0];
+const readFieldSrc = JS.match(/function readField[\s\S]*?\n  return undefined;\n}/)[0];
+assert.ok(fieldSrc.includes('<div class="ctl">'), "fieldHtml no longer wraps its control in .ctl");
+assert.ok(readFieldSrc.includes(":scope > .ctl > [data-rows]"),
+  "readField does not read list rows through .ctl, so repeating groups will save empty");
+assert.match(CSS, /\.fld,\.sub > \.fld\{[^}]*subgrid/,
+  "the fields are no longer a subgrid, so controls in a row will not line up");
+
+/* 9. The JSON pane colours its own text, and escapes it on the way.
+      The <pre> under the textarea is real markup built from whatever is typed,
+      so a place description containing a tag is an injection into the
+      dashboard unless every piece is escaped. */
+const hl = ENGINE.jHighlight('{\n  "id": "x", "n": 12, "ok": true, "no": null\n}');
+// &quot; because every piece goes through ek() on the way into the <pre>.
+assert.match(hl, /<b class="jk">&quot;id&quot;<\/b>/, "keys are not coloured");
+assert.match(hl, /<span class="js">&quot;x&quot;<\/span>/, "strings are not coloured");
+assert.match(hl, /<span class="jn">12<\/span>/, "numbers are not coloured");
+assert.match(hl, /<span class="jl">true<\/span>/, "true\/false\/null are not coloured");
+assert.match(hl, /<span class="jl">null<\/span>/, "null is not coloured");
+
+const nasty = ENGINE.jHighlight('{ "why": "<img src=x onerror=alert(1)> & \'quoted\'" }');
+assert.ok(!nasty.includes("<img"), "jHighlight lets a tag through — that is an injection into the dashboard");
+assert.ok(nasty.includes("&lt;img"), "jHighlight is not escaping angle brackets");
+assert.ok(nasty.includes("&amp;"), "jHighlight is not escaping ampersands");
+// Colouring must not change what is there. Strip the markup back off and the
+// original text has to survive character for character, or the pane is lying
+// about what will be parsed.
+const round = (s) =>
+  ENGINE.jHighlight(s).replace(/<[^>]+>/g, "")
+    .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+for (const s of ['{"a":1}', '{ "s": "a \\" b", "n": -2.5e3 }', "", "{ broken", '{"u":"कुरु"}'])
+  assert.equal(round(s), s, "jHighlight changed the text it was colouring: " + s);
 
 /* 9. Save goes through the preview. The extra click IS the feature — it is the
       only moment anybody sees the record drawn before it is live. */

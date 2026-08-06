@@ -293,8 +293,14 @@ function fieldHtml(f, v) {
       '<button type="button" class="ghost sm" data-add>' + ek(f.add || "Add") + "</button>";
   }
 
+  /* Exactly two children, always: the label block and the control block.
+     That is what lets the grid line fields up — each .fld is a two-row subgrid
+     of the row it sits in, so every label in a row shares one height and every
+     control starts on one line. Without the .ctl wrapper an image field (an
+     input, a button AND a strip of thumbnails) would be four rows deep and
+     nothing beside it would align. */
   return '<div class="fld" data-k="' + ek(f.k) + '" data-t="' + ek(t) + '"><label class="fl">' + lb +
-    hintOf(f) + "</label>" + inner + "</div>";
+    hintOf(f) + '</label><div class="ctl">' + inner + "</div></div>";
 }
 
 /** One repeat inside a list field. Its own group, plus a way to remove it. */
@@ -415,7 +421,9 @@ function readField(f, el) {
   }
   if (t === "list") {
     const rows = [];
-    el.querySelectorAll(":scope > [data-rows] > .lrow").forEach(r => {
+    // Through .ctl, and still :scope-anchored — a list row may itself hold
+    // fields, and a loose descendant selector would read them as rows.
+    el.querySelectorAll(":scope > .ctl > [data-rows] > .lrow").forEach(r => {
       const o = readGroup(f.of, r.querySelector("[data-group]"));
       if (Object.keys(o).length) rows.push(o);
     });
@@ -870,11 +878,73 @@ const jmsg = (t, bad) => {
 function fillJSON() {
   const doc = currentDoc();
   const empty = Object.keys(doc).length === 0;
-  $("#cjson").value = JSON.stringify(empty ? jsonTemplate(cSpec()) : doc, null, 2);
+  setJSON(JSON.stringify(empty ? jsonTemplate(cSpec()) : doc, null, 2));
   $("#jref").innerHTML = refHtml(cSpec(), "");
   jmsg(empty
     ? "Every key this kind of record can carry, with an example value in each. Replace the values, delete the lines you do not need, then switch back to Form or press Review & save."
     : "");
+}
+
+/* ---- colouring the JSON ----------------------------------------------------
+ *
+ * A textarea cannot colour its own text, so the usual trick: a <pre> holding
+ * the same text, marked up, sitting exactly underneath a textarea whose text is
+ * transparent. The textarea is still the real control — real caret, real
+ * selection, real undo, real paste — and the <pre> is scenery that scrolls with
+ * it. Both have to carry identical font, padding and line-height or the two
+ * copies drift apart by a pixel per line, so those are set together below.
+ *
+ * A key, a string, a number and true/false/null in four different colours is
+ * the whole point: unbalanced quotes stop looking like text and start looking
+ * wrong, which is the mistake this pane invites and the one JSON.parse reports
+ * ten lines away from.
+ */
+function setJSON(text) {
+  $("#cjson").value = text;
+  jPaint();
+}
+
+function jPaint() {
+  const ta = $("#cjson"), pre = $("#jhl");
+  if (!ta || !pre) return;
+  // The trailing newline keeps the last line reachable: a <pre> ending in a
+  // token is one line shorter than a textarea ending in a newline.
+  pre.innerHTML = jHighlight(ta.value) + "\n";
+  jSync();
+}
+
+function jSync() {
+  const ta = $("#cjson"), pre = $("#jhl");
+  if (!ta || !pre) return;
+  pre.scrollTop = ta.scrollTop;
+  pre.scrollLeft = ta.scrollLeft;
+}
+
+/* Tokenised on the RAW text and escaped piece by piece, never the other way
+   round: escaping first turns every " into &quot; and there is no longer a
+   string literal anywhere for this to find. */
+function jHighlight(src) {
+  const re = /"(?:\\.|[^"\\])*"(\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(src)) !== null) {
+    out += ek(src.slice(last, m.index));
+    const t = m[0];
+    if (t.charAt(0) === '"') {
+      if (m[1]) {
+        // A key: the quoted part, then whatever whitespace and colon followed.
+        const q = t.slice(0, t.length - m[1].length);
+        out += '<b class="jk">' + ek(q) + "</b>" + ek(m[1]);
+      } else {
+        out += '<span class="js">' + ek(t) + "</span>";
+      }
+    } else if (t === "true" || t === "false" || t === "null") {
+      out += '<span class="jl">' + ek(t) + "</span>";
+    } else {
+      out += '<span class="jn">' + ek(t) + "</span>";
+    }
+    last = m.index + t.length;
+  }
+  return out + ek(src.slice(last));
 }
 
 /** JSON in, form out. Returns false if there was nothing usable to apply. */
@@ -1550,9 +1620,13 @@ function wireForms() {
     if (b) setMode(b.getAttribute("data-mode"));
   });
   $("#jtemplate").addEventListener("click", () => {
-    $("#cjson").value = JSON.stringify(jsonTemplate(cSpec()), null, 2);
+    setJSON(JSON.stringify(jsonTemplate(cSpec()), null, 2));
     jmsg("Every key, with an example in each. Replace the values and delete what you do not need.");
   });
+  // The colouring is scenery painted over the real control, so it has to follow
+  // every way the text or the viewport can change.
+  $("#cjson").addEventListener("input", jPaint);
+  $("#cjson").addEventListener("scroll", jSync);
   $("#jcopy").addEventListener("click", () => {
     $("#cjson").select();
     // execCommand because the dashboard is often opened over plain http on the
@@ -1710,8 +1784,6 @@ export const FORMS_CSS = String.raw`
  .jbar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
  .jwrap{display:grid;grid-template-columns:1fr 300px;gap:14px;align-items:start}
  @media(max-width:900px){.jwrap{grid-template-columns:1fr}}
- #cjson{width:100%;min-height:60vh;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-   white-space:pre;overflow-wrap:normal;overflow-x:auto;tab-size:2}
  .jref{font-size:12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);
    padding:10px 12px;max-height:60vh;overflow:auto}
  .jr{padding:6px 0;border-bottom:1px solid var(--line);line-height:1.45}
@@ -1806,7 +1878,6 @@ export const FORMS_CSS = String.raw`
  .pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
  .pair small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
  @media(max-width:640px){.pair{grid-template-columns:1fr}}
- .sub{border-left:3px solid var(--line);padding-left:12px;margin-top:6px}
  .rows{display:grid;gap:10px;margin:6px 0}
  .lrow{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
  .chk{display:inline-flex;align-items:center;gap:6px;font-weight:400;font-size:14px;margin:0}
@@ -1914,12 +1985,61 @@ export const FORMS_CSS = String.raw`
    border:1px dashed var(--line);border-radius:5px;padding:12px 4px;width:56px;text-align:center}
  .tpic img + .nopic{display:none}
  .tpic img.bad + .nopic{display:inline-block;color:var(--bad);border-color:var(--bad);font-weight:700}
- /* Wide screens get the form in columns; groups always span the full width. */
- .sfields{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 18px}
+ /* ---- the shape of a form -------------------------------------------------
+    Two columns, and every control in a row starting on the same line.
+ *
+ * That second part is the whole of it. Hints are one line for "Town" and three
+ * for "Id", so a plain grid put the two inputs beside each other at two
+ * different heights, and a form of twenty fields had twenty small
+ * misalignments in it. Each .fld is a two-row subgrid — label row, control row
+ * — so the row's tallest hint sets one height for all of them and the inputs
+ * line up. It is the browser doing what a designer would do by hand, and it
+ * costs three lines.
+ *
+ * Anything BILINGUAL takes the full width, because it is already two columns
+ * inside (English | हिन्दी) and nesting that in half a form gives four cramped
+ * boxes on one line. "Name" squeezed into 300px beside an empty column, while
+ * "One line" — the same kind of field — ran the full width, was the visible
+ * half of this. */
+ .sfields,.sub{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+   gap:18px 18px;align-items:start}
+ .sfields > .fld,.sub > .fld{margin:0;display:grid;grid-template-rows:subgrid;grid-row:span 2}
+ .sfields > .fld[data-t="loc"],.sfields > .fld[data-t="locarea"],
  .sfields > .fld[data-t="list"],.sfields > .fld[data-t="obj"],
- .sfields > .fld[data-t="locarea"],.sfields > .fld[data-t="geo"],
- .sfields > .fld[data-t="pts"]{grid-column:1/-1}
- @media(max-width:720px){.sfields{grid-template-columns:1fr}}
+ .sfields > .fld[data-t="geo"],.sfields > .fld[data-t="pts"],
+ .sfields > .fld[data-t="days"],.sfields > .fld[data-t="imgs"],
+ .sfields > .fld[data-t="csv"],
+ .sub > .fld[data-t="loc"],.sub > .fld[data-t="locarea"],
+ .sub > .fld[data-t="list"],.sub > .fld[data-t="obj"]{grid-column:1/-1}
+ /* Browsers without subgrid get the old ragged rows rather than a broken page:
+    span 2 with no subgrid would leave a blank row under every field. */
+ @supports not (grid-template-rows:subgrid){
+   .sfields > .fld,.sub > .fld{display:block;grid-row:auto}
+ }
+ .sub{border-left:3px solid var(--line);padding-left:12px;margin-top:6px}
+ /* A control block is the bottom row of its field, so what sits inside it
+    should start at the top of that row rather than float in the middle. */
+ .ctl{align-self:start}
+ .ctl > :first-child{margin-top:0}
+ @media(max-width:720px){.sfields,.sub{grid-template-columns:1fr}}
+
+ /* ---- JSON, in colour ----
+    Key, string, number and literal each their own, so a run-on quote stops
+    reading as text and starts reading as a mistake. The <pre> underneath must
+    match the textarea over it exactly — same font, same padding, same
+    line-height — or the two copies drift a pixel per line. */
+ .jed{position:relative;border:1px solid var(--line);border-radius:8px;background:#fff;overflow:hidden}
+ .jed > .jhl,.jed > textarea{margin:0;padding:10px 12px;border:0;border-radius:0;
+   font:13px/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+   white-space:pre;tab-size:2;overflow:auto}
+ .jed > textarea{position:relative;z-index:1;display:block;width:100%;height:60vh;min-height:320px;
+   background:transparent;color:transparent;caret-color:var(--ink);resize:vertical}
+ .jed > textarea::selection{background:#CFE0F0;color:transparent}
+ .jed > .jhl{position:absolute;inset:0;z-index:0;pointer-events:none;color:var(--muted)}
+ .jk{color:#1E3A5F;font-weight:700}          /* keys — the app's guide blue */
+ .js{color:#4F5B2E;font-weight:400}          /* strings — the open green */
+ .jn{color:#A34A05}                          /* numbers — deep accent */
+ .jl{color:#9A3B1E;font-weight:700}          /* true / false / null */
 `;
 
 export const FORMS_HTML = String.raw`
@@ -2006,7 +2126,13 @@ export const EDITOR_HTML = String.raw`
      </div>
      <div id="jm"></div>
      <div class="jwrap">
-      <textarea id="cjson" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      <!-- The coloured copy sits under a transparent-text textarea. aria-hidden
+           because it is the same text twice and a screen reader should be told
+           it once, by the control that is actually focusable. -->
+      <div class="jed">
+       <pre class="jhl" id="jhl" aria-hidden="true"></pre>
+       <textarea id="cjson" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+      </div>
       <div class="jref" id="jref"></div>
      </div>
     </div>
