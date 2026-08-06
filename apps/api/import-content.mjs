@@ -31,6 +31,7 @@ const FEEDS = {
   startpoints: "places-index.json",
   hotels: "hotels.json",
   erickshaw: "erickshaw.json",
+  hero: "hero.json",
 };
 
 const q = (s) => "'" + String(s).replace(/'/g, "''") + "'";

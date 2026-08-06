@@ -72,7 +72,14 @@ export interface AuditRow {
 // dharamshalas the planner offers as a start or an end. It is maintained the
 // same way and for the same reason as the rest: a bus stand moves, a yatri
 // niwas changes its phone number, and neither should need an app release.
-export const CONTENT_KINDS = ["places", "startpoints", "hotels", "erickshaw"] as const;
+//
+// `hero` is the home screen's opening carousel — the photograph and the line
+// over it. It is here for exactly the same reason and arrived late: it lived in
+// the app's bundle, so changing what the app opens on was a release, and its
+// fifteen photographs were invisible to the dashboard that manages every other
+// picture. The library reported them as used by nothing, which was true and
+// entirely misleading.
+export const CONTENT_KINDS = ["places", "startpoints", "hotels", "erickshaw", "hero"] as const;
 export type ContentKind = (typeof CONTENT_KINDS)[number];
 
 export const isContentKind = (s: string): s is ContentKind =>
