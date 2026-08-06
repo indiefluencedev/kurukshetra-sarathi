@@ -124,7 +124,7 @@ for (const [, id] of JS.matchAll(/\$\("#([\w-]+)"\)/g))
       renders as nothing at all, with no error anywhere). */
 for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "sec", "wrongar",
   "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm",
-  "boolrow", "folder", "fbody", "fbar", "fcount", "fname", "foldnote",
+  "boolrow", "fcard", "fcover", "fbadge", "fmeta", "fhead", "fempty", "fname", "foldnote", "wall",
   "tpick", "tbtn", "tclear", "clockread", "cr-part", "dial", "dial-hand", "dial-h", "dial-tip",
   "tsegs", "thint", "tbox", "looseup"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".

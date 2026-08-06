@@ -2000,22 +2000,69 @@ async function rebuildBins(force) {
 }
 
 /**
- * The library, as folders.
+ * The library, as folders you can actually see into.
  *
- * Ninety-nine <img> tags on one screen is ninety-nine requests before anybody
- * has decided what they are looking for, and it only gets worse — the bucket
- * grows every time a place gets a photograph. So this draws the folders and
- * their counts, which costs no pictures at all, and a folder fetches its own
- * contents when it is opened. Everything is one <details>, so opening and
- * closing is the browser's job and not ours.
+ * A wall of album cards — a cover photograph, a count, the name and the id —
+ * and clicking one goes INTO it. That is what a folder is; a row with a
+ * triangle on it is a list pretending.
  *
- * EVERY record gets a folder, including the ones with nothing in them. That is
- * what "a new place has a folder" means here — there is nowhere to create, so
- * an empty folder is simply a place that has not been photographed yet, and it
- * is the thing you open to put the first one in.
+ * Still lazy, and more so than before. A cover is one small picture per folder
+ * and carries loading="lazy", so the browser fetches only the ones actually
+ * scrolled to; opening a folder shows that folder's photographs and no others.
+ * Ninety-nine at once, which is what this replaced, never happens at any point.
  */
+let MFOLDER = null;      // null = the wall; an id = inside it; "" = the loose ones
+
+const photoTile = (o) =>
+  '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
+  "<small>" + ek(stemOf(o.key)) + "</small>" +
+  '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>';
+
+function folderCard(r) {
+  const objs = BINS[r.id] || [];
+  const cover = objs.length
+    ? '<img src="' + ek("/img/" + encodeURIComponent(objs[0].key)) + '" alt="" loading="lazy">'
+    : '<span class="fempty">no photograph yet</span>';
+  return '<button type="button" class="fcard' + (objs.length ? "" : " isempty") + '" data-open="' + ek(r.id) + '">' +
+    '<span class="fcover">' + cover +
+    (objs.length > 1 ? '<span class="fbadge">' + objs.length + "</span>" : "") + "</span>" +
+    '<span class="fmeta"><b>' + ek(r.label) + "</b><code>" + ek(r.id) + "</code></span></button>";
+}
+
 async function paintLibrary(force) {
   const items = await rebuildBins(force);
+
+  /* ---- inside one folder ---- */
+  if (MFOLDER !== null) {
+    const rec = RECS.filter(r => r.id === MFOLDER)[0];
+    const objs = MFOLDER === "" ? LOOSE : (BINS[MFOLDER] || []);
+    $("#mgroups").hidden = true;
+    $("#msearch").hidden = true;
+    $("#libcount").textContent = objs.length + " photograph" + (objs.length === 1 ? "" : "s") + " in here";
+    $("#libgrid").className = "inside";
+    $("#libgrid").innerHTML =
+      '<div class="fhead">' +
+        '<button type="button" class="ghost sm" data-back>&#8592; All folders</button>' +
+        '<b class="fname">' + ek(rec ? rec.label : "In no folder") + "</b>" +
+        (MFOLDER ? "<code>" + ek(MFOLDER) + "</code>" : "") +
+        '<span style="flex:1"></span>' +
+        // Upload at the TOP of the folder it goes into, which is where the eye
+        // already is on the way in. It was under the pictures, read last.
+        (MFOLDER
+          ? '<button type="button" class="primary sm" data-fup>Upload into this folder</button>' +
+            '<input type="file" data-ffile hidden multiple accept="image/webp,image/jpeg,image/png,image/avif">'
+          : "") +
+      "</div>" +
+      '<div class="upnote" data-fnote></div>' +
+      (objs.length
+        ? '<div class="grid">' + objs.map(photoTile).join("") + "</div>"
+        : '<p class="muted">Nothing in here yet. Anything uploaded from this folder, or from the record itself, lands in it.</p>');
+    return;
+  }
+
+  /* ---- the wall of folders ---- */
+  $("#mgroups").hidden = false;
+  $("#msearch").hidden = false;
   const q = (($("#msearch") || {}).value || "").trim().toLowerCase();
 
   const counts = { all: items.length, loose: LOOSE.length };
@@ -2024,60 +2071,31 @@ async function paintLibrary(force) {
     '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" + ek(x.lb) +
     " <small>" + (counts[x.g] || 0) + "</small></button>").join("");
 
-  // Alphabetical by the name a person reads, not by the id.
   const recs = RECS.slice().sort((a, b) => a.label.localeCompare(b.label))
     .filter(r => MGROUP === "all" || MGROUP === r.group)
     .filter(r => !q || (r.label + " " + r.id).toLowerCase().indexOf(q) >= 0);
 
-  const rows = MGROUP === "loose" ? [] : recs.map(r => {
-    const n = (BINS[r.id] || []).length;
-    return '<details class="folder" data-fid="' + ek(r.id) + '">' +
-      '<summary><span class="fname">' + ek(r.label) + "</span>" +
-      "<code>" + ek(r.id) + "</code>" +
-      '<span class="fcount' + (n ? "" : " empty") + '">' + (n ? n : "empty") + "</span></summary>" +
-      '<div class="fbody"></div></details>';
-  }).join("");
-
   // Named rather than hidden: a photograph in no folder is one whose name does
-  // not begin with any record's id, which is either a typo or a place that has
-  // since been renamed. Both want finding.
-  const looseRow = (MGROUP === "all" || MGROUP === "loose") && LOOSE.length && !q
-    ? '<details class="folder loose" data-fid=""><summary>' +
-      '<span class="fname">In no folder</span><code>—</code>' +
-      '<span class="fcount">' + LOOSE.length + "</span></summary>" +
-      '<div class="fbody"></div></details>'
+  // not begin with any record's id, which is a typo or a place since renamed.
+  const looseCard = (MGROUP === "all" || MGROUP === "loose") && LOOSE.length && !q
+    ? '<button type="button" class="fcard loose" data-open="">' +
+      '<span class="fcover"><img src="' + ek("/img/" + encodeURIComponent(LOOSE[0].key)) +
+      '" alt="" loading="lazy"><span class="fbadge">' + LOOSE.length + "</span></span>" +
+      '<span class="fmeta"><b>In no folder</b><code>&#8212;</code></span></button>'
     : "";
 
   $("#libcount").textContent = items.length + " photograph" + (items.length === 1 ? "" : "s") +
     " in " + recs.length + " folder" + (recs.length === 1 ? "" : "s") + " · " +
     (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
-  $("#libgrid").innerHTML = (rows + looseRow) || '<p class="muted">Nothing matches.</p>';
+  $("#libgrid").className = "wall";
+  $("#libgrid").innerHTML = (MGROUP === "loose" ? looseCard : recs.map(folderCard).join("") + looseCard) ||
+    '<p class="muted">Nothing matches.</p>';
 }
 
-/** A folder's contents, drawn the first time it is opened and not before. */
-function fillFolder(d) {
-  const fid = d.getAttribute("data-fid");
-  const objs = fid ? (BINS[fid] || []) : LOOSE;
-  d.querySelector(".fbody").innerHTML =
-    (fid
-      ? '<div class="fbar"><button type="button" class="primary sm" data-fup>Upload into this folder</button>' +
-        '<input type="file" data-ffile hidden multiple accept="image/webp,image/jpeg,image/png,image/avif">' +
-        '<span class="upnote" data-fnote></span></div>'
-      : "") +
-    (objs.length
-      ? '<div class="grid">' + objs.map(o =>
-          '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
-          "<small>" + ek(stemOf(o.key)) + "</small>" +
-          '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>').join("") +
-        "</div>"
-      : '<p class="muted">Nothing here yet. Anything uploaded from this folder, or from the record itself, lands in it.</p>');
-}
-
-/** Upload straight into a folder. The folder id is the name, so nothing is typed. */
-async function uploadToFolder(d, files) {
-  if (!files || !files.length) return;
-  const fid = d.getAttribute("data-fid");
-  const note = d.querySelector("[data-fnote]");
+/** Upload into the folder that is open. Its id is the name, so nothing is typed. */
+async function uploadToFolder(files) {
+  if (!files || !files.length || !MFOLDER) return;
+  const note = $("#libgrid").querySelector("[data-fnote]");
   const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
   let n = 0;
   for (const f of files) {
@@ -2087,7 +2105,7 @@ async function uploadToFolder(d, files) {
     }
     say("Uploading " + (n + 1) + " of " + files.length + "…");
     try {
-      await putImage(f, await nextKey(fid));
+      await putImage(f, await nextKey(MFOLDER));
     } catch (e) {
       say((e && e.message) || "Upload failed.", 1);
       break;
@@ -2095,17 +2113,14 @@ async function uploadToFolder(d, files) {
     await mediaList(true);
     n++;
   }
-  await rebuildBins(true);
-  fillFolder(d);
-  // The count in the summary is now wrong, and it is the only thing outside
-  // the body that changed.
-  const c = d.querySelector(".fcount");
-  const len = (BINS[fid] || []).length;
-  c.textContent = len || "empty";
-  c.className = "fcount" + (len ? "" : " empty");
-  if (n) d.querySelector("[data-fnote]").textContent =
-    n === 1 ? "Uploaded." : n + " uploaded.";
+  USES = null;
+  await paintLibrary(true);
+  if (n) {
+    const m = $("#libgrid").querySelector("[data-fnote]");
+    if (m) m.textContent = n === 1 ? "Uploaded." : n + " uploaded.";
+  }
 }
+
 
 async function mediaDelete(key) {
   if (!confirm("Delete " + key + "?\n\nAny place still pointing at it will show an empty frame.")) return;
@@ -2272,25 +2287,26 @@ function wireForms() {
     const b = e.target.closest("[data-mg]");
     if (!b) return;
     MGROUP = b.getAttribute("data-mg");
+    MFOLDER = null;
     paintLibrary();
   });
   $("#libgrid").addEventListener("click", (e) => {
     const d = e.target.closest("[data-mdel]");
     if (d) return mediaDelete(d.getAttribute("data-mdel"));
     const up = e.target.closest("[data-fup]");
-    if (up) up.parentNode.querySelector("[data-ffile]").click();
+    if (up) return void up.parentNode.querySelector("[data-ffile]").click();
+    if (e.target.closest("[data-back]")) { MFOLDER = null; return void paintLibrary(); }
+    /* Going INTO a folder rather than unfolding it in place. Only this folder's
+       photographs are ever on screen, which is the lazy loading and the mental
+       model at the same time. "" is the loose pile, so the attribute is read
+       rather than tested for truth. */
+    const open = e.target.closest("[data-open]");
+    if (open) { MFOLDER = open.getAttribute("data-open"); paintLibrary(); }
   });
-  /* A folder loads its pictures when it is opened, and never before — which is
-     the whole reason this screen is a list of folders. "toggle" does not
-     bubble, so it is caught on the way down. */
-  $("#libgrid").addEventListener("toggle", (e) => {
-    const d = e.target.closest && e.target.closest("details.folder");
-    if (d && d.open && !d._filled) { d._filled = 1; fillFolder(d); }
-  }, true);
   $("#libgrid").addEventListener("change", (e) => {
     const f = e.target.closest("[data-ffile]");
     if (!f) return;
-    uploadToFolder(f.closest("details.folder"), Array.prototype.slice.call(f.files));
+    uploadToFolder(Array.prototype.slice.call(f.files));
     f.value = "";
   });
   $("#msearch").addEventListener("input", () => paintLibrary());
@@ -2669,35 +2685,41 @@ export const FORMS_CSS = String.raw`
  .pk .use.none{color:var(--bad);font-weight:700}
 
  /* ---- the library, as folders ----
-    A row per record, costing no pictures at all, and the pictures arrive when
-    a row is opened. <details> does the opening, so there is no state here. */
- .folder{background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-bottom:7px}
- .folder > summary{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;
-   list-style:none;border-radius:10px}
- .folder > summary::-webkit-details-marker{display:none}
- /* The twisty, drawn rather than inherited — the native marker is a different
-    glyph in every browser and none of them line up with a flex row. */
- .folder > summary:before{content:"";width:0;height:0;flex:0 0 auto;
-   border-left:5px solid var(--muted);border-top:4px solid transparent;border-bottom:4px solid transparent;
-   transition:transform .12s ease}
- .folder[open] > summary:before{transform:rotate(90deg)}
- .folder > summary:hover{background:var(--bg)}
- .folder .fname{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;
-   text-overflow:ellipsis;white-space:nowrap}
- .folder code{font-size:11.5px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:5px}
- .folder .fcount{font-size:11.5px;font-weight:700;color:var(--ok);background:#EFF1DF;
-   border-radius:99px;padding:2px 9px;min-width:34px;text-align:center}
- .folder .fcount.empty{color:var(--muted);background:var(--bg);font-weight:400}
- .folder.loose .fcount{color:var(--bad);background:#F9EAE3}
- .fbody{padding:2px 14px 14px}
- .fbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    A wall of album cards with a cover on each, and clicking one goes into it.
+    A row with a triangle on it was a list pretending to be a folder — and it
+    showed nothing of what was inside, which is the only thing anybody is
+    looking for. The cover is one lazy-loaded picture per card, so the browser
+    fetches the ones scrolled to and no others. */
+ #libgrid.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+ .fcard{display:block;width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;
+   font:inherit;font-weight:400}
+ /* the sheet behind the cover — what makes a folder read as a stack */
+ .fcover{position:relative;display:block;aspect-ratio:4/3;border-radius:10px;background:var(--bg);
+   border:1px solid var(--line);overflow:visible}
+ .fcover:before{content:"";position:absolute;left:6px;right:6px;top:-5px;height:10px;
+   background:var(--paper);border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;z-index:0}
+ .fcover img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;
+   border-radius:9px;display:block}
+ .fcard:hover .fcover{border-color:var(--accent)}
+ .fcard:hover .fcover img{filter:brightness(1.04)}
+ .fempty{position:relative;z-index:1;display:grid;place-items:center;height:100%;
+   font-size:11.5px;color:var(--muted);border-radius:9px;
+   background:repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(0,0,0,.02) 7px,rgba(0,0,0,.02) 14px)}
+ .fcard.isempty .fcover{border-style:dashed}
+ .fbadge{position:absolute;z-index:2;right:7px;bottom:7px;background:rgba(28,24,21,.78);color:#fff;
+   font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;backdrop-filter:blur(3px)}
+ .fmeta{display:block;padding:8px 2px 0}
+ .fmeta b{display:block;font-size:13px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;
+   white-space:nowrap}
+ .fmeta code{font-size:10.5px;color:var(--muted);background:none;padding:0}
+ .fcard.loose .fcover{border-color:var(--bad)}
+
+ /* inside one folder */
+ .fhead{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:14px;
+   padding-bottom:12px;border-bottom:1px solid var(--line)}
+ .fhead .fname{font-size:16px;font-weight:700}
+ .fhead code{font-size:11.5px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:5px}
  #msearch{max-width:280px;margin:0}
- /* Seventy-six folders down one column is a lot of scrolling on a wide screen.
-    An OPEN folder takes the full width back, because its pictures want it. */
- #libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));
-   gap:7px;align-items:start}
- .folder{margin:0}
- .folder[open]{grid-column:1/-1}
  .wide{grid-column:1/-1}
 
  /* The content screen is one column, not two. A table of fifty-seven places
