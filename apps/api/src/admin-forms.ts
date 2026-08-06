@@ -88,8 +88,11 @@ const SPEC = {
     { k:"rank", t:"num", lb:"Importance", sec:"How the planner treats it", hint:"Higher comes first when the planner has to choose. 0-100.", ph:"90" },
     { k:"first", t:"num", lb:"First-visit rank", hint:"Higher means \"see this on a first trip\".", ph:"1" },
     { k:"anchor", t:"obj", lb:"Fixed-time event", hint:"Only for something that happens at a set hour, like an aarti or a light show.", of:[
-      { k:"at", t:"num", lb:"Starts at (minutes after midnight)", hint:"6pm is 1080. The planner builds the day around this.", ph:"1080" },
-      { k:"win", t:"csv", lb:"Window (two numbers)", hint:"Earliest and latest it is worth arriving, same units. e.g. 1020, 1110", ph:"1020, 1110" },
+      // Stored as minutes after midnight because that is what the planner does
+      // arithmetic on. Asked for as a clock, because "1080" is a number only a
+      // programmer can read and the person filling this in is not one.
+      { k:"at", t:"mins", lb:"Starts at", req:0, hint:"The planner builds the day around this." },
+      { k:"win", t:"minspan", lb:"Worth arriving between", hint:"The earliest and latest it is worth turning up. Leave both empty if it does not matter." },
       { k:"lb", t:"loc", lb:"What it is called", ph:"Evening aarti", phHi:"संध्या आरती" },
     ] },
     { k:"pending", t:"bool", lb:"Hide from the app", hint:"Keeps the record without showing it. For somewhere closed for restoration." },
@@ -207,6 +210,33 @@ const ek = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&am
 const hintOf = (f) => f.hint ? '<span class="hint">' + ek(f.hint) + '</span>' : "";
 const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
+/* ---- minutes after midnight, asked for as a clock -------------------------
+ *
+ * The planner adds and compares these, so a plain number is the right thing to
+ * STORE — 6pm is 1080 and arithmetic on it is trivial. It is entirely the wrong
+ * thing to ASK FOR. "Starts at (minutes after midnight)" with 1080 in the box
+ * is a unit conversion done in an editor's head, every time, for a number they
+ * can already read off the temple noticeboard.
+ *
+ * So the same <input type="time"> the opening hours use, converted on the way
+ * in and out. The stored document does not change, and neither does anything
+ * that reads it — JSON mode still shows 1080, because that is what is saved.
+ */
+const pad2 = (n) => (n < 10 ? "0" : "") + n;
+
+function minsToClock(v) {
+  if (v == null || v === "" || isNaN(Number(v))) return "";
+  const n = ((Number(v) % 1440) + 1440) % 1440;   // 1500 is tomorrow's 01:00
+  return pad2(Math.floor(n / 60)) + ":" + pad2(n % 60);
+}
+
+function clockToMins(s) {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(String(s == null ? "" : s).trim());
+  if (!m) return null;
+  const h = Number(m[1]), mi = Number(m[2]);
+  return h > 23 || mi > 59 ? null : h * 60 + mi;
+}
+
 /** One field, wrapped so readGroup can find it again by key. */
 function fieldHtml(f, v) {
   const t = f.t;
@@ -225,7 +255,17 @@ function fieldHtml(f, v) {
   } else if (t === "area") {
     inner = '<textarea data-i' + ph(f.ph) + ">" + ek(v == null ? "" : v) + "</textarea>";
   } else if (t === "bool") {
-    inner = '<label class="chk"><input data-i type="checkbox"' + (v ? " checked" : "") + '> yes</label>';
+    // No "yes" beside the box. The field's own label already says what ticking
+    // it means, and in a row of three that word appeared three times saying
+    // nothing. The label is made clickable in wireForms instead.
+    inner = '<label class="chk"><input data-i type="checkbox"' + (v ? " checked" : "") + "></label>";
+  } else if (t === "mins") {
+    inner = '<input data-i type="time" value="' + ek(minsToClock(v)) + '">';
+  } else if (t === "minspan") {
+    const a = Array.isArray(v) ? v : [];
+    inner = '<div class="pair"><span><small>From</small>' +
+      '<input data-i="from" type="time" value="' + ek(minsToClock(a[0])) + '"></span>' +
+      '<span><small>To</small><input data-i="to" type="time" value="' + ek(minsToClock(a[1])) + '"></span></div>';
   } else if (t === "csv") {
     inner = '<input data-i type="text"' + ph(f.ph) + ' value="' +
       ek(Array.isArray(v) ? v.join(", ") : (v == null ? "" : v)) + '">';
@@ -272,6 +312,9 @@ function fieldHtml(f, v) {
         '<input type="file" data-file hidden accept="image/webp,image/jpeg,image/png,image/avif"' +
           (many ? " multiple" : "") + ">" +
       "</div>" +
+      // Which folder these land in, said before anything is chosen rather than
+      // discovered afterwards in the library.
+      '<div class="foldnote" data-fold></div>' +
       '<div class="upnote" data-upnote></div>' +
       '<details class="idraw"><summary>' +
         (many ? "Type the photograph ids instead" : "Type the photograph id instead") +
@@ -370,9 +413,27 @@ function groupHtml(fields, obj, top) {
       return head + fieldHtml(f, val(f));
     }).join("");
   }
-  return stepsOf(fields).map((s, i) =>
-    '<div class="step" data-step="' + i + '" hidden><h3 class="sec">' + ek(s.lb) + "</h3>" +
-    '<div class="sfields">' + s.fs.map(f => fieldHtml(f, val(f))).join("") + "</div></div>").join("");
+  /* A checkbox is a small thing. Given a whole grid cell it sat under a label
+     and a hint with an inch of nothing beneath it, three times over, and the
+     third one left a hole in the row. Runs of them are collected into one
+     full-width strip of chips that wraps — which is how a set of yes/no
+     properties reads anyway: as a list you scan, not as three separate
+     questions. Only at the top level; no sub-group has a checkbox in it. */
+  return stepsOf(fields).map((s, i) => {
+    let body = "", run = [];
+    const flush = () => {
+      if (run.length) body += '<div class="boolrow">' + run.join("") + "</div>";
+      run = [];
+    };
+    for (const f of s.fs) {
+      if (f.t === "bool") { run.push(fieldHtml(f, val(f))); continue; }
+      flush();
+      body += fieldHtml(f, val(f));
+    }
+    flush();
+    return '<div class="step" data-step="' + i + '" hidden><h3 class="sec">' + ek(s.lb) + "</h3>" +
+      '<div class="sfields">' + body + "</div></div>";
+  }).join("");
 }
 
 /* ---- reading back -------------------------------------------------------- */
@@ -387,7 +448,9 @@ function readGroup(fields, root) {
   const out = {};
   for (const f of fields) {
     const sel = '.fld[data-k="' + f.k + '"]';
-    const el = root.querySelector(":scope > " + sel + ", :scope > .step > .sfields > " + sel);
+    const el = root.querySelector(":scope > " + sel +
+      ", :scope > .step > .sfields > " + sel +
+      ", :scope > .step > .sfields > .boolrow > " + sel);
     if (!el) continue;
     const v = readField(f, el);
     // A map writes lat AND lng, so its value merges rather than nesting. It is
@@ -409,6 +472,13 @@ function readField(f, el) {
   if (t === "num") { const s = one().value.trim(); return s === "" ? undefined : Number(s); }
   if (t === "area") { const s = one().value.trim(); return s || undefined; }
   if (t === "bool") return one().checked ? true : undefined;
+  if (t === "mins") { const m = clockToMins(one().value); return m == null ? undefined : m; }
+  if (t === "minspan") {
+    const a = clockToMins(el.querySelector('[data-i="from"]').value);
+    const b = clockToMins(el.querySelector('[data-i="to"]').value);
+    // Half a window is not a window — the planner reads win[0] and win[1].
+    return a == null || b == null ? undefined : [a, b];
+  }
   if (t === "csv") {
     const a = one().value.split(",").map(s => s.trim()).filter(Boolean);
     // A csv of numbers (anchor.win) stays numbers — the app compares it to a clock.
@@ -801,6 +871,59 @@ let MODE = "form";    // "form" or "json" — two ways into the same record
 function drawForm(obj) {
   $("#cform").innerHTML = groupHtml(cSpec(), obj || {}, true);
   $("#cform").querySelectorAll("[data-thumbs]").forEach(paintThumbs);
+  /* A record with no id yet is a NEW one, and its id may be made from its name.
+     One that has an id keeps it, always: an id is the key the record is stored
+     under, so changing it does not rename anything — it writes a second record
+     and leaves the first exactly where it was. */
+  const idIn = $("#cform").querySelector('.fld[data-k="id"] [data-i]');
+  if (idIn && !idIn.value) idIn.setAttribute("data-auto", "1");
+  paintFolderNotes();
+}
+
+/**
+ * The id, written from the name.
+ *
+ * Ids are lower-case-with-hyphens and Pehowa's carry a p- — every one of the
+ * twenty-one already does. That is a convention held in somebody's head, which
+ * is to say it is a convention that will be broken on a busy afternoon, and the
+ * breakage is invisible: a place with a wrong id saves perfectly and simply
+ * never matches anything that refers to it.
+ *
+ * Only ever fills a box nobody has typed in. The moment an editor edits the id
+ * themselves the flag comes off and this stops touching it.
+ */
+/**
+ * Say which folder a photograph will land in, on the field that uploads it.
+ *
+ * The folder is the record's id, so on an existing record it is already
+ * decided and the only useful thing is to state it. On a new one it does not
+ * exist yet, and uploading before the name is filled in would put the pictures
+ * under a name taken from the FILE — which is how a library ends up with
+ * img-4821 sitting in no folder at all.
+ */
+function paintFolderNotes() {
+  const idIn = $("#cform").querySelector('.fld[data-k="id"] [data-i]');
+  const id = idIn ? idIn.value.trim() : "";
+  $("#cform").querySelectorAll("[data-fold]").forEach(el => {
+    el.innerHTML = id
+      ? "Goes into the folder <code>" + ek(id) + "</code>"
+      : '<b class="warn">No id yet.</b> Fill in the name on the first step — the folder is named after it.';
+  });
+}
+
+/* Pehowa's ids carry a p-. An empty name gives an empty id and never a bare
+   "p-", which would be a real id, saveable, and belong to nothing. */
+function makeId(name, city) {
+  const base = slug(name);
+  return base && city === "pehowa" ? "p-" + base : base;
+}
+
+function autoId() {
+  const idIn = $("#cform").querySelector('.fld[data-k="id"] [data-i]');
+  if (!idIn || idIn.getAttribute("data-auto") !== "1") return;
+  const en = $("#cform").querySelector('.fld[data-k="name"] [data-i="en"]');
+  const city = $("#cform").querySelector('.fld[data-k="city"] [data-i]');
+  idIn.value = makeId(en ? en.value : "", city ? city.value : "");
 }
 
 /** Draw the form for one document, or an empty one, and start at the top. */
@@ -821,7 +944,9 @@ function currentDoc() { return readGroup(cSpec(), $("#cform")); }
 
 /** One field's current value, for the rail's done/not-done marks. */
 function fieldValue(f) {
-  const el = $("#cform").querySelector('.step > .sfields > .fld[data-k="' + f.k + '"]');
+  const sel = '.fld[data-k="' + f.k + '"]';
+  const el = $("#cform").querySelector(".step > .sfields > " + sel +
+    ", .step > .sfields > .boolrow > " + sel);
   return el ? readField(f, el) : undefined;
 }
 
@@ -1027,6 +1152,10 @@ function exampleOf(f) {
   const t = f.t;
   if (t === "num") return f.ph ? Number(f.ph) : 0;
   if (t === "bool") return false;
+  // What is STORED, which is the whole point of the JSON view — the form shows
+  // these as a clock, the document holds minutes.
+  if (t === "mins") return 1080;
+  if (t === "minspan") return [1020, 1110];
   if (t === "csv") return f.ph ? f.ph.split(",").map(s => s.trim()) : [];
   if (t === "sel") return f.opts[0];
   if (t === "loc" || t === "locarea") return { en: f.ph || "", hi: f.phHi || "" };
@@ -1060,6 +1189,8 @@ function allowOf(f) {
   }
   if (t === "num") return "a number";
   if (t === "bool") return "true or false";
+  if (t === "mins") return "minutes after midnight — 1080 is 6pm (the form asks for a clock time)";
+  if (t === "minspan") return "two numbers, minutes after midnight — [1020, 1110] is 5pm to 6.30pm";
   if (t === "time") return "“HH:MM”, 24-hour";
   if (t === "date") return "“YYYY-MM-DD”";
   if (t === "days") return "a list of day numbers, 0 is Sunday";
@@ -1498,7 +1629,17 @@ async function mediaList(force) {
  * chosen key into the field that opened it.
  */
 async function pickImage(fld, multi) {
-  const items = await mediaList();
+  const items = (await mediaList()).slice();
+  /* This record's own photographs first. Picking from a hundred keys sorted
+     alphabetically means scrolling past everything to reach the one folder that
+     was ever likely — and the one next to it, alphabetically, is the easiest
+     wrong picture in the world to choose by accident. */
+  const idIn = $("#cform").querySelector('.fld[data-k="id"] [data-i]');
+  const mine = idIn ? idIn.value.trim() : "";
+  if (mine) {
+    const own = (k) => stemOf(k) === mine || stemOf(k).indexOf(mine + "-") === 0;
+    items.sort((a, b) => (own(b.key) ? 1 : 0) - (own(a.key) ? 1 : 0));
+  }
   $("#pickgrid").innerHTML = items.map(o => {
     const id = o.key.replace(/\.[a-z]+$/, "");
     return '<button type="button" class="pk" data-key="' + ek(id) + '">' +
@@ -1620,64 +1761,183 @@ async function usage(force) {
     { url: "/admin/content/startpoints", group: "startpoints" },
     { url: "/admin/content/erickshaw", group: "erickshaw" },
   ];
+  const recs = [];
+  const seen = {};
   for (const s of sets) {
     let items = [];
     try { items = (await api(s.url).then(r => r.json())).items || []; } catch (e) { /* one feed down must not blank the library */ }
     for (const it of items) {
       const label = (it.name && (it.name.en || it.name.hi)) || it.id;
+      /* One folder per id, not one per record. A home-screen entry is normally
+         keyed on the place it is a photograph OF — SPEC.hero says so — so the
+         same id arrives twice and would draw the same folder twice, each
+         holding the same pictures. Places come before hero in this list, which
+         is also the label a person would rather read. */
+      if (!seen[it.id]) { seen[it.id] = 1; recs.push({ id: it.id, label: label, group: s.group }); }
       add(it.img, s.group, label);
       (it.gallery || []).forEach(g => add(g, s.group, label));
     }
   }
+  // Longest id first, so "p-saraswati-tirth" wins over "p-saraswati" for a key
+  // that begins with both. Sorted once here rather than on every lookup.
+  RECS = recs.sort((a, b) => b.id.length - a.id.length);
   USES = map;
   return map;
+}
+
+/**
+ * Which folder a photograph is in.
+ *
+ * There are no folders in R2 — keys are flat — but the naming rule has always
+ * BEEN a folder: brahma-sarovar, brahma-sarovar-2, brahma-sarovar-3 all belong
+ * to the place brahma-sarovar, and every one of the ninety-nine already follows
+ * it. So the folder is read back out of the name rather than stored anywhere,
+ * which is why this needed no migration and why /img/<id>.webp still resolves
+ * exactly as it did.
+ */
+let RECS = [];
+function folderOf(stem) {
+  for (const r of RECS)
+    if (stem === r.id || stem.indexOf(r.id + "-") === 0) return r;   // RECS is longest-first
+  return null;
 }
 
 const GROUPS = [
   { g:"all", lb:"All" },
   { g:"places", lb:"Places" },
+  { g:"stays", lb:"Stays" },
   { g:"events", lb:"Events" },
   { g:"home", lb:"Home screen" },
-  { g:"stays", lb:"Stays" },
-  { g:"unused", lb:"Not used" },
+  { g:"startpoints", lb:"Start points" },
+  { g:"loose", lb:"In no folder" },
 ];
 let MGROUP = "all";
+let BINS = {};        // folder id -> the objects in it
+let LOOSE = [];       // photographs whose name matches no record
 
-async function paintLibrary(force) {
+const stemOf = (key) => key.replace(/\.[a-z]+$/, "");
+
+/** Sort every object in the bucket into its folder. */
+async function rebuildBins(force) {
   const items = await mediaList(force);
-  const uses = await usage(force);
+  await usage(force);                       // fills RECS, which folderOf needs
+  BINS = {};
+  LOOSE = [];
+  for (const o of items) {
+    const r = folderOf(stemOf(o.key));
+    if (r) (BINS[r.id] = BINS[r.id] || []).push(o);
+    else LOOSE.push(o);
+  }
+  for (const k of Object.keys(BINS)) BINS[k].sort((a, b) => a.key.localeCompare(b.key));
+  return items;
+}
 
-  const of = (key) => uses[key.replace(/\.[a-z]+$/, "")] || [];
-  const inGroup = (key) => {
-    const u = of(key);
-    if (MGROUP === "all") return true;
-    if (MGROUP === "unused") return u.length === 0;
-    return u.some(x => x.group === MGROUP);
-  };
+/**
+ * The library, as folders.
+ *
+ * Ninety-nine <img> tags on one screen is ninety-nine requests before anybody
+ * has decided what they are looking for, and it only gets worse — the bucket
+ * grows every time a place gets a photograph. So this draws the folders and
+ * their counts, which costs no pictures at all, and a folder fetches its own
+ * contents when it is opened. Everything is one <details>, so opening and
+ * closing is the browser's job and not ours.
+ *
+ * EVERY record gets a folder, including the ones with nothing in them. That is
+ * what "a new place has a folder" means here — there is nowhere to create, so
+ * an empty folder is simply a place that has not been photographed yet, and it
+ * is the thing you open to put the first one in.
+ */
+async function paintLibrary(force) {
+  const items = await rebuildBins(force);
+  const q = (($("#msearch") || {}).value || "").trim().toLowerCase();
 
-  $("#mgroups").innerHTML = GROUPS.map(x => {
-    const n = items.filter(o => {
-      const u = of(o.key);
-      return x.g === "all" ? true : x.g === "unused" ? u.length === 0 : u.some(y => y.group === x.g);
-    }).length;
-    return '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" + ek(x.lb) +
-      ' <small>' + n + "</small></button>";
+  const counts = { all: items.length, loose: LOOSE.length };
+  for (const r of RECS) counts[r.group] = (counts[r.group] || 0) + (BINS[r.id] || []).length;
+  $("#mgroups").innerHTML = GROUPS.map(x =>
+    '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" + ek(x.lb) +
+    " <small>" + (counts[x.g] || 0) + "</small></button>").join("");
+
+  // Alphabetical by the name a person reads, not by the id.
+  const recs = RECS.slice().sort((a, b) => a.label.localeCompare(b.label))
+    .filter(r => MGROUP === "all" || MGROUP === r.group)
+    .filter(r => !q || (r.label + " " + r.id).toLowerCase().indexOf(q) >= 0);
+
+  const rows = MGROUP === "loose" ? [] : recs.map(r => {
+    const n = (BINS[r.id] || []).length;
+    return '<details class="folder" data-fid="' + ek(r.id) + '">' +
+      '<summary><span class="fname">' + ek(r.label) + "</span>" +
+      "<code>" + ek(r.id) + "</code>" +
+      '<span class="fcount' + (n ? "" : " empty") + '">' + (n ? n : "empty") + "</span></summary>" +
+      '<div class="fbody"></div></details>';
   }).join("");
 
-  const shown = items.filter(o => inGroup(o.key));
-  $("#libcount").textContent = shown.length + " of " + items.length + " · " +
-    (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
+  // Named rather than hidden: a photograph in no folder is one whose name does
+  // not begin with any record's id, which is either a typo or a place that has
+  // since been renamed. Both want finding.
+  const looseRow = (MGROUP === "all" || MGROUP === "loose") && LOOSE.length && !q
+    ? '<details class="folder loose" data-fid=""><summary>' +
+      '<span class="fname">In no folder</span><code>—</code>' +
+      '<span class="fcount">' + LOOSE.length + "</span></summary>" +
+      '<div class="fbody"></div></details>'
+    : "";
 
-  $("#libgrid").innerHTML = shown.map(o => {
-    const id = o.key.replace(/\.[a-z]+$/, "");
-    const u = of(o.key);
-    const used = u.length
-      ? '<small class="use">' + ek(u.map(x => x.label).join(", ")) + "</small>"
-      : '<small class="use none">nothing points at this one</small>';
-    return '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
-      "<small>" + ek(id) + "</small>" + used +
-      '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>';
-  }).join("") || '<p class="muted">Nothing in this group.</p>';
+  $("#libcount").textContent = items.length + " photograph" + (items.length === 1 ? "" : "s") +
+    " in " + recs.length + " folder" + (recs.length === 1 ? "" : "s") + " · " +
+    (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
+  $("#libgrid").innerHTML = (rows + looseRow) || '<p class="muted">Nothing matches.</p>';
+}
+
+/** A folder's contents, drawn the first time it is opened and not before. */
+function fillFolder(d) {
+  const fid = d.getAttribute("data-fid");
+  const objs = fid ? (BINS[fid] || []) : LOOSE;
+  d.querySelector(".fbody").innerHTML =
+    (fid
+      ? '<div class="fbar"><button type="button" class="primary sm" data-fup>Upload into this folder</button>' +
+        '<input type="file" data-ffile hidden multiple accept="image/webp,image/jpeg,image/png,image/avif">' +
+        '<span class="upnote" data-fnote></span></div>'
+      : "") +
+    (objs.length
+      ? '<div class="grid">' + objs.map(o =>
+          '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
+          "<small>" + ek(stemOf(o.key)) + "</small>" +
+          '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>').join("") +
+        "</div>"
+      : '<p class="muted">Nothing here yet. Anything uploaded from this folder, or from the record itself, lands in it.</p>');
+}
+
+/** Upload straight into a folder. The folder id is the name, so nothing is typed. */
+async function uploadToFolder(d, files) {
+  if (!files || !files.length) return;
+  const fid = d.getAttribute("data-fid");
+  const note = d.querySelector("[data-fnote]");
+  const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
+  let n = 0;
+  for (const f of files) {
+    if (f.size > 6 * 1024 * 1024) {
+      say(f.name + " is " + (f.size / 1024 / 1024).toFixed(1) + " MB. The limit is 6 MB.", 1);
+      break;
+    }
+    say("Uploading " + (n + 1) + " of " + files.length + "…");
+    try {
+      await putImage(f, await nextKey(fid));
+    } catch (e) {
+      say((e && e.message) || "Upload failed.", 1);
+      break;
+    }
+    await mediaList(true);
+    n++;
+  }
+  await rebuildBins(true);
+  fillFolder(d);
+  // The count in the summary is now wrong, and it is the only thing outside
+  // the body that changed.
+  const c = d.querySelector(".fcount");
+  const len = (BINS[fid] || []).length;
+  c.textContent = len || "empty";
+  c.className = "fcount" + (len ? "" : " empty");
+  if (n) d.querySelector("[data-fnote]").textContent =
+    n === 1 ? "Uploaded." : n + " uploaded.";
 }
 
 async function mediaDelete(key) {
@@ -1716,6 +1976,18 @@ function wireForms() {
     const up = e.target.closest("[data-up]");
     if (up) return void up.closest(".imgf").querySelector("[data-file]").click();
 
+    /* The whole chip toggles its checkbox, not just the 16 pixels of the box.
+       The label cannot do this natively — it is a sibling of the input rather
+       than its parent, which is what keeps every field two children deep for
+       the subgrid — so it is done here. No double-toggle: a <label> with no
+       "for" and no input inside it does nothing on its own. */
+    const bl = e.target.closest('.fld[data-t="bool"] .fl');
+    if (bl) {
+      const box = bl.closest(".fld").querySelector("[data-i]");
+      box.checked = !box.checked;
+      return paintSteps();
+    }
+
     /* Taking a photograph off a record is not deleting it. The file stays in
        the bucket and every other record still pointing at it is untouched —
        which is why this asks nothing before doing it, and why the library's
@@ -1744,9 +2016,17 @@ function wireForms() {
   $("#editor").addEventListener("input", (e) => {
     const fld = e.target.closest('.fld[data-t="img"], .fld[data-t="imgs"]');
     if (fld) paintThumbs(fld.querySelector("[data-thumbs]"));
+    // Touched by hand: it is theirs now, and autoId leaves it alone.
+    if (e.target.closest('.fld[data-k="id"]')) e.target.setAttribute("data-auto", "");
+    if (e.target.closest('.fld[data-k="name"], .fld[data-k="city"]')) autoId();
+    if (e.target.closest('.fld[data-k="id"], .fld[data-k="name"], .fld[data-k="city"]')) paintFolderNotes();
     // The rail's marks are about what is filled in, so they follow typing. Only
     // the required fields are read, which is a handful per kind.
     if (MODE === "form" && e.target.closest("#cform")) paintSteps();
+  });
+  // A dropdown fires change, not input.
+  $("#editor").addEventListener("change", (e) => {
+    if (e.target.closest('.fld[data-k="city"]')) { autoId(); paintFolderNotes(); paintSteps(); }
   });
 
   /* The rail. Any step, in any order — an editor correcting one phone number
@@ -1823,8 +2103,24 @@ function wireForms() {
   });
   $("#libgrid").addEventListener("click", (e) => {
     const d = e.target.closest("[data-mdel]");
-    if (d) mediaDelete(d.getAttribute("data-mdel"));
+    if (d) return mediaDelete(d.getAttribute("data-mdel"));
+    const up = e.target.closest("[data-fup]");
+    if (up) up.parentNode.querySelector("[data-ffile]").click();
   });
+  /* A folder loads its pictures when it is opened, and never before — which is
+     the whole reason this screen is a list of folders. "toggle" does not
+     bubble, so it is caught on the way down. */
+  $("#libgrid").addEventListener("toggle", (e) => {
+    const d = e.target.closest && e.target.closest("details.folder");
+    if (d && d.open && !d._filled) { d._filled = 1; fillFolder(d); }
+  }, true);
+  $("#libgrid").addEventListener("change", (e) => {
+    const f = e.target.closest("[data-ffile]");
+    if (!f) return;
+    uploadToFolder(f.closest("details.folder"), Array.prototype.slice.call(f.files));
+    f.value = "";
+  });
+  $("#msearch").addEventListener("input", () => paintLibrary());
 }
 
 /** The spec entry for a rendered field — needed to add a row to a list. */
@@ -2027,6 +2323,19 @@ export const FORMS_CSS = String.raw`
  .lrow{border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--bg)}
  .chk{display:inline-flex;align-items:center;gap:6px;font-weight:400;font-size:14px;margin:0}
  .chk input{width:auto;margin:0}
+ /* ---- a run of checkboxes ----
+    Chips that wrap, rather than one grid cell each. A yes/no property is a
+    small thing; given a full cell it sat under a label and a hint with an inch
+    of nothing below it, and the third one left a hole in the row. */
+ .boolrow{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:10px}
+ .boolrow > .fld{margin:0;display:flex;flex-direction:row-reverse;align-items:flex-start;gap:10px;
+   flex:1 1 230px;min-width:210px;max-width:360px;background:var(--paper);border:1px solid var(--line);
+   border-radius:10px;padding:11px 13px;cursor:pointer}
+ .boolrow > .fld:hover{border-color:var(--accent-line,#EFC08A)}
+ .boolrow .fl{margin:0;flex:1;cursor:pointer}
+ .boolrow .fl .hint{margin-top:2px}
+ .boolrow .ctl{flex:0 0 auto;padding-top:1px}
+ .boolrow .chk input{width:17px;height:17px;accent-color:var(--accent)}
  .days{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
  button.sm{padding:5px 10px;font-size:12px}
  /* ---- photographs on a record ----
@@ -2041,6 +2350,9 @@ export const FORMS_CSS = String.raw`
    border:1px dashed var(--line);border-radius:9px;padding:16px 12px}
  .upnote{font-size:12.5px;color:var(--muted);margin-top:8px}
  .upnote.bad{color:var(--bad);font-weight:600}
+ /* Which folder these land in — stated on the field that uploads them. */
+ .foldnote{font-size:12px;color:var(--muted);margin-top:8px}
+ .foldnote code{background:var(--bg);border-radius:5px;padding:2px 7px;font-size:11.5px;color:var(--ink)}
  .idraw{margin-top:10px}
  .idraw summary{font-size:12px;color:var(--muted);cursor:pointer}
  .th{position:relative;width:96px;text-align:center}
@@ -2116,6 +2428,31 @@ export const FORMS_CSS = String.raw`
  .pk .use{display:block;font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;
    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .pk .use.none{color:var(--bad);font-weight:700}
+
+ /* ---- the library, as folders ----
+    A row per record, costing no pictures at all, and the pictures arrive when
+    a row is opened. <details> does the opening, so there is no state here. */
+ .folder{background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-bottom:7px}
+ .folder > summary{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;
+   list-style:none;border-radius:10px}
+ .folder > summary::-webkit-details-marker{display:none}
+ /* The twisty, drawn rather than inherited — the native marker is a different
+    glyph in every browser and none of them line up with a flex row. */
+ .folder > summary:before{content:"";width:0;height:0;flex:0 0 auto;
+   border-left:5px solid var(--muted);border-top:4px solid transparent;border-bottom:4px solid transparent;
+   transition:transform .12s ease}
+ .folder[open] > summary:before{transform:rotate(90deg)}
+ .folder > summary:hover{background:var(--bg)}
+ .folder .fname{font-weight:700;font-size:14px;flex:1;min-width:0;overflow:hidden;
+   text-overflow:ellipsis;white-space:nowrap}
+ .folder code{font-size:11.5px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:5px}
+ .folder .fcount{font-size:11.5px;font-weight:700;color:var(--ok);background:#EFF1DF;
+   border-radius:99px;padding:2px 9px;min-width:34px;text-align:center}
+ .folder .fcount.empty{color:var(--muted);background:var(--bg);font-weight:400}
+ .folder.loose .fcount{color:var(--bad);background:#F9EAE3}
+ .fbody{padding:2px 14px 14px}
+ .fbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+ #msearch{max-width:280px;margin:0}
  .wide{grid-column:1/-1}
 
  /* The content screen is one column, not two. A table of fifty-seven places
@@ -2238,11 +2575,14 @@ export const FORMS_HTML = String.raw`
   <section>
    <div class="toolbar">
     <h2 style="margin:0">The library</h2>
-    <nav class="mgroups" id="mgroups"></nav>
+    <input type="search" id="msearch" placeholder="Find a folder…">
     <span style="flex:1"></span>
     <span class="you" id="libcount"></span>
    </div>
-   <div class="grid" id="libgrid"></div>
+   <nav class="mgroups" id="mgroups" style="margin-bottom:12px"></nav>
+   <!-- Folders, not photographs. Each one fetches its own pictures when it is
+        opened; nothing here loads an image until somebody asks for it. -->
+   <div id="libgrid"></div>
   </section>
  </main>
 </div>

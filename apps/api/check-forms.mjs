@@ -123,7 +123,8 @@ for (const [, id] of JS.matchAll(/\$\("#([\w-]+)"\)/g))
       the ones whose absence is invisible (a map with no height is a map that
       renders as nothing at all, with no error anywhere). */
 for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "sec", "wrongar",
-  "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm"])
+  "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm",
+  "boolrow", "folder", "fbody", "fbar", "fcount", "fname", "foldnote"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".
   assert.match(CSS, new RegExp("[.\\s]" + c + "[^\\w-]"), "no style for ." + c);
 
@@ -143,6 +144,7 @@ const sample = (fields) => {
     o[f.k] =
       f.t === "loc" || f.t === "locarea" ? { en: "En", hi: "हि" } :
       f.t === "num" ? 7 : f.t === "bool" ? true :
+      f.t === "mins" ? 1080 : f.t === "minspan" ? [1020, 1110] :
       f.t === "csv" || f.t === "imgs" ? ["a", "b"] :
       f.t === "days" ? [1, 3] : f.t === "sel" ? f.opts[0] :
       f.t === "time" ? "06:30" : f.t === "date" ? "2026-08-05" :
@@ -193,8 +195,10 @@ assert.ok(JS.includes("if (!window.L) return"), "map code must degrade when the 
  * way they break is by rendering nothing at all rather than by throwing.
  */
 const ENGINE = new Function(JS + "\nreturn { groupHtml, stepsOf, jsonTemplate, refHtml, keySet," +
-  " checksHtml, pvBody, jHighlight, nextKey, slug," +
-  " setKind: function (k) { CKIND = k; }, setMedia: function (m) { MEDIA = m; } };")();
+  " checksHtml, pvBody, jHighlight, nextKey, slug, makeId, folderOf," +
+  " minsToClock, clockToMins," +
+  " setKind: function (k) { CKIND = k; }, setMedia: function (m) { MEDIA = m; }," +
+  " setRecs: function (r) { RECS = r; } };")();
 
 for (const [kind, fields] of Object.entries(SPEC)) {
   ENGINE.setKind(kind);
@@ -319,6 +323,48 @@ ENGINE.setMedia(null);
 assert.equal(ENGINE.slug("IMG_4821.JPG"), "img-4821-jpg", "slug leaves characters a key cannot hold");
 assert.equal(ENGINE.slug("  Brahma Sarovar  "), "brahma-sarovar", "slug does not trim to a clean key");
 assert.equal(ENGINE.slug(""), "", "slug should pass an empty string straight through");
+
+/* 8e. Minutes in the document, a clock on the screen.
+       The planner does arithmetic on these, so a wrong conversion does not
+       throw — it moves an aarti by an hour and builds somebody's day around it. */
+for (const n of [0, 1, 59, 60, 599, 600, 1080, 1439])
+  assert.equal(ENGINE.clockToMins(ENGINE.minsToClock(n)), n, "the clock does not round-trip " + n);
+assert.equal(ENGINE.minsToClock(1080), "18:00", "1080 is 6pm");
+assert.equal(ENGINE.minsToClock(0), "00:00", "midnight is 00:00, not blank");
+assert.equal(ENGINE.minsToClock(null), "", "an unset time must render empty, not 00:00");
+assert.equal(ENGINE.minsToClock(undefined), "", "an unset time must render empty");
+assert.equal(ENGINE.clockToMins("18:00"), 1080, "6pm is 1080");
+assert.equal(ENGINE.clockToMins("00:00"), 0, "midnight reads as 0, and 0 is not nothing");
+for (const bad of ["", "  ", "25:00", "12:60", "abc", "12", null, undefined])
+  assert.equal(ENGINE.clockToMins(bad), null, "a bad clock value must be null, not a number: " + bad);
+
+/* 8f. The id written from the name. A bare "p-" is a real, saveable id that
+       belongs to nothing, and it is what an empty name would produce. */
+assert.equal(ENGINE.makeId("Brahma Sarovar", "pehowa"), "p-brahma-sarovar", "Pehowa ids carry a p-");
+assert.equal(ENGINE.makeId("Brahma Sarovar", "kurukshetra"), "brahma-sarovar", "Kurukshetra ids do not");
+assert.equal(ENGINE.makeId("Brahma Sarovar", ""), "brahma-sarovar", "no town yet means no prefix");
+assert.equal(ENGINE.makeId("", "pehowa"), "", "an empty name must not become a bare p-");
+assert.equal(ENGINE.makeId("  ", "pehowa"), "", "whitespace is not a name");
+assert.equal(ENGINE.makeId("Shri Vyas Gaudiya Math!", "kurukshetra"), "shri-vyas-gaudiya-math",
+  "punctuation must not reach an id");
+
+/* 8g. Which folder a photograph falls in — longest id wins.
+       Real ids nest: p-saraswati-tirth and p-saraswati-van both begin with
+       p-saraswati. Match the short one first and a place's photographs are
+       filed under its neighbour, silently and for ever. */
+ENGINE.setRecs([
+  { id: "p-saraswati-tirth", label: "Saraswati Tirth", group: "places" },
+  { id: "p-saraswati", label: "Saraswati", group: "places" },
+  { id: "bhadrakali", label: "Bhadrakali", group: "places" },
+].sort((a, b) => b.id.length - a.id.length));
+assert.equal(ENGINE.folderOf("p-saraswati-tirth-2").id, "p-saraswati-tirth", "the longest matching id must win");
+assert.equal(ENGINE.folderOf("p-saraswati-tirth").id, "p-saraswati-tirth", "an exact id is its own folder");
+assert.equal(ENGINE.folderOf("p-saraswati-3").id, "p-saraswati", "a shorter id still matches its own keys");
+assert.equal(ENGINE.folderOf("bhadrakali-1").id, "bhadrakali", "a numbered photograph belongs to its place");
+assert.equal(ENGINE.folderOf("logo"), null, "a key matching no record belongs to no folder");
+// "bhadrakali2" is not in bhadrakali's folder — only an exact id or id + "-".
+assert.equal(ENGINE.folderOf("bhadrakalix"), null, "a prefix without a hyphen is a different name");
+ENGINE.setRecs([]);
 
 /* 9. The JSON pane colours its own text, and escapes it on the way.
       The <pre> under the textarea is real markup built from whatever is typed,
