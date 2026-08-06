@@ -124,7 +124,9 @@ for (const [, id] of JS.matchAll(/\$\("#([\w-]+)"\)/g))
       renders as nothing at all, with no error anywhere). */
 for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "sec", "wrongar",
   "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm",
-  "boolrow", "folder", "fbody", "fbar", "fcount", "fname", "foldnote"])
+  "boolrow", "folder", "fbody", "fbar", "fcount", "fname", "foldnote",
+  "tpick", "tbtn", "tclear", "clockread", "cr-part", "dial", "dial-hand", "dial-h", "dial-tip",
+  "tsegs", "thint", "tbox", "looseup"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".
   assert.match(CSS, new RegExp("[.\\s]" + c + "[^\\w-]"), "no style for ." + c);
 
@@ -195,7 +197,7 @@ assert.ok(JS.includes("if (!window.L) return"), "map code must degrade when the 
  * way they break is by rendering nothing at all rather than by throwing.
  */
 const ENGINE = new Function(JS + "\nreturn { groupHtml, stepsOf, jsonTemplate, refHtml, keySet," +
-  " checksHtml, pvBody, jHighlight, nextKey, slug, makeId, folderOf," +
+  " checksHtml, pvBody, jHighlight, nextKey, slug, makeId, folderOf, clock12," +
   " minsToClock, clockToMins," +
   " setKind: function (k) { CKIND = k; }, setMedia: function (m) { MEDIA = m; }," +
   " setRecs: function (r) { RECS = r; } };")();
@@ -337,6 +339,35 @@ assert.equal(ENGINE.clockToMins("18:00"), 1080, "6pm is 1080");
 assert.equal(ENGINE.clockToMins("00:00"), 0, "midnight reads as 0, and 0 is not nothing");
 for (const bad of ["", "  ", "25:00", "12:60", "abc", "12", null, undefined])
   assert.equal(ENGINE.clockToMins(bad), null, "a bad clock value must be null, not a number: " + bad);
+
+/* 8e2. The dial replaced <input type="time">, so the value now lives in a
+        hidden input behind a button. If that input ever stops being rendered,
+        every opening hour and every aarti time saves as nothing — and the
+        button would still show the right time while it happened. */
+for (const [kind, fields] of Object.entries(SPEC)) {
+  ENGINE.setKind(kind);
+  const walkT = (fs, obj) => {
+    for (const f of fs) {
+      if (f.t === "time" || f.t === "mins") {
+        const h = ENGINE.groupHtml([f], obj);
+        assert.match(h, /type="hidden" data-i/, kind + "." + f.k + ": the clock lost its value input");
+        assert.match(h, /data-topen/, kind + "." + f.k + ": the clock cannot be opened");
+      }
+      if (f.t === "minspan") {
+        const h = ENGINE.groupHtml([f], obj);
+        for (const side of ["from", "to"])
+          assert.ok(h.indexOf('data-i="' + side + '"') >= 0,
+            kind + "." + f.k + ": the window lost its " + side + " value");
+      }
+      if (f.of) walkT(f.of, {});
+    }
+  };
+  walkT(fields, {});
+}
+assert.equal(ENGINE.clock12("18:00"), "6:00 pm", "the readout is not the app's format");
+assert.equal(ENGINE.clock12("00:30"), "12:30 am", "midnight reads as 12, not 0");
+assert.equal(ENGINE.clock12("12:05"), "12:05 pm", "noon is pm");
+assert.equal(ENGINE.clock12(""), "", "an unset time has no readout");
 
 /* 8f. The id written from the name. A bare "p-" is a real, saveable id that
        belongs to nothing, and it is what an empty name would produce. */

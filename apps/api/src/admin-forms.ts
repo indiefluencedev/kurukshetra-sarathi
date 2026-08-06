@@ -218,9 +218,10 @@ const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
  * is a unit conversion done in an editor's head, every time, for a number they
  * can already read off the temple noticeboard.
  *
- * So the same <input type="time"> the opening hours use, converted on the way
- * in and out. The stored document does not change, and neither does anything
- * that reads it — JSON mode still shows 1080, because that is what is saved.
+ * So the same clock dial the opening hours use — see timeHtml — converted on
+ * the way in and out. The stored document does not change, and neither does
+ * anything that reads it: JSON mode still shows 1080, because 1080 is what is
+ * saved.
  */
 const pad2 = (n) => (n < 10 ? "0" : "") + n;
 
@@ -237,6 +238,37 @@ function clockToMins(s) {
   return h > 23 || mi > 59 ? null : h * 60 + mi;
 }
 
+/** "18:00" -> "6:00 pm". How the app writes a time, everywhere it writes one. */
+function clock12(hhmm) {
+  const n = clockToMins(hhmm);
+  if (n == null) return "";
+  const h = Math.floor(n / 60);
+  return (h % 12 || 12) + ":" + pad2(n % 60) + " " + (h >= 12 ? "pm" : "am");
+}
+
+/**
+ * A time, asked for the way the app asks for one.
+ *
+ * <input type="time"> is the browser's control, not ours: a blue system
+ * dropdown in a system font, different on every machine, sitting in the middle
+ * of a cream form. The app already has a clock for this — a real face, hour
+ * ring then minute ring, in the app's own colours — and an editor setting an
+ * aarti time should be turning the same dial a visitor turns.
+ *
+ * The value stays in a hidden input under the button, so readField reads a
+ * string exactly as it did when this was a native control and knows nothing
+ * about any of it.
+ */
+function timeHtml(name, hhmm) {
+  const at = name ? '="' + name + '"' : "";
+  return '<div class="tpick"><input type="hidden" data-i' + at + ' value="' + ek(hhmm || "") + '">' +
+    '<button type="button" class="tbtn" data-topen>' +
+    '<span class="tv">' + (hhmm ? ek(clock12(hhmm)) : '<i class="tempty">Set a time</i>') + "</span>" +
+    '<span class="tico" aria-hidden="true"></span></button>' +
+    (hhmm ? '<button type="button" class="tclear" data-tclear title="Clear this time">×</button>' : "") +
+    "</div>";
+}
+
 /** One field, wrapped so readGroup can find it again by key. */
 function fieldHtml(f, v) {
   const t = f.t;
@@ -248,8 +280,10 @@ function fieldHtml(f, v) {
   // "brahma-sarovar" greyed out in the box says the whole rule at a glance.
   const ph = (x) => x ? ' placeholder="' + ek(x) + '"' : "";
 
-  if (t === "text" || t === "time" || t === "num" || t === "date") {
-    const it = t === "num" ? "number" : t === "time" ? "time" : t === "date" ? "date" : "text";
+  if (t === "time") {
+    inner = timeHtml("", v == null ? "" : v);
+  } else if (t === "text" || t === "num" || t === "date") {
+    const it = t === "num" ? "number" : t === "date" ? "date" : "text";
     inner = '<input data-i type="' + it + '"' + (f.step ? ' step="' + f.step + '"' : "") + ph(f.ph) +
             ' value="' + ek(v == null ? "" : v) + '">';
   } else if (t === "area") {
@@ -260,12 +294,11 @@ function fieldHtml(f, v) {
     // nothing. The label is made clickable in wireForms instead.
     inner = '<label class="chk"><input data-i type="checkbox"' + (v ? " checked" : "") + "></label>";
   } else if (t === "mins") {
-    inner = '<input data-i type="time" value="' + ek(minsToClock(v)) + '">';
+    inner = timeHtml("", minsToClock(v));
   } else if (t === "minspan") {
     const a = Array.isArray(v) ? v : [];
-    inner = '<div class="pair"><span><small>From</small>' +
-      '<input data-i="from" type="time" value="' + ek(minsToClock(a[0])) + '"></span>' +
-      '<span><small>To</small><input data-i="to" type="time" value="' + ek(minsToClock(a[1])) + '"></span></div>';
+    inner = '<div class="pair"><span><small>From</small>' + timeHtml("from", minsToClock(a[0])) + "</span>" +
+      '<span><small>To</small>' + timeHtml("to", minsToClock(a[1])) + "</span></div>";
   } else if (t === "csv") {
     inner = '<input data-i type="text"' + ph(f.ph) + ' value="' +
       ek(Array.isArray(v) ? v.join(", ") : (v == null ? "" : v)) + '">';
@@ -528,6 +561,140 @@ function readField(f, el) {
     return rows.length ? rows : undefined;
   }
   return undefined;
+}
+
+/* ---- the clock dial --------------------------------------------------------
+ *
+ * A port of the app's own TimeSheet, turned inside out for a page with no
+ * React in it. Same face, same two rings, same geometry — hour first, then the
+ * minutes, and the minute ring takes any minute rather than snapping to the
+ * five it happens to label. It is the same control an actual visitor turns, in
+ * the same colours, which is the point: the dashboard is not a different
+ * product with a different idea of what a clock looks like.
+ *
+ * One dial for the whole page, opened against whichever hidden input asked for
+ * it. Nothing commits until Set — a mis-drag costs nothing.
+ */
+const DIAL_R = 39;               // ring radius, % of the face — as the app has it
+let TFOR = null;                 // the hidden input being edited
+let TH = 9, TM = 0, TPM = false, TRING = "h";
+
+function openDial(box) {
+  TFOR = box.querySelector("[data-i]");
+  const n = clockToMins(TFOR.value);
+  const start = n == null ? 9 * 60 : n;
+  const h24 = Math.floor(start / 60);
+  TH = h24 % 12 || 12;
+  TM = start % 60;
+  TPM = h24 >= 12;
+  TRING = "h";
+  $("#tdial").hidden = false;
+  paintDial();
+}
+
+const dialTotal = () => ((TH % 12) + (TPM ? 12 : 0)) * 60 + TM;
+
+function paintDial() {
+  $("#tread-h").textContent = TH;
+  $("#tread-m").textContent = pad2(TM);
+  $("#tread-ap").textContent = TPM ? "pm" : "am";
+  $("#tread-h").className = "cr-part" + (TRING === "h" ? " on" : "");
+  $("#tread-m").className = "cr-part" + (TRING === "m" ? " on" : "");
+  document.querySelectorAll("#tdial [data-ap]").forEach(b =>
+    b.classList.toggle("on", (b.getAttribute("data-ap") === "pm") === TPM));
+
+  // Twelve labels: the hours, or the minutes every five.
+  let html = '<div class="dial-hand" style="transform:rotate(' +
+    (TRING === "h" ? TH * 30 : TM * 6) + 'deg)"></div><div class="dial-hub"></div>';
+  for (let i = 0; i < 12; i++) {
+    const v = TRING === "h" ? i + 1 : i * 5;
+    const deg = TRING === "h" ? (i + 1) * 30 : i * 30;
+    const a = ((deg - 90) * Math.PI) / 180;
+    const on = TRING === "h" ? TH === v : TM === v;
+    html += '<button type="button" class="dial-h' + (on ? " on" : "") + '" data-mark="' + v + '" ' +
+      'style="left:' + (50 + DIAL_R * Math.cos(a)) + "%;top:" + (50 + DIAL_R * Math.sin(a)) + '%">' +
+      (TRING === "h" ? v : pad2(v)) + "</button>";
+  }
+  // A minute the ring does not label still needs a marker, or the hand looks broken.
+  if (TRING === "m" && TM % 5 !== 0) {
+    const a = ((TM * 6 - 90) * Math.PI) / 180;
+    html += '<div class="dial-tip" style="left:' + (50 + DIAL_R * Math.cos(a)) +
+      "%;top:" + (50 + DIAL_R * Math.sin(a)) + '%"></div>';
+  }
+  $("#tface").innerHTML = html;
+  $("#thint").textContent = TRING === "h"
+    ? "Tap the hour." : "Tap or drag around the ring for any minute.";
+  $("#tset").textContent = "Set " + clock12(minsToClock(dialTotal()));
+}
+
+/** Where on the face was that pointer? -> degrees clockwise from twelve. */
+function faceAngle(el, cx, cy) {
+  const b = el.getBoundingClientRect();
+  const dx = cx - (b.left + b.width / 2);
+  const dy = cy - (b.top + b.height / 2);
+  return ((Math.atan2(dy, dx) * 180) / Math.PI + 450) % 360;
+}
+
+/** Write the dial back to the field it was opened from, and redraw the button. */
+function setTime(box, hhmm) {
+  const input = box.querySelector("[data-i]");
+  input.value = hhmm || "";
+  const btn = box.querySelector(".tbtn .tv");
+  btn.innerHTML = hhmm ? ek(clock12(hhmm)) : '<i class="tempty">Set a time</i>';
+  const clear = box.querySelector("[data-tclear]");
+  if (hhmm && !clear) {
+    box.insertAdjacentHTML("beforeend",
+      '<button type="button" class="tclear" data-tclear title="Clear this time">×</button>');
+  } else if (!hhmm && clear) {
+    clear.remove();
+  }
+  if (MODE === "form" && !$("#editor").hidden) paintSteps();
+}
+
+function wireDial() {
+  const face = $("#tface");
+  let dragging = false;
+  const at = (e) => {
+    const deg = faceAngle(face, e.clientX, e.clientY);
+    if (TRING === "h") TH = Math.round(deg / 30) || 12;
+    else TM = Math.round(deg / 6) % 60;
+    paintDial();
+  };
+  face.addEventListener("pointerdown", (e) => {
+    dragging = true;
+    face.setPointerCapture(e.pointerId);
+    at(e);
+  });
+  face.addEventListener("pointermove", (e) => { if (dragging) at(e); });
+  const up = () => {
+    // Hour chosen, so hand it the minutes — the same two-turn flow the app has.
+    if (dragging && TRING === "h") { TRING = "m"; paintDial(); }
+    dragging = false;
+  };
+  face.addEventListener("pointerup", up);
+  face.addEventListener("pointercancel", up);
+
+  $("#tdial").addEventListener("click", (e) => {
+    if (e.target.id === "tdial" || e.target.closest("[data-tcancel]")) return void ($("#tdial").hidden = true);
+    const ring = e.target.closest("[data-ring]");
+    if (ring) { TRING = ring.getAttribute("data-ring"); return paintDial(); }
+    const ap = e.target.closest("[data-ap]");
+    if (ap) { TPM = ap.getAttribute("data-ap") === "pm"; return paintDial(); }
+    /* isConnected, because the face is redrawn on pointerup and this click
+       arrives afterwards holding the button that USED to be there. Acting on a
+       detached node would read an hour off it while the ring had already moved
+       on to minutes, and quietly set the minutes to the hour. */
+    const mk = e.target.closest("[data-mark]");
+    if (mk && mk.isConnected) {
+      const v = Number(mk.getAttribute("data-mark"));
+      if (TRING === "h") { TH = v; TRING = "m"; } else TM = v;
+      return paintDial();
+    }
+    if (e.target.closest("#tset")) {
+      if (TFOR) setTime(TFOR.closest(".tpick"), minsToClock(dialTotal()));
+      $("#tdial").hidden = true;
+    }
+  });
 }
 
 /* ---- maps -----------------------------------------------------------------
@@ -1976,6 +2143,11 @@ function wireForms() {
     const up = e.target.closest("[data-up]");
     if (up) return void up.closest(".imgf").querySelector("[data-file]").click();
 
+    const topen = e.target.closest("[data-topen]");
+    if (topen) return openDial(topen.closest(".tpick"));
+    const tclr = e.target.closest("[data-tclear]");
+    if (tclr) return setTime(tclr.closest(".tpick"), "");
+
     /* The whole chip toggles its checkbox, not just the 16 pixels of the box.
        The label cannot do this natively — it is a sibling of the input rather
        than its parent, which is what keeps every field two children deep for
@@ -2067,6 +2239,7 @@ function wireForms() {
   $("#editor").addEventListener("click", (e) => { if (e.target.id === "editor") closeEditor(); });
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
+    if (!$("#tdial").hidden) return void ($("#tdial").hidden = true);
     if (!$("#picker").hidden) return void ($("#picker").hidden = true);
     if (!$("#editor").hidden) closeEditor();
   });
@@ -2121,6 +2294,7 @@ function wireForms() {
     f.value = "";
   });
   $("#msearch").addEventListener("input", () => paintLibrary());
+  wireDial();
 }
 
 /** The spec entry for a rendered field — needed to add a row to a list. */
@@ -2350,6 +2524,71 @@ export const FORMS_CSS = String.raw`
    border:1px dashed var(--line);border-radius:9px;padding:16px 12px}
  .upnote{font-size:12.5px;color:var(--muted);margin-top:8px}
  .upnote.bad{color:var(--bad);font-weight:600}
+ /* ---- the clock ----
+    The app's dial, in the dashboard's palette. Its tokens map straight over:
+    surface->paper, stone->line, clay->accent. A time is set with the same
+    control a visitor uses, not with whatever blue box the operating system
+    happens to draw for <input type="time">. */
+ .tpick{display:flex;align-items:center;gap:6px;margin-top:4px}
+ .tbtn{flex:1;display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+   border-radius:8px;padding:9px 11px;font:inherit;font-size:14px;font-weight:400;color:var(--ink);
+   text-align:left;cursor:pointer}
+ .tbtn:hover{border-color:var(--accent-line,#EFC08A)}
+ .tbtn .tv{flex:1}
+ .tbtn .tempty{font-style:normal;color:var(--muted)}
+ /* the little clock face on the button, drawn rather than a font glyph */
+ .tbtn .tico{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--muted);
+   position:relative;flex:0 0 auto}
+ .tbtn .tico:before,.tbtn .tico:after{content:"";position:absolute;left:50%;top:50%;
+   background:var(--muted);transform-origin:0 0}
+ .tbtn .tico:before{width:1.5px;height:4.5px;margin:-4.5px 0 0 -.75px;border-radius:1px}
+ .tbtn .tico:after{width:3.5px;height:1.5px;margin:-.75px 0 0 0;border-radius:1px}
+ .tclear{background:none;border:1px solid var(--line);border-radius:8px;color:var(--muted);
+   padding:0;width:32px;height:32px;font-size:16px;font-weight:700;line-height:1;flex:0 0 auto}
+ .tclear:hover{border-color:var(--bad);color:var(--bad)}
+
+ #tdial{position:fixed;inset:0;z-index:60;background:rgba(28,24,21,.55);display:grid;
+   place-items:center;padding:20px;overflow:auto}
+ .tbox{background:var(--paper);border-radius:16px;padding:20px;width:100%;max-width:330px;
+   box-shadow:0 18px 50px rgba(28,24,21,.3)}
+ .clockread{display:flex;align-items:baseline;justify-content:center;gap:1px;
+   font-family:"Baskerville","Iowan Old Style",Palatino,Georgia,serif;font-size:30px;
+   font-weight:600;color:var(--ink);margin:2px 0 14px}
+ .cr-part{border:0;background:none;font:inherit;color:var(--muted);cursor:pointer;
+   padding:2px 7px;border-radius:9px;line-height:1.1}
+ .cr-part.on{background:#FBEEDF;color:var(--accent-d)}
+ .cr-sep{color:var(--muted)}
+ .cr-ap{font-size:17px;color:var(--muted);margin-left:5px}
+ .dial{position:relative;width:100%;max-width:258px;margin:0 auto;aspect-ratio:1;touch-action:none;
+   border-radius:50%;background:#fff;border:1px solid var(--line);
+   box-shadow:inset 0 1px 10px rgba(20,18,14,.05)}
+ .dial-hub{position:absolute;left:50%;top:50%;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;
+   border-radius:50%;background:var(--accent)}
+ .dial-hand{position:absolute;left:50%;bottom:50%;width:2px;height:31%;margin-left:-1px;
+   background:var(--accent);transform-origin:50% 100%;border-radius:2px;transition:transform .26s cubic-bezier(.22,.61,.36,1)}
+ .dial-h{position:absolute;width:38px;height:38px;margin:-19px 0 0 -19px;border:0;padding:0;
+   border-radius:50%;background:transparent;color:var(--ink);cursor:pointer;
+   font-family:"Baskerville","Iowan Old Style",Palatino,Georgia,serif;font-size:15px;font-weight:600;
+   display:grid;place-items:center}
+ .dial-h:hover{background:var(--bg)}
+ .dial-h.on{background:var(--accent);color:#fff}
+ .dial-tip{position:absolute;width:9px;height:9px;margin:-4.5px 0 0 -4.5px;border-radius:50%;
+   background:var(--accent);box-shadow:0 0 0 3px #FBEEDF}
+ .thint{text-align:center;font-size:12.5px;color:var(--muted);margin:10px 0 0}
+ .tsegs{display:flex;gap:7px;justify-content:center;margin-top:14px}
+ .tsegs button{min-width:58px;padding:9px 12px;border-radius:999px;border:1px solid var(--line);
+   background:#fff;color:var(--ink);font-size:13.5px;font-weight:500}
+ .tsegs button.on{background:#5E3B22;color:#fff;border-color:#5E3B22}
+ .tbar{display:flex;gap:8px;margin-top:18px}
+ .tbar button{flex:1}
+ @media (prefers-reduced-motion:reduce){.dial-hand{transition:none}}
+
+ /* The standalone upload, shut and out of the way — the library gets the page. */
+ .looseup{margin-top:18px;background:var(--paper);border:1px solid var(--line);border-radius:12px}
+ .looseup > summary{padding:13px 16px;cursor:pointer;font-size:13.5px;font-weight:700;color:var(--muted)}
+ .looseup > summary:hover{color:var(--ink)}
+ .looseup section{border:0;background:none;padding-top:0;max-width:520px}
+
  /* Which folder these land in — stated on the field that uploads them. */
  .foldnote{font-size:12px;color:var(--muted);margin-top:8px}
  .foldnote code{background:var(--bg);border-radius:5px;padding:2px 7px;font-size:11.5px;color:var(--ink)}
@@ -2453,6 +2692,12 @@ export const FORMS_CSS = String.raw`
  .fbody{padding:2px 14px 14px}
  .fbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
  #msearch{max-width:280px;margin:0}
+ /* Seventy-six folders down one column is a lot of scrolling on a wide screen.
+    An OPEN folder takes the full width back, because its pictures want it. */
+ #libgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(430px,1fr));
+   gap:7px;align-items:start}
+ .folder{margin:0}
+ .folder[open]{grid-column:1/-1}
  .wide{grid-column:1/-1}
 
  /* The content screen is one column, not two. A table of fifty-seven places
@@ -2555,9 +2800,27 @@ export const FORMS_HTML = String.raw`
 </div>
 
 <div id="pane-media" class="pane" hidden>
- <main>
+ <section>
+  <div class="toolbar">
+   <h2 style="margin:0">The library</h2>
+   <input type="search" id="msearch" placeholder="Find a folder…">
+   <span style="flex:1"></span>
+   <span class="you" id="libcount"></span>
+  </div>
+  <nav class="mgroups" id="mgroups" style="margin-bottom:12px"></nav>
+  <!-- Folders, not photographs. Each one fetches its own pictures when it is
+       opened; nothing here loads an image until somebody asks for it. -->
+  <div id="libgrid"></div>
+ </section>
+
+ <!-- Shut, and at the bottom, because it is the exception now.
+      Every photograph in the app belongs to a record, and a record uploads its
+      own — from its Photographs step, or from its folder above. What is left
+      for this is the handful that belong to nothing: the seal, a picture being
+      staged before the place exists. It kept half the screen for that. -->
+ <details class="looseup">
+  <summary>Upload a photograph that belongs to no record</summary>
   <section>
-   <h2>Add a photograph</h2>
    <form id="upform">
     <label>Image file
      <span class="hint">webp, jpg, png or avif. Up to 6 MB. webp is what the app uses — it is a third the size for the same picture.</span>
@@ -2572,19 +2835,7 @@ export const FORMS_HTML = String.raw`
     <div id="upm"></div>
    </form>
   </section>
-  <section>
-   <div class="toolbar">
-    <h2 style="margin:0">The library</h2>
-    <input type="search" id="msearch" placeholder="Find a folder…">
-    <span style="flex:1"></span>
-    <span class="you" id="libcount"></span>
-   </div>
-   <nav class="mgroups" id="mgroups" style="margin-bottom:12px"></nav>
-   <!-- Folders, not photographs. Each one fetches its own pictures when it is
-        opened; nothing here loads an image until somebody asks for it. -->
-   <div id="libgrid"></div>
-  </section>
- </main>
+ </details>
 </div>
 
 <div id="picker" hidden>
@@ -2594,6 +2845,29 @@ export const FORMS_HTML = String.raw`
    <button class="ghost" type="button" data-pclose>Done</button>
   </div>
   <div class="grid" id="pickgrid"></div>
+ </div>
+</div>
+
+<!-- The app's clock, in the dashboard. One face for the whole page, opened
+     against whichever field asked. Above the editor, like the picker. -->
+<div id="tdial" hidden>
+ <div class="tbox">
+  <div class="clockread">
+   <button type="button" class="cr-part on" id="tread-h" data-ring="h">9</button>
+   <span class="cr-sep">:</span>
+   <button type="button" class="cr-part" id="tread-m" data-ring="m">00</button>
+   <span class="cr-ap" id="tread-ap">am</span>
+  </div>
+  <div class="dial" id="tface"></div>
+  <p class="thint" id="thint"></p>
+  <div class="tsegs">
+   <button type="button" data-ap="am">AM</button>
+   <button type="button" data-ap="pm">PM</button>
+  </div>
+  <div class="tbar">
+   <button type="button" class="primary" id="tset">Set</button>
+   <button type="button" class="ghost" data-tcancel>Cancel</button>
+  </div>
  </div>
 </div>
 `;
