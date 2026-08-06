@@ -244,11 +244,39 @@ function fieldHtml(f, v) {
       '<label class="chk"><input data-i="' + i + '" type="checkbox"' +
       (Array.isArray(v) && v.indexOf(i) >= 0 ? " checked" : "") + "> " + d + "</label>").join("") + "</div>";
   } else if (t === "img" || t === "imgs") {
+    /* The photographs themselves, then the ways to add one.
+     *
+     * This used to be a text box holding "brahma-sarovar-1, brahma-sarovar-2"
+     * and a Pick button — which asks an editor to know the id of a picture
+     * before they can attach it, and offers no way at all to attach one that
+     * is not in the bucket yet. Getting a photograph off a phone and onto a
+     * place meant going to the Photographs screen, choosing the place from a
+     * dropdown to name the file, uploading, coming back, and typing the id.
+     *
+     * So: the pictures are the field, Upload is the first button, and the ids
+     * are folded away underneath. The text input survives down there because
+     * it is still the VALUE — readField reads it and knows nothing about any
+     * of this, exactly as the corridor map writes into its textarea.
+     */
     const val = t === "imgs" ? (Array.isArray(v) ? v.join(", ") : "") : (v == null ? "" : v);
-    inner = '<div class="imgf"><input data-i type="text" value="' + ek(val) + '" placeholder="' +
-      (t === "imgs" ? "brahma-sarovar-1, brahma-sarovar-2" : "brahma-sarovar") + '">' +
-      '<button type="button" class="ghost sm" data-pick="' + t + '">Pick…</button></div>' +
-      '<div class="thumbs" data-thumbs></div>';
+    const many = t === "imgs";
+    inner = '<div class="imgf">' +
+      '<div class="thumbs" data-thumbs></div>' +
+      '<div class="imgbar">' +
+        '<button type="button" class="primary sm" data-up>Upload ' +
+          (many ? "photographs…" : "a photograph…") + "</button>" +
+        '<button type="button" class="ghost sm" data-pick="' + t + '">Choose from the library</button>' +
+        // The real file input, driven by the button above it. A bare file input
+        // says "No file chosen" in a system font nobody can style and gives no
+        // hint that several may be picked at once.
+        '<input type="file" data-file hidden accept="image/webp,image/jpeg,image/png,image/avif"' +
+          (many ? " multiple" : "") + ">" +
+      "</div>" +
+      '<div class="upnote" data-upnote></div>' +
+      '<details class="idraw"><summary>' +
+        (many ? "Type the photograph ids instead" : "Type the photograph id instead") +
+        '</summary><input data-i type="text" value="' + ek(val) + '" placeholder="' +
+        (many ? "brahma-sarovar-1, brahma-sarovar-2" : "brahma-sarovar") + '"></details></div>';
   } else if (t === "geo") {
     // ONE field that writes two keys. A latitude box and a longitude box asked
     // an editor to produce six decimal places of WGS-84 for a temple they can
@@ -1361,10 +1389,101 @@ function paintThumbs(box) {
   const fld = box.closest(".fld");
   const input = fld.querySelector("[data-i]");
   const ids = input.value.split(",").map(s => s.trim()).filter(Boolean);
-  box.innerHTML = ids.map(id =>
+  // An empty field has to say it is empty. A blank strip where the pictures go
+  // looks identical to a strip that has not loaded yet.
+  box.innerHTML = ids.length ? ids.map(id =>
     '<span class="th"><img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" data-ar="' + wantAR() + '" ' +
     'onload="checkAspect(this)" onerror="this.parentNode.classList.add(\'miss\')">' +
-    "<small>" + ek(id) + "</small></span>").join("");
+    '<button type="button" class="rm" data-rm="' + ek(id) + '" title="Take this one off" ' +
+    'aria-label="Take ' + ek(id) + ' off this record">×</button>' +
+    "<small>" + ek(id) + "</small></span>").join("")
+    : '<span class="nothumbs">No photograph on this one yet.</span>';
+}
+
+/* ---- uploading from the record itself --------------------------------------
+ *
+ * The name of a photograph is the ONLY link between a picture and the place it
+ * belongs to — img:"brahma-sarovar" means brahma-sarovar.webp and nothing else
+ * enforces it. So when the upload happens from inside a record, the record's
+ * own id names the file and there is nothing for anybody to type or get wrong.
+ * A file called IMG_4821.jpg becomes an id nobody can guess, which is how a
+ * library ends up full of pictures belonging to nothing.
+ */
+const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+/** base, base-2, base-3 — the first name in that series nothing is using. */
+async function nextKey(base) {
+  const taken = (await mediaList()).map(o => o.key.replace(/\.[a-z]+$/, ""));
+  if (taken.indexOf(base) < 0) return base;
+  let n = 1, k;
+  do { k = base + "-" + (++n); } while (taken.indexOf(k) >= 0);
+  return k;
+}
+
+/** One file into the bucket. Returns the id a record should point at. */
+async function putImage(file, key) {
+  const ext = (file.type.split("/")[1] || "webp").replace("jpeg", "jpg");
+  const r = await api("/admin/media?key=" + encodeURIComponent(key + "." + ext), {
+    method: "PUT", headers: { "content-type": file.type }, body: file,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ("Upload failed (" + r.status + ")"));
+  return key;
+}
+
+/**
+ * Upload straight into a photograph field, and attach what lands.
+ *
+ * Several at once for a gallery, because a place has a gallery — asking for
+ * six files one at a time, each needing a name, is the reason those galleries
+ * are empty. Serially rather than in parallel: nextKey asks what is already in
+ * the bucket, so two files racing would both be told the same free name and
+ * the second would overwrite the first.
+ */
+async function uploadInto(fld, files) {
+  if (!files || !files.length) return;
+  const many = fld.getAttribute("data-t") === "imgs";
+  const input = fld.querySelector("[data-i]");
+  const note = fld.querySelector("[data-upnote]");
+  const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
+
+  const have = input.value.split(",").map(s => s.trim()).filter(Boolean);
+  const base = slug(currentDoc().id);
+  let n = 0;
+
+  for (const f of files) {
+    // The record's id if it has one yet, otherwise the file's own name — a new
+    // place whose id has not been typed still has to be able to take a picture.
+    const stem = base || slug(f.name.replace(/\.[^.]+$/, "")) || "photo";
+    // Asked here as well as on the server: a 9 MB photograph straight off a
+    // phone is the common case, and finding out after pushing all 9 MB up an
+    // office connection is a minute of nothing followed by a refusal.
+    if (f.size > 6 * 1024 * 1024) {
+      say(f.name + " is " + (f.size / 1024 / 1024).toFixed(1) + " MB. The limit is 6 MB — " +
+        "save it smaller, or export it as webp.", 1);
+      break;
+    }
+    say("Uploading " + (n + 1) + " of " + files.length + "…");
+    let id;
+    try {
+      id = await putImage(f, await nextKey(stem));
+    } catch (e) {
+      say((e && e.message) || "Upload failed.", 1);
+      break;
+    }
+    await mediaList(true);          // so the next nextKey sees what just landed
+    if (many) { if (have.indexOf(id) < 0) have.push(id); }
+    else input.value = id;
+    n++;
+  }
+
+  if (many) input.value = have.join(", ");
+  paintThumbs(fld.querySelector("[data-thumbs]"));
+  // What every photograph is FOR is derived by reading the catalogues, and this
+  // record has not been saved yet — but the bucket has changed, so the library
+  // must not go on showing a list that predates these files.
+  USES = null;
+  if (n) say(n === 1 ? "Uploaded and attached." : n + " uploaded and attached.");
 }
 
 async function mediaList(force) {
@@ -1592,6 +1711,33 @@ function wireForms() {
     if (del) return del.closest(".lrow").remove();
     const pick = e.target.closest("[data-pick]");
     if (pick) return pickImage(pick.closest(".fld"), pick.getAttribute("data-pick") === "imgs");
+
+    // The styled button in front of the real file input.
+    const up = e.target.closest("[data-up]");
+    if (up) return void up.closest(".imgf").querySelector("[data-file]").click();
+
+    /* Taking a photograph off a record is not deleting it. The file stays in
+       the bucket and every other record still pointing at it is untouched —
+       which is why this asks nothing before doing it, and why the library's
+       own Delete button is the one that warns. */
+    const rm = e.target.closest("[data-rm]");
+    if (rm) {
+      const fld = rm.closest(".fld");
+      const input = fld.querySelector("[data-i]");
+      const gone = rm.getAttribute("data-rm");
+      input.value = input.value.split(",").map(s => s.trim())
+        .filter(x => x && x !== gone).join(", ");
+      return paintThumbs(fld.querySelector("[data-thumbs]"));
+    }
+  });
+
+  $("#editor").addEventListener("change", (e) => {
+    const file = e.target.closest("[data-file]");
+    if (!file) return;
+    const fld = file.closest(".fld");
+    uploadInto(fld, Array.prototype.slice.call(file.files));
+    // Cleared so that choosing the same file twice in a row still fires change.
+    file.value = "";
   });
 
   // Typing an id by hand should preview too, not only picking one.
@@ -1663,8 +1809,7 @@ function wireForms() {
     const id = $("#upfor").value;
     if (!id) return;
     const taken = (await mediaList()).map(o => o.key.replace(/\.[a-z]+$/, ""));
-    let key = id, n = 1;
-    while (taken.indexOf(key) >= 0) key = id + "-" + (++n);
+    const key = await nextKey(id);
     $("#upkey").value = key;
     upmsg(taken.indexOf(id) >= 0
       ? "That one already has a photograph, so this will be added as " + key + "."
@@ -1884,11 +2029,28 @@ export const FORMS_CSS = String.raw`
  .chk input{width:auto;margin:0}
  .days{display:flex;gap:12px;flex-wrap:wrap;margin-top:4px}
  button.sm{padding:5px 10px;font-size:12px}
- .imgf{display:flex;gap:8px;align-items:flex-start}
- .imgf input{flex:1}
- .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
- .th{width:74px;text-align:center}
- .th img{width:74px;height:56px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+ /* ---- photographs on a record ----
+    The pictures first and big enough to recognise, then the ways to add one,
+    then the ids folded away. A 74px thumbnail of a temple is a brown smudge —
+    it cannot answer "is this the right photograph", which is the only question
+    anybody is asking here. */
+ .imgf{display:block}
+ .imgbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+ .thumbs{display:flex;gap:10px;flex-wrap:wrap}
+ .nothumbs{display:block;width:100%;text-align:center;font-size:12.5px;color:var(--muted);
+   border:1px dashed var(--line);border-radius:9px;padding:16px 12px}
+ .upnote{font-size:12.5px;color:var(--muted);margin-top:8px}
+ .upnote.bad{color:var(--bad);font-weight:600}
+ .idraw{margin-top:10px}
+ .idraw summary{font-size:12px;color:var(--muted);cursor:pointer}
+ .th{position:relative;width:96px;text-align:center}
+ /* Off this record, not out of the bucket — so it does not ask, and the
+    library's Delete is still the one that warns. */
+ .th .rm{position:absolute;top:-7px;right:-7px;width:21px;height:21px;padding:0;border-radius:99px;
+   background:var(--paper);border:1px solid var(--line);color:var(--bad);font-size:14px;
+   font-weight:700;line-height:1;box-shadow:0 1px 3px rgba(28,24,21,.22)}
+ .th .rm:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+ .th img{width:96px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
  /* An event's picture is a banner across the top of the home screen, so it is
     previewed in the shape it will actually be seen in. A 4:3 thumbnail of a
     16:9 crop tells the editor nothing about what will be cut off. */

@@ -122,7 +122,8 @@ for (const [, id] of JS.matchAll(/\$\("#([\w-]+)"\)/g))
       Only checked for the map and section classes — the ones added last and
       the ones whose absence is invisible (a map with no height is a map that
       renders as nothing at all, with no error anywhere). */
-for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "sec", "wrongar"])
+for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "sec", "wrongar",
+  "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".
   assert.match(CSS, new RegExp("[.\\s]" + c + "[^\\w-]"), "no style for ." + c);
 
@@ -192,7 +193,8 @@ assert.ok(JS.includes("if (!window.L) return"), "map code must degrade when the 
  * way they break is by rendering nothing at all rather than by throwing.
  */
 const ENGINE = new Function(JS + "\nreturn { groupHtml, stepsOf, jsonTemplate, refHtml, keySet," +
-  " checksHtml, pvBody, jHighlight, setKind: function (k) { CKIND = k; } };")();
+  " checksHtml, pvBody, jHighlight, nextKey, slug," +
+  " setKind: function (k) { CKIND = k; }, setMedia: function (m) { MEDIA = m; } };")();
 
 for (const [kind, fields] of Object.entries(SPEC)) {
   ENGINE.setKind(kind);
@@ -287,6 +289,36 @@ assert.ok(readFieldSrc.includes(":scope > .ctl > [data-rows]"),
   "readField does not read list rows through .ctl, so repeating groups will save empty");
 assert.match(CSS, /\.fld,\.sub > \.fld\{[^}]*subgrid/,
   "the fields are no longer a subgrid, so controls in a row will not line up");
+
+/* 8c. A photograph field can still be read, and can still be filled.
+       The value moved into a <details> when the field became a picture manager;
+       it is the one part of it readField actually looks at. */
+for (const [kind, fields] of Object.entries(SPEC)) {
+  ENGINE.setKind(kind);
+  for (const f of fields.filter((x) => x.t === "img" || x.t === "imgs")) {
+    const one = ENGINE.groupHtml([f], { [f.k]: f.t === "imgs" ? ["a", "b"] : "a" });
+    assert.match(one, /data-i /, kind + "." + f.k + ": has no value input, so nothing can be saved");
+    assert.match(one, /data-file/, kind + "." + f.k + ": has no file input, so nothing can be uploaded");
+    assert.match(one, /data-thumbs/, kind + "." + f.k + ": has nowhere to show the photographs");
+    assert.match(one, /data-up\b/, kind + "." + f.k + ": has no upload button");
+    if (f.t === "imgs")
+      assert.match(one, /data-file[^>]*multiple|multiple[^>]*data-file/,
+        kind + "." + f.k + ": a gallery must take more than one file at a time");
+  }
+}
+
+/* 8d. Naming an upload. THE one that loses work quietly: hand back a name
+       something already uses and the PUT overwrites that photograph in the
+       bucket, for every record pointing at it, with no error anywhere. */
+ENGINE.setMedia([{ key: "brahma-sarovar.webp" }, { key: "brahma-sarovar-2.webp" }, { key: "jyotisar.jpg" }]);
+assert.equal(await ENGINE.nextKey("brahma-sarovar"), "brahma-sarovar-3", "nextKey would overwrite a photograph");
+assert.equal(await ENGINE.nextKey("jyotisar"), "jyotisar-2", "nextKey ignores a non-webp extension");
+assert.equal(await ENGINE.nextKey("bhishma-kund"), "bhishma-kund", "nextKey renames a free name");
+ENGINE.setMedia(null);
+
+assert.equal(ENGINE.slug("IMG_4821.JPG"), "img-4821-jpg", "slug leaves characters a key cannot hold");
+assert.equal(ENGINE.slug("  Brahma Sarovar  "), "brahma-sarovar", "slug does not trim to a clean key");
+assert.equal(ENGINE.slug(""), "", "slug should pass an empty string straight through");
 
 /* 9. The JSON pane colours its own text, and escapes it on the way.
       The <pre> under the textarea is real markup built from whatever is typed,

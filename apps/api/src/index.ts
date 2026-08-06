@@ -122,6 +122,34 @@ const guessType = (key: string) => TYPES[key.split(".").pop()?.toLowerCase() || 
 /** What may be uploaded. A closed list: this endpoint writes to a public bucket. */
 const UPLOAD_TYPES = new Set(["image/webp", "image/jpeg", "image/png", "image/avif"]);
 const MAX_UPLOAD = 6 * 1024 * 1024;
+const IMG_EXT = ["webp", "jpg", "jpeg", "png", "avif"];
+
+/**
+ * The same photograph under a different extension.
+ *
+ * Everything that asks for a picture builds the URL the same way: the id from
+ * the document, plus ".webp" — apps/web/src/data/images.ts does it, and so does
+ * the dashboard. But an upload keeps the extension of the file it came from,
+ * because that is what its bytes actually are and this Worker cannot transcode.
+ * So a photograph taken on a phone lands as brahma-sarovar.jpg, every caller
+ * asks for brahma-sarovar.webp, and the picture 404s while plainly sitting in
+ * the bucket. Nothing reports it: the record is right, the file is right, and
+ * the app shows an empty frame.
+ *
+ * Rather than teach three callers about extensions, the one route they all go
+ * through looks for the other spellings. Only ever reached on a miss, so a real
+ * .webp — which is nearly all of them — costs exactly one lookup as before.
+ */
+async function sameStem(media: R2Bucket, key: string): Promise<R2ObjectBody | null> {
+  const stem = key.replace(/\.[a-z0-9]+$/i, "");
+  for (const ext of IMG_EXT) {
+    const alt = stem + "." + ext;
+    if (alt === key) continue;
+    const o = await media.get(alt);
+    if (o) return o;
+  }
+  return null;
+}
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
@@ -207,7 +235,7 @@ export default {
        * caller happened to send. `get` either finds the object or does not, and
        * the comparison below is a string equality nobody has to reason about.
        */
-      const obj = await env.MEDIA.get(key);
+      const obj = (await env.MEDIA.get(key)) ?? (await sameStem(env.MEDIA, key));
       if (!obj) return json({ error: "no such image" }, 404);
 
       const headers = {
