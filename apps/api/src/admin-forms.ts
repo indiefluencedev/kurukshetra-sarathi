@@ -1922,7 +1922,6 @@ function folderOf(stem) {
 }
 
 const GROUPS = [
-  { g:"all", lb:"All" },
   { g:"places", lb:"Places" },
   { g:"stays", lb:"Stays" },
   { g:"events", lb:"Events" },
@@ -1936,14 +1935,12 @@ const GROUPS = [
    seventy-six. Kurukshetra and Pehowa are two towns and two bodies of work —
    somebody photographing Pehowa for an afternoon should not be scrolling past
    Kurukshetra to find where their folders are. The town comes off the record
-   itself, so a place that moves town moves section without anything else being
-   touched. Kinds that have no town (an event, a home-screen photograph) are one
-   section each. */
-const GROUPLB = { places:"Places", stays:"Stays", events:"Events", home:"Home screen",
-                  startpoints:"Start points", erickshaw:"E-rickshaw" };
-const GORDER = ["places", "stays", "events", "home", "startpoints", "erickshaw"];
+   itself, so a place that moves town moves tab without anything else being
+   touched, and a kind with no town (an event, a home-screen photograph) simply
+   has no second row. */
 const townLb = (c) => (c ? c.charAt(0).toUpperCase() + c.slice(1) : "");
-let MGROUP = "all";
+let MGROUP = "places";   // which kind of thing the folders are for
+let MTOWN = "";          // which town within it, when the kind has towns
 let BINS = {};        // folder id -> the objects in it
 let LOOSE = [];       // photographs whose name matches no record
 
@@ -2035,6 +2032,7 @@ async function paintLibrary(force) {
     const rec = RECS.filter(r => r.id === MFOLDER)[0];
     const objs = MFOLDER === "" ? LOOSE : (BINS[MFOLDER] || []);
     $("#mgroups").hidden = true;
+    $("#mtowns").hidden = true;
     $("#msearch").hidden = true;
     $("#libcount").textContent = objs.length + " photograph" + (objs.length === 1 ? "" : "s") + " in here";
     $("#libgrid").className = "inside";
@@ -2066,68 +2064,83 @@ async function paintLibrary(force) {
     return;
   }
 
-  /* ---- the wall of folders ---- */
+  /* ---- the wall of folders ----
+     Two rows of tabs: what KIND of thing, then which town. Places under
+     Kurukshetra and Places under Pehowa are two bodies of work and only one of
+     them is ever the one being worked on, so only one of them is ever drawn.
+     The town row appears only for kinds that have towns — an event does not
+     belong to a town, and a row with one tab in it is not a choice. */
   $("#mgroups").hidden = false;
   $("#msearch").hidden = false;
   const q = (($("#msearch") || {}).value || "").trim().toLowerCase();
 
-  const counts = { all: items.length, loose: LOOSE.length };
-  for (const r of RECS) counts[r.group] = (counts[r.group] || 0) + (BINS[r.id] || []).length;
-  $("#mgroups").innerHTML = GROUPS.map(x =>
-    '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" + ek(x.lb) +
-    " <small>" + (counts[x.g] || 0) + "</small></button>").join("");
+  const shotsOf = (rs) => rs.reduce((n, r) => n + (BINS[r.id] || []).length, 0);
 
-  const recs = RECS.slice().sort((a, b) => a.label.localeCompare(b.label))
-    .filter(r => MGROUP === "all" || MGROUP === r.group)
-    .filter(r => !q || (r.label + " " + r.id).toLowerCase().indexOf(q) >= 0);
+  const kindTab = (x) => {
+    const rs = RECS.filter(r => r.group === x.g);
+    const n = x.g === "loose" ? LOOSE.length : shotsOf(rs);
+    return '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" +
+      ek(x.lb) + " <small>" + n + "</small></button>";
+  };
+  $("#mgroups").innerHTML = GROUPS.map(kindTab).join("");
 
-  // Named rather than hidden: a photograph in no folder is one whose name does
-  // not begin with any record's id, which is a typo or a place since renamed.
-  const looseCard = (MGROUP === "all" || MGROUP === "loose") && LOOSE.length && !q
-    ? '<button type="button" class="fcard loose" data-open="">' +
-      '<span class="fcover"><img src="' + ek("/img/" + encodeURIComponent(LOOSE[0].key)) +
-      '" alt="" loading="lazy"><span class="fbadge">' + LOOSE.length + "</span></span>" +
-      '<span class="fmeta"><b>In no folder</b><code>&#8212;</code></span></button>'
-    : "";
+  // The towns this kind actually has. "-" is the tab for records with no town
+  // set at all, and it only exists when there are some.
+  const inKind = RECS.filter(r => r.group === MGROUP);
+  const towns = [];
+  for (const r of inKind) if (r.city && towns.indexOf(r.city) < 0) towns.push(r.city);
+  towns.sort();
+  const untowned = inKind.some(r => !r.city);
+  const tabs = towns.concat(untowned && towns.length ? ["-"] : []);
+  if (tabs.indexOf(MTOWN) < 0) MTOWN = tabs[0] || "";
 
-  $("#libcount").textContent = items.length + " photograph" + (items.length === 1 ? "" : "s") +
-    " in " + recs.length + " folder" + (recs.length === 1 ? "" : "s") + " · " +
-    (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
-  // Sections: a kind, and within a kind a town. Built from what is actually
-  // there, so an empty one never draws a heading over nothing.
-  const sections = [];
-  for (const g of GORDER) {
-    const inG = recs.filter(r => r.group === g);
-    if (!inG.length) continue;
-    const byTown = {};
-    for (const r of inG) (byTown[r.city] = byTown[r.city] || []).push(r);
-    for (const c of Object.keys(byTown).sort()) {
-      const rs = byTown[c];
-      sections.push({
-        lb: GROUPLB[g] + (c ? " · " + townLb(c) : ""),
-        note: rs.length + " folder" + (rs.length === 1 ? "" : "s") + " · " +
-          rs.reduce((n, r) => n + (BINS[r.id] || []).length, 0) + " photographs",
-        cards: rs.map(folderCard).join(""),
-      });
-    }
+  $("#mtowns").hidden = !(tabs.length > 1 || (tabs.length === 1 && towns.length === 1));
+  $("#mtowns").innerHTML = tabs.map(c => {
+    const rs = inKind.filter(r => (c === "-" ? !r.city : r.city === c));
+    return '<button data-mt="' + ek(c) + '"' + (MTOWN === c ? ' class="on"' : "") + ">" +
+      ek(c === "-" ? "No town set" : townLb(c)) +
+      " <small>" + rs.length + "</small></button>";
+  }).join("");
+
+  /* ---- the loose pile is its own tab, and it is a pile, not a folder ---- */
+  if (MGROUP === "loose") {
+    $("#mtowns").hidden = true;
+    $("#libcount").textContent = LOOSE.length + " photograph" + (LOOSE.length === 1 ? "" : "s");
+    $("#libgrid").className = "inside";
+    $("#libgrid").innerHTML =
+      '<div class="fhead"><b class="fname">In no folder</b>' +
+        '<span style="flex:1"></span>' +
+        '<input type="text" id="loosekey" placeholder="logo" style="max-width:170px;margin:0">' +
+        '<button type="button" class="primary sm" data-fup>Upload</button>' +
+        '<input type="file" data-ffile hidden accept="image/webp,image/jpeg,image/png,image/avif"></div>' +
+      '<div class="upnote" data-fnote></div>' +
+      '<p class="muted" style="margin-top:0">These belong to no record: their name does not begin with any ' +
+      "place, stay or event id. Either the name is wrong, or they are things the app uses directly, like its seal.</p>" +
+      (LOOSE.length ? '<div class="grid">' + LOOSE.map(photoTile).join("") + "</div>" : "");
+    MFOLDER = null;
+    return;
   }
-  if (looseCard) sections.push({
-    lb: "In no folder",
-    note: LOOSE.length + " photograph" + (LOOSE.length === 1 ? "" : "s"),
-    cards: looseCard,
-  });
 
-  const secHtml = sections.map(s =>
-    '<section class="wsec"><h3>' + ek(s.lb) + "<span>" + ek(s.note) + "</span></h3>" +
-    '<div class="wgrid">' + s.cards + "</div></section>").join("");
+  /* A search looks everywhere. Being told "nothing matches" because the folder
+     is filed under the other town is worse than no search at all. */
+  const recs = (q ? RECS.slice() : inKind.filter(r => (MTOWN === "-" ? !r.city : r.city === MTOWN || !towns.length)))
+    .filter(r => !q || (r.label + " " + r.id).toLowerCase().indexOf(q) >= 0)
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  $("#libcount").textContent = q
+    ? recs.length + " folder" + (recs.length === 1 ? "" : "s") + " matching, everywhere"
+    : recs.length + " folder" + (recs.length === 1 ? "" : "s") + " · " +
+      shotsOf(recs) + " photograph" + (shotsOf(recs) === 1 ? "" : "s") + " · " +
+      items.length + " in all, " + (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
 
   const newCard = q ? ""
-    : '<div class="wgrid" style="margin-bottom:18px"><button type="button" class="fcard newf" data-newfold>' +
+    : '<button type="button" class="fcard newf" data-newfold>' +
       '<span class="fcover"><span class="fplus">+</span></span>' +
-      '<span class="fmeta"><b>New folder</b><code>a place, a stay, an event…</code></span></button></div>';
+      '<span class="fmeta"><b>New folder</b><code>a place, a stay, an event…</code></span></button>';
 
   $("#libgrid").className = "wall";
-  $("#libgrid").innerHTML = (newCard + secHtml) || '<p class="muted">Nothing matches.</p>';
+  $("#libgrid").innerHTML = '<div class="wgrid">' + newCard + recs.map(folderCard).join("") + "</div>" +
+    (recs.length || newCard ? "" : '<p class="muted">Nothing here yet.</p>');
 }
 
 /** Upload into the folder that is open. Its id is the name, so nothing is typed. */
@@ -2318,6 +2331,14 @@ function wireForms() {
     const b = e.target.closest("[data-mg]");
     if (!b) return;
     MGROUP = b.getAttribute("data-mg");
+    MTOWN = "";        // resolved to this kind's first town on the way through
+    MFOLDER = null;
+    paintLibrary();
+  });
+  $("#mtowns").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-mt]");
+    if (!b) return;
+    MTOWN = b.getAttribute("data-mt");
     MFOLDER = null;
     paintLibrary();
   });
@@ -2728,14 +2749,22 @@ export const FORMS_CSS = String.raw`
     fetches the ones scrolled to and no others. */
  #libgrid.wall{display:block}
  .wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
- /* A heading per kind, and per town within a kind. Seventy-six folders in one
-    alphabetical run made Pehowa something you scrolled through Kurukshetra to
-    reach, and the two towns are two different afternoons of work. */
- .wsec{margin-bottom:26px}
- .wsec h3{display:flex;align-items:baseline;gap:10px;margin:0 0 11px;font-size:12px;
-   text-transform:uppercase;letter-spacing:.09em;color:var(--ink);
-   border-bottom:1px solid var(--line);padding-bottom:8px}
- .wsec h3 span{font-size:11px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted)}
+
+ /* ---- two rows of tabs ----
+    What kind of thing, then which town. Only one town's folders are ever
+    drawn, because only one of them is ever the one being worked on. The
+    second row is absent for kinds that have no towns. */
+ .mtabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}
+ .mtabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+   padding:9px 13px;font-size:13.5px;font-weight:600;border-radius:8px 8px 0 0;margin-bottom:-1px}
+ .mtabs button:hover{color:var(--ink);background:var(--bg)}
+ .mtabs button.on{color:var(--accent-d);border-bottom-color:var(--accent);background:var(--bg)}
+ .mtabs button small{opacity:.65;font-weight:700;margin-left:4px}
+ .mtowns{display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 16px}
+ .mtowns button{background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:99px;
+   padding:5px 13px;font-size:12.5px;font-weight:600}
+ .mtowns button.on{background:#5E3B22;border-color:#5E3B22;color:#fff}
+ .mtowns button small{opacity:.7;margin-left:4px}
  .fcard{display:block;width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;
    font:inherit;font-weight:400}
  /* the sheet behind the cover — what makes a folder read as a stack */
@@ -2886,7 +2915,8 @@ export const FORMS_HTML = String.raw`
    <span style="flex:1"></span>
    <span class="you" id="libcount"></span>
   </div>
-  <nav class="mgroups" id="mgroups" style="margin-bottom:12px"></nav>
+  <nav class="mtabs" id="mgroups"></nav>
+  <nav class="mtowns" id="mtowns" hidden></nav>
   <!-- Folders, not photographs. Each one fetches its own pictures when it is
        opened; nothing here loads an image until somebody asks for it. -->
   <div id="libgrid"></div>

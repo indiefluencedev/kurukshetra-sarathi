@@ -129,7 +129,7 @@ for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "se
   "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm",
   "boolrow", "fcard", "fcover", "fbadge", "fmeta", "fhead", "fempty", "fname", "foldnote", "wall",
   "tpick", "tbtn", "tclear", "clockread", "cr-part", "dial", "dial-hand", "dial-h", "dial-tip",
-  "tsegs", "thint", "tbox", "newf", "fplus", "nfkinds", "wsec", "wgrid"])
+  "tsegs", "thint", "tbox", "newf", "fplus", "nfkinds", "wgrid", "mtabs", "mtowns"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".
   assert.match(CSS, new RegExp("[.\\s]" + c + "[^\\w-]"), "no style for ." + c);
 
