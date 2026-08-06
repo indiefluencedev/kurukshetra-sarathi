@@ -1875,7 +1875,9 @@ async function usage(force) {
     { url: "/admin/content/hotels", group: "stays" },
     { url: "/admin/content/hero", group: "home" },
     { url: "/admin/content/startpoints", group: "startpoints" },
-    { url: "/admin/content/erickshaw", group: "erickshaw" },
+    /* No e-rickshaw. A stand is a number, a name and a point on the map —
+       there is no photograph of one, its spec has no img field, and a tab of
+       empty folders is a tab that only ever wastes a click. */
   ];
   const recs = [];
   const seen = {};
@@ -1891,7 +1893,8 @@ async function usage(force) {
          is also the label a person would rather read. */
       if (!seen[it.id]) {
         seen[it.id] = 1;
-        recs.push({ id: it.id, label: label, group: s.group, city: it.city || "" });
+        const sp = SPLIT[s.group];
+        recs.push({ id: it.id, label: label, group: s.group, sub: (sp && it[sp.f]) || "" });
       }
       add(it.img, s.group, label);
       (it.gallery || []).forEach(g => add(g, s.group, label));
@@ -1925,22 +1928,35 @@ const GROUPS = [
   { g:"places", lb:"Places" },
   { g:"stays", lb:"Stays" },
   { g:"events", lb:"Events" },
-  { g:"home", lb:"Home screen" },
   { g:"startpoints", lb:"Start points" },
-  { g:"erickshaw", lb:"E-rickshaw" },
+  { g:"home", lb:"Home screen" },
   { g:"loose", lb:"In no folder" },
 ];
 
 /* The wall is sorted into named sections rather than one alphabetical run of
-   seventy-six. Kurukshetra and Pehowa are two towns and two bodies of work —
-   somebody photographing Pehowa for an afternoon should not be scrolling past
-   Kurukshetra to find where their folders are. The town comes off the record
-   itself, so a place that moves town moves tab without anything else being
-   touched, and a kind with no town (an event, a home-screen photograph) simply
-   has no second row. */
-const townLb = (c) => (c ? c.charAt(0).toUpperCase() + c.slice(1) : "");
+   seventy-six, and each section splits again along the line that section is
+   actually worked in:
+
+     Places        Kurukshetra | Pehowa      two towns, two bodies of work
+     Stays         Dharamshalas | Hotels     a dharamshala is not a hotel
+     Start points  Railway stations | Bus stands
+     Events        —                         one pile, and a small one
+
+   The value comes off the record itself ("f" names the field), so a place that
+   moves town, or a stay recorded as a dharamshala, moves tab with nothing else
+   touched. A group with no entry here has no second row at all. */
+const SPLIT = {
+  places:      { f:"city", none:"No town set" },
+  home:        { f:"city", none:"No town set" },
+  stays:       { f:"kind", none:"No kind set",
+                 lb:{ dharamshala:"Dharamshalas", hotel:"Hotels", guesthouse:"Guesthouses", homestay:"Homestays" } },
+  startpoints: { f:"kind", none:"No kind set",
+                 lb:{ station:"Railway stations", busstand:"Bus stands", hotel:"Hotels", dharamshala:"Dharamshalas" } },
+};
+const subLb = (g, v) => ((SPLIT[g] && SPLIT[g].lb && SPLIT[g].lb[v]) ||
+  (v ? v.charAt(0).toUpperCase() + v.slice(1) : ""));
 let MGROUP = "places";   // which kind of thing the folders are for
-let MTOWN = "";          // which town within it, when the kind has towns
+let MSUB = "";           // which slice within it, when the kind is split
 let BINS = {};        // folder id -> the objects in it
 let LOOSE = [];       // photographs whose name matches no record
 
@@ -2008,8 +2024,8 @@ const FOLDKINDS = [
   { nav:"hotels", lb:"A stay" },
   { nav:"events", lb:"An event" },
   { nav:"startpoints", lb:"A start point" },
-  { nav:"erickshaw", lb:"An e-rickshaw stand" },
   { nav:"hero", lb:"A home-screen photograph" },
+  // No e-rickshaw stand: nothing here would make a folder for it. See usage().
 ];
 
 async function newFolder(nav) {
@@ -2032,7 +2048,7 @@ async function paintLibrary(force) {
     const rec = RECS.filter(r => r.id === MFOLDER)[0];
     const objs = MFOLDER === "" ? LOOSE : (BINS[MFOLDER] || []);
     $("#mgroups").hidden = true;
-    $("#mtowns").hidden = true;
+    $("#msubs").hidden = true;
     $("#msearch").hidden = true;
     $("#libcount").textContent = objs.length + " photograph" + (objs.length === 1 ? "" : "s") + " in here";
     $("#libgrid").className = "inside";
@@ -2065,11 +2081,11 @@ async function paintLibrary(force) {
   }
 
   /* ---- the wall of folders ----
-     Two rows of tabs: what KIND of thing, then which town. Places under
-     Kurukshetra and Places under Pehowa are two bodies of work and only one of
-     them is ever the one being worked on, so only one of them is ever drawn.
-     The town row appears only for kinds that have towns — an event does not
-     belong to a town, and a row with one tab in it is not a choice. */
+     Two rows of tabs: what KIND of thing, then which slice of it (see SPLIT).
+     Places under Kurukshetra and Places under Pehowa are two bodies of work and
+     only one of them is ever the one being worked on, so only one of them is
+     ever drawn. The second row appears only for kinds that split — events are
+     one pile, and a row with one tab in it is not a choice. */
   $("#mgroups").hidden = false;
   $("#msearch").hidden = false;
   const q = (($("#msearch") || {}).value || "").trim().toLowerCase();
@@ -2084,27 +2100,34 @@ async function paintLibrary(force) {
   };
   $("#mgroups").innerHTML = GROUPS.map(kindTab).join("");
 
-  // The towns this kind actually has. "-" is the tab for records with no town
-  // set at all, and it only exists when there are some.
+  // The slices this kind actually has, in the order SPLIT names them so
+  // Dharamshalas sits before Hotels rather than wherever the alphabet puts it.
+  // "-" is the tab for records with the field unset, and only exists when there
+  // are some.
   const inKind = RECS.filter(r => r.group === MGROUP);
-  const towns = [];
-  for (const r of inKind) if (r.city && towns.indexOf(r.city) < 0) towns.push(r.city);
-  towns.sort();
-  const untowned = inKind.some(r => !r.city);
-  const tabs = towns.concat(untowned && towns.length ? ["-"] : []);
-  if (tabs.indexOf(MTOWN) < 0) MTOWN = tabs[0] || "";
+  const sp = SPLIT[MGROUP];
+  const order = (sp && sp.lb) ? Object.keys(sp.lb) : [];
+  const vals = [];
+  for (const r of inKind) if (r.sub && vals.indexOf(r.sub) < 0) vals.push(r.sub);
+  vals.sort((a, b) => {
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    return (ia < 0) === (ib < 0) ? (ia < 0 ? a.localeCompare(b) : ia - ib) : (ia < 0 ? 1 : -1);
+  });
+  const unset = sp && inKind.some(r => !r.sub);
+  const tabs = vals.concat(unset && vals.length ? ["-"] : []);
+  if (tabs.indexOf(MSUB) < 0) MSUB = tabs[0] || "";
 
-  $("#mtowns").hidden = !(tabs.length > 1 || (tabs.length === 1 && towns.length === 1));
-  $("#mtowns").innerHTML = tabs.map(c => {
-    const rs = inKind.filter(r => (c === "-" ? !r.city : r.city === c));
-    return '<button data-mt="' + ek(c) + '"' + (MTOWN === c ? ' class="on"' : "") + ">" +
-      ek(c === "-" ? "No town set" : townLb(c)) +
+  $("#msubs").hidden = !(tabs.length > 1 || (tabs.length === 1 && vals.length === 1));
+  $("#msubs").innerHTML = tabs.map(c => {
+    const rs = inKind.filter(r => (c === "-" ? !r.sub : r.sub === c));
+    return '<button data-mt="' + ek(c) + '"' + (MSUB === c ? ' class="on"' : "") + ">" +
+      ek(c === "-" ? sp.none : subLb(MGROUP, c)) +
       " <small>" + rs.length + "</small></button>";
   }).join("");
 
   /* ---- the loose pile is its own tab, and it is a pile, not a folder ---- */
   if (MGROUP === "loose") {
-    $("#mtowns").hidden = true;
+    $("#msubs").hidden = true;
     $("#libcount").textContent = LOOSE.length + " photograph" + (LOOSE.length === 1 ? "" : "s");
     $("#libgrid").className = "inside";
     $("#libgrid").innerHTML =
@@ -2123,7 +2146,7 @@ async function paintLibrary(force) {
 
   /* A search looks everywhere. Being told "nothing matches" because the folder
      is filed under the other town is worse than no search at all. */
-  const recs = (q ? RECS.slice() : inKind.filter(r => (MTOWN === "-" ? !r.city : r.city === MTOWN || !towns.length)))
+  const recs = (q ? RECS.slice() : inKind.filter(r => (MSUB === "-" ? !r.sub : r.sub === MSUB || !vals.length)))
     .filter(r => !q || (r.label + " " + r.id).toLowerCase().indexOf(q) >= 0)
     .sort((a, b) => a.label.localeCompare(b.label));
 
@@ -2331,14 +2354,14 @@ function wireForms() {
     const b = e.target.closest("[data-mg]");
     if (!b) return;
     MGROUP = b.getAttribute("data-mg");
-    MTOWN = "";        // resolved to this kind's first town on the way through
+    MSUB = "";        // resolved to this kind's first slice on the way through
     MFOLDER = null;
     paintLibrary();
   });
-  $("#mtowns").addEventListener("click", (e) => {
+  $("#msubs").addEventListener("click", (e) => {
     const b = e.target.closest("[data-mt]");
     if (!b) return;
-    MTOWN = b.getAttribute("data-mt");
+    MSUB = b.getAttribute("data-mt");
     MFOLDER = null;
     paintLibrary();
   });
@@ -2760,11 +2783,11 @@ export const FORMS_CSS = String.raw`
  .mtabs button:hover{color:var(--ink);background:var(--bg)}
  .mtabs button.on{color:var(--accent-d);border-bottom-color:var(--accent);background:var(--bg)}
  .mtabs button small{opacity:.65;font-weight:700;margin-left:4px}
- .mtowns{display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 16px}
- .mtowns button{background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:99px;
+ .msubs{display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 16px}
+ .msubs button{background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:99px;
    padding:5px 13px;font-size:12.5px;font-weight:600}
- .mtowns button.on{background:#5E3B22;border-color:#5E3B22;color:#fff}
- .mtowns button small{opacity:.7;margin-left:4px}
+ .msubs button.on{background:#5E3B22;border-color:#5E3B22;color:#fff}
+ .msubs button small{opacity:.7;margin-left:4px}
  .fcard{display:block;width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;
    font:inherit;font-weight:400}
  /* the sheet behind the cover — what makes a folder read as a stack */
@@ -2916,7 +2939,7 @@ export const FORMS_HTML = String.raw`
    <span class="you" id="libcount"></span>
   </div>
   <nav class="mtabs" id="mgroups"></nav>
-  <nav class="mtowns" id="mtowns" hidden></nav>
+  <nav class="msubs" id="msubs" hidden></nav>
   <!-- Folders, not photographs. Each one fetches its own pictures when it is
        opened; nothing here loads an image until somebody asks for it. -->
   <div id="libgrid"></div>
