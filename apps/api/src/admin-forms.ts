@@ -1792,32 +1792,73 @@ async function mediaList(force) {
 }
 
 /**
- * The picker. Opens over the form, lists what is in the bucket, and puts the
- * chosen key into the field that opened it.
+ * The picker. Opens over the form and puts the chosen key into the field.
+ *
+ * It opens on THIS RECORD'S FOLDER, not on the bucket. A place being edited has
+ * exactly one folder that could sensibly be picked from — its own, the one
+ * named after its id — and putting ninety-nine keys in alphabetical order in
+ * front of an editor to find it is not a choice, it is a search they have to do
+ * by eye. Worse, the picture next to the right one, alphabetically, belongs to
+ * a different tirtha: the wrong photograph is one careless click away and looks
+ * exactly like the right one afterwards.
+ *
+ * If that folder has nothing in it, the answer is not an empty grid — it is to
+ * say so and offer the upload, which the record's own id names, so the file
+ * lands in the folder that was missing. That is the whole loop, in the dialogue
+ * that noticed the gap.
+ *
+ * The whole library is still one button away, because a photograph is
+ * occasionally shared — a home-screen entry pointing at the place's own
+ * picture is the normal case of it.
  */
+let PICK_FOR = null;
+let PICK_ALL = false;    // false = this record's folder; true = the bucket
+
 async function pickImage(fld, multi) {
-  const items = (await mediaList()).slice();
-  /* This record's own photographs first. Picking from a hundred keys sorted
-     alphabetically means scrolling past everything to reach the one folder that
-     was ever likely — and the one next to it, alphabetically, is the easiest
-     wrong picture in the world to choose by accident. */
+  PICK_FOR = fld;
+  PICK_ALL = false;      // every opening starts in the folder it belongs to
+  $("#picker").hidden = false;
+  $("#picker").setAttribute("data-multi", multi ? "1" : "");
+  await paintPicker();
+}
+
+async function paintPicker() {
+  const items = await mediaList();
+  await usage();      // cached; fills RECS so the folders here are the library's
   const idIn = $("#cform").querySelector('.fld[data-k="id"] [data-i]');
-  const mine = idIn ? idIn.value.trim() : "";
-  if (mine) {
-    const own = (k) => stemOf(k) === mine || stemOf(k).indexOf(mine + "-") === 0;
-    items.sort((a, b) => (own(b.key) ? 1 : 0) - (own(a.key) ? 1 : 0));
-  }
-  $("#pickgrid").innerHTML = items.map(o => {
-    const id = o.key.replace(/\.[a-z]+$/, "");
+  const mine = slug(idIn ? idIn.value : "");
+  /* The same folder the library would draw, which matters wherever one id is
+     the start of another: jyotisar, jyotisar-virat and jyotisar-water are three
+     places, and the naming rule alone would hand all three to jyotisar. RECS is
+     longest-first, so folderOf gives each photograph to the record that owns
+     it. Falling back to the plain rule covers a record too new to be in RECS —
+     its id has been typed but nothing has been saved yet. */
+  const own = (k) => {
+    const s = stemOf(k), r = folderOf(s);
+    return r ? r.id === mine : (s === mine || s.indexOf(mine + "-") === 0);
+  };
+  // No id typed yet — a brand new record — so there is no folder to open on.
+  const scoped = !!mine && !PICK_ALL;
+  const list = scoped ? items.filter(o => own(o.key)) : items.slice();
+  if (!scoped && mine) list.sort((a, b) => (own(b.key) ? 1 : 0) - (own(a.key) ? 1 : 0));
+
+  $("#picktitle").textContent = scoped ? "In this folder" : "Everything in the library";
+  $("#pickwhere").textContent = scoped ? mine : "";
+  const all = $("#picker").querySelector("[data-pall]");
+  all.hidden = !mine;
+  all.textContent = scoped ? "Everything in the library" : "Back to " + mine;
+
+  $("#pickgrid").innerHTML = list.map(o => {
+    const id = stemOf(o.key);
     return '<button type="button" class="pk" data-key="' + ek(id) + '">' +
       '<img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
       "<small>" + ek(id) + "</small></button>";
-  }).join("") || "<p class=\"muted\">Nothing uploaded yet.</p>";
-  $("#picker").hidden = false;
-  $("#picker").setAttribute("data-multi", multi ? "1" : "");
-  PICK_FOR = fld;
+  }).join("") || (scoped
+    ? '<p class="muted">There is no folder called <code>' + ek(mine) + '</code> yet — nothing ' +
+      "has been uploaded under that name. Upload one and the folder exists.</p>" +
+      '<button type="button" class="primary" data-pup>Upload the first photograph</button>'
+    : '<p class="muted">Nothing uploaded yet.</p>');
 }
-let PICK_FOR = null;
 
 function pickChoose(id) {
   if (!PICK_FOR) return;
@@ -2092,9 +2133,13 @@ async function paintLibrary(force) {
 
   const shotsOf = (rs) => rs.reduce((n, r) => n + (BINS[r.id] || []).length, 0);
 
+  /* The number on a kind tab counts FOLDERS, not photographs. It counted
+     photographs, and every tab but Places therefore read zero — which says
+     "there is nothing here" about thirteen start points that are all waiting to
+     be photographed. Folders is the count of work; the photograph totals are on
+     the line above, where the size of the bucket belongs. */
   const kindTab = (x) => {
-    const rs = RECS.filter(r => r.group === x.g);
-    const n = x.g === "loose" ? LOOSE.length : shotsOf(rs);
+    const n = x.g === "loose" ? LOOSE.length : RECS.filter(r => r.group === x.g).length;
     return '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" +
       ek(x.lb) + " <small>" + n + "</small></button>";
   };
@@ -2346,6 +2391,13 @@ function wireForms() {
 
   $("#picker").addEventListener("click", (e) => {
     if (e.target.id === "picker" || e.target.closest("[data-pclose]")) return void ($("#picker").hidden = true);
+    if (e.target.closest("[data-pall]")) { PICK_ALL = !PICK_ALL; return void paintPicker(); }
+    // The folder is empty, so the way out of the picker is to fill it. The
+    // field's own Upload does the naming, which is what makes the folder.
+    if (e.target.closest("[data-pup]")) {
+      $("#picker").hidden = true;
+      return void PICK_FOR.querySelector("[data-file]").click();
+    }
     const b = e.target.closest("[data-key]");
     if (b) pickChoose(b.getAttribute("data-key"));
   });
@@ -2950,7 +3002,10 @@ export const FORMS_HTML = String.raw`
 <div id="picker" hidden>
  <div class="box">
   <div class="bar" style="margin:0 0 12px">
-   <b style="flex:1">Choose a photograph</b>
+   <b id="picktitle">In this folder</b>
+   <code id="pickwhere"></code>
+   <span style="flex:1"></span>
+   <button class="ghost sm" type="button" data-pall hidden></button>
    <button class="ghost" type="button" data-pclose>Done</button>
   </div>
   <div class="grid" id="pickgrid"></div>
