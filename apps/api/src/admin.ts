@@ -19,6 +19,14 @@ export const ADMIN_HTML = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kurukshetra Saarthi — dashboard</title>
+<!-- Leaflet, for the coordinate and route fields. From a CDN rather than
+     bundled because this page deliberately has no build step, and pinned to an
+     exact version so a dashboard nobody is watching cannot change under itself.
+     Not deferred: every map is built from a click, long after this has landed.
+     If it never lands, window.L is undefined and every map field falls back to
+     the latitude and longitude boxes — see initGeo. -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
  :root{--ink:#1C1815;--muted:#6B6252;--line:#DDD3BC;--paper:#FDFBF4;--bg:#F2ECDD;
        --accent:#D2600A;--accent-d:#A34A05;--bad:#9A3B1E;--ok:#4F5B2E}
@@ -102,6 +110,8 @@ ${FORMS_CSS}
    <button data-nav="erickshaw" data-kind="erickshaw">E-rickshaw</button>
    <span class="sgrp">Calendar</span>
    <button data-nav="events">Events</button>
+   <span class="sgrp">Home screen</span>
+   <button data-nav="hero" data-kind="hero">Opening photographs</button>
    <span class="sgrp">Media</span>
    <button data-nav="media">Photographs</button>
   </nav>

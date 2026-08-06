@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "check": "node check-forms.mjs",
     "inspect": "node inspect-db.mjs",
     "migrate:local": "wrangler d1 migrations apply discover_kurukshetra --local",
     "migrate": "node inspect-db.mjs --remote && wrangler d1 migrations apply discover_kurukshetra --remote",
