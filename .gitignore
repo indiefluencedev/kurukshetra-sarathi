@@ -6,7 +6,11 @@ node_modules
 # build output
 dist
 dist-ssr
-dev-dist        # vite-plugin-pwa's dev service worker
+# vite-plugin-pwa's dev service worker. The comment is on its own line because
+# .gitignore has no trailing comments — "dev-dist  # what it is" is a pattern
+# matching a file with that whole string as its name, so the rule silently
+# matched nothing and the generated worker was committed anyway.
+dev-dist/
 /build
 /out
 
