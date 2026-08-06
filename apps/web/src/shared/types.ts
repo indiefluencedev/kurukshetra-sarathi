@@ -96,7 +96,8 @@ export interface HeroItem {
   id: string;
   /** which town it belongs to — see data/cities.ts. Absent means Kurukshetra. */
   city?: string;
-  img: string;
+  /** absent means "the place's own main photograph" — see HomeHero */
+  img?: string;
   fact: Loc;
 }
 

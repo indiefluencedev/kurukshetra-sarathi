@@ -73,7 +73,13 @@ export function HomeHero() {
             >
               <span className="hh-img">
                 <img
-                  src={imgUrl(h.img)}
+                  /* The place's own photograph unless the entry names another.
+                     A hero row is about a place that already has a picture in
+                     the catalogue; requiring a second copy of it is how the
+                     library ended up with fifteen h-* files nothing could see
+                     the point of. A wider crop is still allowed, and h-* are
+                     exactly that — it is just no longer the price of entry. */
+                  src={imgUrl(h.img || d.img)}
                   alt=""
                   loading={i === 0 ? undefined : "lazy"}
                   onLoad={(e) => e.currentTarget.classList.add("in")}

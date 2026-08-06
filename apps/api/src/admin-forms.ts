@@ -183,8 +183,10 @@ const SPEC = {
     { k:"id", t:"text", lb:"Id", req:1, sec:"What it is", hint:"Usually the place's own id.", ph:"brahma-sarovar" },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"],
       hint:"Whose home screen it opens on. A visitor in Pehowa must not be shown Brahma Sarovar under a header that says Pehowa." },
-    { k:"img", t:"img", lb:"Photograph", req:1,
-      hint:"Fills the top of the home screen, so a wide picture works best — 16:9." },
+    { k:"img", t:"img", lb:"Photograph",
+      hint:"Optional. Leave it empty and the place's own main photograph is used — which is usually the right " +
+           "answer, and one picture instead of two. Set one only when the home screen wants a wider crop; it " +
+           "fills the top of the screen at 16:9." },
     { k:"fact", t:"locarea", lb:"The line over it", req:1,
       hint:"One sentence, and make it the interesting one. This is the app's answer to \"why did I come here\".",
       ph:"Abul Fazl, in Akbar's court, looked at this tank and called it a small sea.",
@@ -1902,9 +1904,12 @@ let USES = null;
 async function usage(force) {
   if (USES && !force) return USES;
   const map = {};
-  const add = (key, group, label) => {
+  OWNER = {};
+  const add = (key, group, label, id) => {
     if (!key) return;
     (map[key] = map[key] || []).push({ group: group, label: label });
+    // The first record to claim a photograph owns it. See folderOf.
+    if (id && !OWNER[key]) OWNER[key] = id;
   };
   // Bundled by the app rather than fetched, so nothing points at them and
   // nothing ever will. Named anyway: "not used anywhere" next to a Delete
@@ -1937,8 +1942,8 @@ async function usage(force) {
         const sp = SPLIT[s.group];
         recs.push({ id: it.id, label: label, group: s.group, sub: (sp && it[sp.f]) || "" });
       }
-      add(it.img, s.group, label);
-      (it.gallery || []).forEach(g => add(g, s.group, label));
+      add(it.img, s.group, label, it.id);
+      (it.gallery || []).forEach(g => add(g, s.group, label, it.id));
     }
   }
   // Longest id first, so "p-saraswati-tirth" wins over "p-saraswati" for a key
@@ -1951,15 +1956,27 @@ async function usage(force) {
 /**
  * Which folder a photograph is in.
  *
- * There are no folders in R2 — keys are flat — but the naming rule has always
- * BEEN a folder: brahma-sarovar, brahma-sarovar-2, brahma-sarovar-3 all belong
- * to the place brahma-sarovar, and every one of the ninety-nine already follows
- * it. So the folder is read back out of the name rather than stored anywhere,
- * which is why this needed no migration and why /img/<id>.webp still resolves
- * exactly as it did.
+ * There are no folders in R2 — keys are flat — so the folder is worked out
+ * rather than stored, which is why this needed no migration and why
+ * /img/<id>.webp still resolves exactly as it did.
+ *
+ * A RECORD THAT POINTS AT A PHOTOGRAPH OWNS IT. That is the first rule and it
+ * used not to exist: the only rule was the naming one, so the fifteen opening
+ * photographs — h-brahma-sarovar, h-jyotisar, named that way because they are
+ * the wide crop of a place, not the place's own picture — sat in a pile called
+ * "In no folder" underneath a paragraph saying they belong to nothing, while
+ * the home screen was drawing every one of them. A file the catalogue names is
+ * never an orphan, whatever it is called.
+ *
+ * The naming rule stays underneath it, because it is what makes an upload land
+ * somewhere before anybody has saved a record pointing at it:
+ * brahma-sarovar-2 is in brahma-sarovar's folder the moment it exists.
  */
 let RECS = [];
+let OWNER = {};      // photograph id -> the id of the record that points at it
 function folderOf(stem) {
+  const own = OWNER[stem];
+  if (own) for (const r of RECS) if (r.id === own) return r;
   for (const r of RECS)
     if (stem === r.id || stem.indexOf(r.id + "-") === 0) return r;   // RECS is longest-first
   return null;
@@ -2112,9 +2129,9 @@ async function paintLibrary(force) {
             '<input type="file" data-ffile hidden accept="image/webp,image/jpeg,image/png,image/avif">') +
       "</div>" +
       '<div class="upnote" data-fnote></div>' +
-      (MFOLDER ? "" : '<p class="muted" style="margin-top:0">These belong to no record: their name does not begin ' +
-        "with any place, stay or event id. Either the name is wrong, or they are things the app uses directly, " +
-        "like its seal.</p>") +
+      (MFOLDER ? "" : '<p class="muted" style="margin-top:0">These belong to no record: nothing in the catalogue ' +
+        "points at them and their name matches no id. Either the name is wrong, or they are things the app " +
+        "uses directly, like its seal.</p>") +
       (objs.length
         ? '<div class="grid">' + objs.map(photoTile).join("") + "</div>"
         : '<p class="muted">Nothing in here yet. Anything uploaded from this folder, or from the record itself, lands in it.</p>');
@@ -2182,8 +2199,9 @@ async function paintLibrary(force) {
         '<button type="button" class="primary sm" data-fup>Upload</button>' +
         '<input type="file" data-ffile hidden accept="image/webp,image/jpeg,image/png,image/avif"></div>' +
       '<div class="upnote" data-fnote></div>' +
-      '<p class="muted" style="margin-top:0">These belong to no record: their name does not begin with any ' +
-      "place, stay or event id. Either the name is wrong, or they are things the app uses directly, like its seal.</p>" +
+      '<p class="muted" style="margin-top:0">These belong to no record: nothing in the catalogue points at ' +
+      "them and their name matches no id. Either the name is wrong, or they are things the app uses directly, " +
+      "like its seal.</p>" +
       (LOOSE.length ? '<div class="grid">' + LOOSE.map(photoTile).join("") + "</div>" : "");
     MFOLDER = null;
     return;
