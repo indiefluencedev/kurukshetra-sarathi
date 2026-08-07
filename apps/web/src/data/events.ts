@@ -99,8 +99,15 @@ export const eventById = (id?: string | null): EventDef | null =>
 /** Events happening today. */
 export const ongoing = (today: string): EventDef[] => EVENTS.filter((e) => covers(e, today));
 
-/** Events starting soon, nearest first. */
-export const upcoming = (today: string, withinDays = 120): EventDef[] =>
+/**
+ * Events still to come, nearest first — the whole calendar by default.
+ *
+ * There is no horizon here on purpose. The calendar is a dozen entries a year,
+ * board-maintained, and a cutoff only ever does one thing: hide Gita Mahotsav
+ * from a screen that says "What's on" because it happens to be four months out.
+ * A caller that genuinely wants a window passes one.
+ */
+export const upcoming = (today: string, withinDays = Infinity): EventDef[] =>
   EVENTS.filter((e) => e.from > today && daysBetween(today, e.from) <= withinDays).sort((a, b) =>
     a.from < b.from ? -1 : 1,
   );

@@ -151,8 +151,8 @@ const SPEC = {
       { k:"from", t:"time", lb:"Starts at" },
       { k:"to", t:"time", lb:"Ends at" },
     ] },
-    { k:"places", t:"csv", lb:"Places it affects", req:1, ph:"brahma-sarovar, jyotisar", sec:"Where, and what it does to the day",
-      hint:"Place ids from the catalogue, comma separated." },
+    { k:"places", t:"places", lb:"Places it affects", req:1, ph:"brahma-sarovar, jyotisar", sec:"Where, and what it does to the day",
+      hint:"Search the catalogue and tag every place it happens at. Janmashtami is at five temples on the same night, and a place that is not tagged here hears nothing about the event." },
     { k:"advice", t:"sel", lb:"Advice", opts:["avoid","join"],
       hint:"avoid — keep away from this road. join — worth going to." },
     { k:"corridor", t:"pts", lb:"The route it runs along",
@@ -304,6 +304,36 @@ function fieldHtml(f, v) {
   } else if (t === "csv") {
     inner = '<input data-i type="text"' + ph(f.ph) + ' value="' +
       ek(Array.isArray(v) ? v.join(", ") : (v == null ? "" : v)) + '">';
+  } else if (t === "places") {
+    /* The places an event happens at.
+     *
+     * It was a csv box of ids, which asks an editor to know that the Krishna
+     * museum is "krishna-museum" and not "museum-krishna", gives them no way
+     * to find out, and then says nothing at all when the answer is wrong: a
+     * typo saves cleanly and the event silently never reaches that place.
+     * Five right ids and five wrong ones looked identical, because neither
+     * drew anything.
+     *
+     * So: search by name, tag as many as you like, see them on a map. An
+     * event at five temples on the same night is the normal case here, not an
+     * edge one — Janmashtami is exactly that — so the control is a list from
+     * the start rather than one box that happens to take commas.
+     *
+     * The ids stay underneath in a details, for the reason the corridor keeps
+     * its textarea: pasting a list somebody sent you is still the fastest way
+     * in, and it is what readField reads. The picker writes into it, so there
+     * is exactly one value.
+     */
+    const ids = Array.isArray(v) ? v : (typeof v === "string" && v ? v.split(",") : []);
+    inner = '<div class="geo">' +
+      '<div class="rchips" data-rchips></div>' +
+      '<div class="gsearch"><input type="search" data-rq placeholder="Search the catalogue — Brahma Sarovar, Jyotisar, museum…"></div>' +
+      '<div class="gres" data-rres hidden></div>' +
+      '<div class="gmap" data-rmap></div>' +
+      '<div class="gwarn" data-rwarn hidden></div>' +
+      '<details class="idraw"><summary>Type the place ids instead</summary>' +
+      '<input data-i type="text"' + ph(f.ph) + ' value="' +
+        ek(ids.map(s => String(s).trim()).filter(Boolean).join(", ")) + '"></details></div>';
   } else if (t === "sel") {
     inner = '<select data-i><option value=""></option>' +
       f.opts.map(o => '<option' + (v === o ? " selected" : "") + '>' + ek(o) + "</option>").join("") + "</select>";
@@ -364,7 +394,7 @@ function fieldHtml(f, v) {
     // never load they are still a working form.
     const lat = v && v.lat, lng = v && v.lng;
     inner = '<div class="geo">' +
-      '<div class="gsearch"><input type="search" data-gq placeholder="Search a landmark — Brahma Sarovar, Pehowa bus stand…">' +
+      '<div class="gsearch"><input type="search" data-gq placeholder="Search a landmark, or paste a map link or 29.96, 76.82">' +
       '<button type="button" class="ghost sm" data-gfind>Search</button></div>' +
       '<div class="gres" data-gres hidden></div>' +
       '<div class="gmap" data-gmap></div>' +
@@ -514,7 +544,9 @@ function readField(f, el) {
     // Half a window is not a window — the planner reads win[0] and win[1].
     return a == null || b == null ? undefined : [a, b];
   }
-  if (t === "csv") {
+  if (t === "csv" || t === "places") {
+    // The picker writes the same csv the box always held, so one reader does
+    // both and the saved shape is unchanged — an array of place ids.
     const a = one().value.split(",").map(s => s.trim()).filter(Boolean);
     // A csv of numbers (anchor.win) stays numbers — the app compares it to a clock.
     const nums = a.every(s => s !== "" && !isNaN(Number(s)));
@@ -728,9 +760,28 @@ function newMap(host, centre, zoom) {
   // scrollWheelZoom off, then on once the map is clicked: a tall form with a
   // map in the middle of it otherwise swallows the page scroll and traps you.
   map.once("click", () => map.scrollWheelZoom.enable());
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  const street = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19, attribution: '&copy; OpenStreetMap',
   }).addTo(map);
+
+  /*
+   * Satellite, because a good half of what this dashboard pins is not on the
+   * street map at all.
+   *
+   * A new dharamshala has no OSM way, no name in any index, and nothing to
+   * search for — on the street map it is an unlabelled gap between two roads,
+   * and the editor is guessing. On imagery it is a roof and a courtyard, and
+   * somebody who knows the town picks it out in one look. This is the reason
+   * the Google Places index looked attractive, and it costs one tile URL
+   * instead: Esri's imagery is free to use this way and needs no key.
+   *
+   * Note {z}/{y}/{x} — Esri orders the path differently from OSM, and getting
+   * it wrong yields a map of somewhere else entirely rather than an error.
+   */
+  const sat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19, attribution: 'Imagery &copy; Esri',
+  });
+  L.control.layers({ "Map": street, "Satellite": sat }, {}, { collapsed: false }).addTo(map);
   return map;
 }
 
@@ -813,6 +864,37 @@ function initGeo(fld) {
 }
 
 /**
+ * A coordinate the editor already has, in any of the shapes it arrives in.
+ *
+ * This is the escape hatch for everything no free index knows about, and it is
+ * the honest alternative to buying the Google Places API: an editor who cannot
+ * find a place here CAN find it in Google Maps in another tab, as a person,
+ * and copy the address bar. Pasting that link is a human reading a map and
+ * writing down where a building is — not this app ingesting and storing
+ * Google's Content, which is the thing their terms forbid and which would also
+ * have obliged us to draw every visitor's map with Google tiles.
+ *
+ * Three shapes, tried in order:
+ *   !3d29.9695!4d76.8390   a place's own pin, in a full Google Maps URL
+ *   @29.9695,76.8390,17z   the map view centre, in the same URL
+ *   29.9695, 76.8390       what a colleague sends over WhatsApp
+ *
+ * The view centre is deliberately LAST: a URL carrying both has the real pin
+ * in !3d/!4d, and the @ is wherever the map happened to be scrolled to.
+ */
+function asPoint(q) {
+  const m = q.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
+    || q.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
+    || q.match(/^(-?\d+\.\d+)[ ,]+(-?\d+\.\d+)$/);
+  if (!m) return null;
+  const p = { lat: +m[1], lng: +m[2] };
+  // A real coordinate, before it reaches the district check — that one is
+  // about the wrong town, this one is about the string not being a coordinate.
+  if (isNaN(p.lat) || isNaN(p.lng) || Math.abs(p.lat) > 90 || Math.abs(p.lng) > 180) return null;
+  return p;
+}
+
+/**
  * Search by name — Nominatim, the same index openstreetmap.org's own box uses.
  *
  * Fired by a button or Enter, never per keystroke: Nominatim's usage policy is
@@ -823,6 +905,17 @@ async function geoSearch(fld, pick) {
   const q = (fld.querySelector("[data-gq]").value || "").trim();
   const box = fld.querySelector("[data-gres]");
   if (!q) { box.hidden = true; return; }
+
+  // A pasted coordinate is already the answer — don't ask Nominatim to look up
+  // a number it will fail to find. See asPoint for why this box takes links.
+  const point = asPoint(q);
+  if (point) { box.hidden = true; pick(point); return; }
+  if (/goo\.gl|maps\.app/.test(q)) {
+    box.hidden = false;
+    box.innerHTML = '<div class="gr muted">That is a short Google link, which hides the coordinates. ' +
+      "Open it, wait for the full maps.google.com address to appear, and paste that instead.</div>";
+    return;
+  }
 
   box.hidden = false;
   box.innerHTML = '<div class="gr muted">Searching…</div>';
@@ -856,6 +949,159 @@ async function geoSearch(fld, pick) {
   };
 }
 
+/* ---- tagging places ------------------------------------------------------- */
+
+/**
+ * The catalogue, for anything that has to name a place.
+ *
+ * Fetched once and kept. Fifty-odd documents, and every event form wants the
+ * same list, so re-asking per field would be three requests to draw one step.
+ * Failure is not fatal: the id box under the picker is still a working way in,
+ * which is the same bargain the maps make.
+ */
+let PLACES = null;
+async function loadPlaces() {
+  if (PLACES) return PLACES;
+  let items = [];
+  try { items = (await api("/admin/content/places").then(r => r.json())).items || []; } catch (e) { /* below */ }
+  PLACES = items.map(p => ({
+    id: p.id,
+    label: (p.name && (p.name.en || p.name.hi)) || p.id,
+    hi: (p.name && p.name.hi) || "",
+    city: p.city || "",
+    lat: p.lat, lng: p.lng,
+  }));
+  return PLACES;
+}
+function placeById(id) {
+  const all = PLACES || [];
+  for (let i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
+  return null;
+}
+
+/** The places tagged on the form that is open, as points worth drawing. */
+function taggedPlaces() {
+  const box = document.querySelector('#cform .fld[data-t="places"] [data-i]');
+  if (!box) return [];
+  return box.value.split(",").map(s => s.trim()).filter(Boolean)
+    .map(placeById).filter(p => p && p.lat != null && p.lng != null);
+}
+
+/**
+ * The places picker: search the catalogue, tag as many as apply, see them.
+ *
+ * The map here is not for choosing — a place already has its coordinates, and
+ * this field only names it. The map is for CHECKING, which is the thing the
+ * old box could not do at any price: five pins spread across Thanesar is a
+ * district-wide festival, and one pin is a typo in the other four ids.
+ */
+async function initRefs(fld) {
+  const host = fld.querySelector("[data-rmap]");
+  if (!host || host._wired) return;
+  host._wired = 1;
+
+  const raw = fld.querySelector("[data-i]");
+  const chips = fld.querySelector("[data-rchips]");
+  const qi = fld.querySelector("[data-rq]");
+  const res = fld.querySelector("[data-rres]");
+  const warn = fld.querySelector("[data-rwarn]");
+  const ids = () => raw.value.split(",").map(s => s.trim()).filter(Boolean);
+
+  let map = null, pins = null;
+  if (window.L) {
+    map = newMap(host, HOME, 12);
+    pins = L.layerGroup().addTo(map);
+  } else {
+    host.innerHTML = '<div class="gdead">The map could not load, so the pins cannot be drawn.<br>' +
+      "The tags above are still what gets saved.</div>";
+  }
+
+  function draw(fit) {
+    const a = ids();
+    chips.innerHTML = a.length
+      ? a.map(id => {
+          const p = placeById(id);
+          return '<span class="rchip' + (p ? "" : " bad") + '" title="' + ek(id) + '">' +
+            ek(p ? p.label : id) +
+            '<button type="button" data-rdel="' + ek(id) + '" aria-label="Remove">&times;</button></span>';
+        }).join("")
+      : '<span class="rnone">Nothing tagged yet. Search below — an event can be at as many places as it needs.</span>';
+
+    /* An id that matches nothing is the failure the old box could not report.
+       Only said once the catalogue has actually arrived: before that every id
+       is unknown, and a form that cries wrong about five correct ids while it
+       is still loading has taught the editor to ignore it. */
+    const unknown = (PLACES && PLACES.length) ? a.filter(id => !placeById(id)) : [];
+    warn.hidden = !unknown.length;
+    if (unknown.length) warn.textContent = (unknown.length === 1
+      ? "There is no place called " + unknown[0] + " in the catalogue"
+      : "These are not in the catalogue: " + unknown.join(", ")) +
+      ". Nothing about this event will reach them, and they cannot be drawn on the map.";
+
+    if (!map) return;
+    pins.clearLayers();
+    const at = [];
+    a.forEach(id => {
+      const p = placeById(id);
+      if (!p || p.lat == null || p.lng == null) return;
+      L.marker([p.lat, p.lng]).addTo(pins).bindTooltip(p.label);
+      at.push([p.lat, p.lng]);
+    });
+    // maxZoom, or a single tagged place fills the frame at street level and
+    // gives no clue where in the district it is.
+    if (fit && at.length) map.fitBounds(L.latLngBounds(at), { padding: [34, 34], maxZoom: 15 });
+  }
+
+  const set = (a) => {
+    raw.value = a.join(", ");
+    draw(true);
+    // The corridor map draws these too — see initPts.
+    document.dispatchEvent(new CustomEvent("kuk:places"));
+  };
+
+  // Filtering an array already in memory, so this runs per keystroke. The
+  // once-a-second rule that keeps the landmark search behind a button is
+  // Nominatim's; there is no network here.
+  const find = () => {
+    const needle = (qi.value || "").trim().toLowerCase();
+    if (!needle) { res.hidden = true; return; }
+    const have = ids();
+    const hits = (PLACES || []).filter(p => have.indexOf(p.id) < 0 &&
+      (p.id.indexOf(needle) >= 0 || p.label.toLowerCase().indexOf(needle) >= 0 || p.hi.indexOf(needle) >= 0)
+    ).slice(0, 8);
+    res.hidden = false;
+    res.innerHTML = hits.length
+      ? hits.map(p => '<button type="button" class="gr" data-radd="' + ek(p.id) + '">' + ek(p.label) +
+          ' <em class="rid">' + ek(p.id) + (p.city ? " &middot; " + ek(p.city) : "") + "</em></button>").join("")
+      : '<div class="gr muted">Nothing in the catalogue by that name.</div>';
+  };
+
+  qi.addEventListener("input", find);
+  // A search box inside a form: Enter must not submit it.
+  qi.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); find(); } });
+  res.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-radd]");
+    if (!b) return;
+    set(ids().concat(b.getAttribute("data-radd")));
+    qi.value = "";
+    res.hidden = true;
+  });
+  chips.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-rdel]");
+    if (!b) return;
+    const gone = b.getAttribute("data-rdel");
+    set(ids().filter(id => id !== gone));
+  });
+  // Typed or pasted ids are still a way in, so they redraw everything too.
+  raw.addEventListener("change", () => { draw(true); document.dispatchEvent(new CustomEvent("kuk:places")); });
+
+  draw(true);            // the ids, before the names for them exist
+  await loadPlaces();
+  draw(true);            // again, now with labels, pins and the unknown check
+  // The corridor map wants them too, and it was built before they arrived.
+  document.dispatchEvent(new CustomEvent("kuk:places"));
+}
+
 /** The corridor field: click along a road, drag to correct, undo, clear. */
 function initPts(fld) {
   if (!window.L) return noMap(fld);
@@ -872,6 +1118,33 @@ function initPts(fld) {
   const map = newMap(host, pts.length ? [pts[0].lat, pts[0].lng] : HOME, pts.length ? 15 : 13);
   const line = L.polyline([], { weight: 5, opacity: 0.85 }).addTo(map);
   const pins = L.layerGroup().addTo(map);
+
+  /* The tagged places, drawn here too but not editable.
+   *
+   * A rath yatra route means nothing on its own. What an editor is actually
+   * checking is whether the line they clicked runs past the temples the event
+   * is tagged with — one question about two fields, so it needs one map.
+   * Circles rather than pins, so the route's own draggable points stay the
+   * things that look draggable.
+   */
+  const ctx = L.layerGroup().addTo(map);
+  const drawCtx = () => {
+    // The form is rebuilt every time one is opened, which leaves this listener
+    // bound to a map that is no longer on the page.
+    if (!map._container || !map._container.isConnected) return;
+    ctx.clearLayers();
+    const at = [];
+    taggedPlaces().forEach(p => {
+      L.circleMarker([p.lat, p.lng], { radius: 7, weight: 2, color: "#C98A2E", fillColor: "#C98A2E", fillOpacity: 0.45 })
+        .addTo(ctx).bindTooltip(p.label);
+      at.push([p.lat, p.lng]);
+    });
+    // No route clicked yet: open over the tagged places rather than the middle
+    // of the district, so the first click is already near the right road. It
+    // stops doing this the moment there is a route to look at.
+    if (at.length && !pts.length) map.fitBounds(L.latLngBounds(at), { padding: [34, 34], maxZoom: 15 });
+  };
+  document.addEventListener("kuk:places", drawCtx);
 
   const draw = (fit) => {
     // The textarea is the value, so it is written on every change — never the
@@ -898,6 +1171,7 @@ function initPts(fld) {
   ta.addEventListener("change", () => { pts = read(); draw(true); });
 
   draw(true);
+  drawCtx();
   host._map = map;
 }
 
@@ -915,6 +1189,9 @@ function initMaps() {
   const on = $("#cform").querySelectorAll('.step:not([hidden])');
   on.forEach(s => {
     s.querySelectorAll('.fld[data-t="geo"]').forEach(initGeo);
+    // Before the corridor: initPts draws whatever is already tagged, and the
+    // picker is what loads the catalogue those tags are looked up in.
+    s.querySelectorAll('.fld[data-t="places"]').forEach(initRefs);
     s.querySelectorAll('.fld[data-t="pts"]').forEach(initPts);
     s.querySelectorAll(".gmap").forEach(h => { if (h._map) h._map.invalidateSize(); });
   });
@@ -2804,6 +3081,21 @@ export const FORMS_CSS = String.raw`
  .gr:last-child{border-bottom:0}
  button.gr:hover{background:var(--bg)}
  .gr .far{font-style:normal;color:var(--bad);font-size:11px;font-weight:700}
+ .gr .rid{font-style:normal;color:var(--muted);font-size:11px}
+
+ /* ---- tagged places ----
+    Chips, because the value is a set of things and a set reads as a set. Each
+    one carries its own remove button: the old box made "untag one of five"
+    a text-editing job, commas and all. */
+ .rchips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+ .rchip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid var(--line);
+   border-radius:999px;padding:4px 5px 4px 11px;font-size:12.5px;line-height:1.3}
+ .rchip.bad{border-color:var(--bad);color:var(--bad)}
+ .rchip button{background:none;border:0;padding:0;width:19px;height:19px;line-height:1;
+   border-radius:50%;color:var(--muted);font-size:14px;cursor:pointer}
+ .rchip button:hover{background:var(--bg);color:var(--bad)}
+ .rnone{font-size:12.5px;color:var(--muted)}
+
  .gnum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
  .gnum label{margin:0;font-size:11px;font-weight:400;color:var(--muted)}
  .gwarn{margin-top:8px;padding:9px 11px;border-radius:8px;background:#F9EAE3;color:var(--bad);font-size:12.5px}

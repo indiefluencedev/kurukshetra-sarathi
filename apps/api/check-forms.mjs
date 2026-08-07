@@ -151,6 +151,7 @@ const sample = (fields) => {
       f.t === "num" ? 7 : f.t === "bool" ? true :
       f.t === "mins" ? 1080 : f.t === "minspan" ? [1020, 1110] :
       f.t === "csv" || f.t === "imgs" ? ["a", "b"] :
+      f.t === "places" ? ["brahma-sarovar", "jyotisar"] :
       f.t === "days" ? [1, 3] : f.t === "sel" ? f.opts[0] :
       f.t === "time" ? "06:30" : f.t === "date" ? "2026-08-05" :
       f.t === "pts" ? [{ lat: 29.97, lng: 76.83 }, { lat: 29.96, lng: 76.84 }] :
@@ -180,6 +181,16 @@ for (const [kind, fields] of Object.entries(SPEC)) {
   }
   if (fields.some((f) => f.t === "pts"))
     assert.match(html, /data-cmap/, kind + ": the route field has no map");
+
+  /* The places picker must survive the round trip through the raw id box.
+     That box is the value — the chips and the pins are drawn from it — so if
+     the ids do not reach it, the picker renders empty over a document that
+     had five places tagged, and saving then wipes them. */
+  if (fields.some((f) => f.t === "places")) {
+    assert.match(html, /data-rmap/, kind + ": the places field has no map to show the tags on");
+    assert.match(html, /data-i[^>]*value="brahma-sarovar, jyotisar"/,
+      kind + ": the places picker lost the ids it was given");
+  }
 }
 
 // The two kinds whose photograph is a banner say so, in words, on the field.
@@ -201,7 +212,7 @@ assert.ok(JS.includes("if (!window.L) return"), "map code must degrade when the 
  */
 const ENGINE = new Function(JS + "\nreturn { groupHtml, stepsOf, jsonTemplate, refHtml, keySet," +
   " checksHtml, pvBody, jHighlight, nextKey, slug, makeId, folderOf, clock12," +
-  " minsToClock, clockToMins," +
+  " minsToClock, clockToMins, asPoint," +
   " setKind: function (k) { CKIND = k; }, setMedia: function (m) { MEDIA = m; }," +
   " setRecs: function (r) { RECS = r; } };")();
 
@@ -425,6 +436,41 @@ const round = (s) =>
     .replace(/&#39;/g, "'").replace(/&amp;/g, "&");
 for (const s of ['{"a":1}', '{ "s": "a \\" b", "n": -2.5e3 }', "", "{ broken", '{"u":"कुरु"}'])
   assert.equal(round(s), s, "jHighlight changed the text it was colouring: " + s);
+
+/* 8b. The coordinate the editor pasted is the coordinate that gets pinned.
+
+       asPoint is the one piece of parsing in the geo field, and every way it
+       can be wrong is silent: a URL it fails to read falls through to a name
+       search that finds nothing, and — worse — reading the wrong number pair
+       out of a Google link pins the map view centre instead of the place,
+       which saves, renders, and is off by a street. */
+const pt = (s) => ENGINE.asPoint(s);
+const near = (p, lat, lng, why) => {
+  assert.ok(p, why + " — parsed nothing at all");
+  assert.equal(p.lat, lat, why);
+  assert.equal(p.lng, lng, why);
+};
+
+near(pt("29.961355, 76.828553"), 29.961355, 76.828553, "a plain pasted pair");
+near(pt("29.961355,76.828553"), 29.961355, 76.828553, "a pair with no space");
+near(pt("29.961355 76.828553"), 29.961355, 76.828553, "a space-separated pair");
+// The place's own pin, and the map view centre, in one URL. !3d/!4d is the
+// place; @ is wherever the map was scrolled. Taking @ here is the off-by-a-
+// street bug, so it is asserted rather than assumed.
+near(pt("https://www.google.com/maps/place/Brahma+Sarovar/@29.9600,76.8200,17z/data=!3m1!4b1!4m6!3d29.961355!4d76.828553"),
+  29.961355, 76.828553, "a full Google place URL must use the pin, not the view centre");
+near(pt("https://www.google.com/maps/@29.961355,76.828553,17z"), 29.961355, 76.828553, "a bare Google view URL");
+near(pt("-29.961355, -76.828553"), -29.961355, -76.828553, "negative coordinates");
+
+assert.equal(pt("Brahma Sarovar"), null, "a place name must not parse as a coordinate");
+assert.equal(pt(""), null, "an empty box must not parse as a coordinate");
+assert.equal(pt("https://maps.app.goo.gl/aBcDeF12345"), null, "a short link carries no coordinate to find");
+assert.equal(pt("Sector 13"), null, "a sector number must not parse as a coordinate");
+// Out of range is not a coordinate. A transposed pair still lands in the
+// district check downstream; this one catches the string that was never a
+// point to begin with.
+assert.equal(pt("129.5, 76.8"), null, "a latitude past the pole must be refused");
+assert.equal(pt("29.9, 276.8"), null, "a longitude past the antimeridian must be refused");
 
 /* 9. Save goes through the preview. The extra click IS the feature — it is the
       only moment anybody sees the record drawn before it is live. */

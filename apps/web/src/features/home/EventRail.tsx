@@ -43,13 +43,13 @@ function kicker(e: EventDef, today: string): string {
  * outranks the evergreen list, and it renders nothing at all when the calendar
  * is empty: an empty rail with a heading is worse than no rail.
  */
-export function EventRail({ withinDays = 120 }: { withinDays?: number } = {}) {
+export function EventRail() {
   const trackRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
   useRail(trackRef, dotsRef, 6500);
 
   const today = isoToday();
-  const list = [...ongoing(today), ...upcoming(today, withinDays)];
+  const list = [...ongoing(today), ...upcoming(today)];
   if (!list.length) return null;
 
   return (

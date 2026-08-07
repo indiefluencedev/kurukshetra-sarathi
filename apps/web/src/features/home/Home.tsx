@@ -61,7 +61,7 @@ export function Home() {
           it has been answered once. */}
       <NotifyCard />
 
-      <EventRail withinDays={90} />
+      <EventRail />
 
       <StartHere />
 

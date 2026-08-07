@@ -84,6 +84,30 @@ export function PlacePicker({
   const extra = live.filter((p) => !names.has(p.name.toLowerCase())).slice(0, 8);
   const searching = needle.length >= 2;
 
+  /*
+   * Three, until asked for more.
+   *
+   * Six railway stations is an honest list and a bad question. The step asks
+   * "where are you starting?" and answers it with a directory that pushes the
+   * map, the hint and the next button off the screen — and the two an actual
+   * traveller arrives at are the first two. The rest are a halt at Amin and a
+   * platform 11km outside Pehowa, correct and almost never the answer.
+   *
+   * The order already puts the active town first, so the top three are the
+   * ones worth offering. Everything else is one tap away, and typing searches
+   * the whole list regardless — nothing is hidden from someone who knows what
+   * they want.
+   */
+  const [all, setAll] = useState(false);
+  const top = curated.slice(0, 3);
+  // A choice already made is never hidden behind "show more". Returning to the
+  // step to find your own answer missing, and the tick gone with it, reads as
+  // the app having forgotten it — and the traveller answers a second time.
+  const chosenBelow =
+    !!value.ref && !top.some((p) => p.id === value.ref) && curated.some((p) => p.id === value.ref);
+  const shown = searching || all || chosenBelow ? curated : top;
+  const rest = curated.length - shown.length;
+
   const pickCurated = (p: IndexPlace) => onPick({ lat: p.lat, lng: p.lng, label: nm(p.name), ref: p.id });
   /** the locality, or the station code — whichever the curated entry carries */
   const curatedDetail = (p: IndexPlace) => [p.code, p.area && nm(p.area)].filter(Boolean).join(" · ") || undefined;
@@ -115,7 +139,12 @@ export function PlacePicker({
       </div>
 
       <div className="opts">
-        {curated.map((p) => row(p.id, p.kind, nm(p.name), curatedDetail(p), value.ref === p.id, () => pickCurated(p)))}
+        {shown.map((p) => row(p.id, p.kind, nm(p.name), curatedDetail(p), value.ref === p.id, () => pickCurated(p)))}
+        {rest > 0 && (
+          <button className="linkish" style={{ padding: "8px 3px" }} onClick={() => setAll(true)}>
+            {nm({ en: "Show " + rest + " more", hi: rest + " और दिखाएँ" })}
+          </button>
+        )}
         {extra.length > 0 && (
           <div className="srcnote">
             <Icon name="mapi" />
@@ -152,23 +181,74 @@ export function PlacePicker({
       )}
 
       {/* whatever was chosen, show it on a map — a name is not a location */}
-      {value.label && <PinMap value={value} onPin={onPick} height={190} hint={nm({ en: "Not quite right? Tap the map to correct it.", hi: "सही नहीं है? सुधारने हेतु नक्शे पर दबाएँ।" })} />}
+      {value.label && (
+        <PinMap
+          value={value}
+          onPin={onPick}
+          height={190}
+          search={false}
+          hint={nm({ en: "Not quite right? Tap the map to correct it.", hi: "सही नहीं है? सुधारने हेतु नक्शे पर दबाएँ।" })}
+        />
+      )}
     </div>
   );
 }
 
-/** Tap-to-pin a location on a small Leaflet map. */
+/**
+ * Tap-to-pin a location on a small Leaflet map, with a box to search it.
+ *
+ * `search` is off wherever something above has already searched. Two search
+ * boxes stacked on one step is not two ways in, it is a question about which
+ * box is the real one — and the map underneath a chosen hotel is there to
+ * CONFIRM the choice, not to reopen it.
+ */
 export function PinMap({
   value,
   onPin,
   height = 260,
   hint,
+  search = true,
 }: {
   value: GeoPoint;
   onPin: (g: GeoPoint) => void;
   height?: number;
   hint?: string;
+  search?: boolean;
 }) {
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState<FoundPlace[]>([]);
+  const [busy, setBusy] = useState(false);
+  const needle = q.trim();
+
+  /*
+   * The same search PlacePicker runs, on the map that had none.
+   *
+   * Panning from the town centre to your own street on a phone is a minute of
+   * dragging, and it was the only way in — the pin is still the answer, this
+   * just puts the map over the right rooftop first. Debounced and aborted per
+   * keystroke, because Nominatim is community-run; silent on failure, because
+   * tapping the map never stopped working.
+   */
+  useEffect(() => {
+    if (!search || !CONFIG.places.useOSM || needle.length < 3) {
+      setHits([]);
+      setBusy(false);
+      return;
+    }
+    const ac = new AbortController();
+    setBusy(true);
+    const timer = setTimeout(() => {
+      searchNearby(needle, ac.signal)
+        .then(setHits)
+        .catch(() => setHits([]))
+        .finally(() => setBusy(false));
+    }, 450);
+    return () => {
+      clearTimeout(timer);
+      ac.abort();
+    };
+  }, [needle]);
+
   const hostRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
@@ -215,8 +295,54 @@ export function PinMap({
     map.setView(ll, Math.max(map.getZoom(), 15));
   }, [value.lat, value.lng, value.label]);
 
+  /* Picking a result only sets the point — the effect above already follows it,
+     so the map recentres and the pin lands by the same path a tap takes. */
+  const pick = (p: FoundPlace) => {
+    onPin({ lat: p.lat, lng: p.lng, label: p.name });
+    setQ("");
+    setHits([]);
+  };
+
   return (
     <div style={{ marginTop: 10 }}>
+      {search && (
+        <div className="search" style={{ marginBottom: 8 }}>
+          <Icon name="search" />
+          <input
+            type="search"
+            placeholder={nm({ en: "Search for a place or street…", hi: "जगह या सड़क खोजें…" })}
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+      )}
+
+      {hits.length > 0 && (
+        <div className="opts" style={{ marginBottom: 8 }}>
+          {hits.slice(0, 6).map((p) => (
+            <button key={p.id} className="opt" onClick={() => pick(p)}>
+              <span className="oi">
+                <Icon name="pin" />
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <b>{p.name}</b>
+                {p.detail ? <small>{p.detail}</small> : null}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Silence after a search reads as broken, so say the map still works. */}
+      {needle.length >= 3 && !busy && !hits.length && (
+        <p className="pickhint">
+          {nm({
+            en: "Nothing by that name nearby. Tap the map instead.",
+            hi: "इस नाम से पास कुछ नहीं मिला। इसके बजाय नक्शे पर दबाएँ।",
+          })}
+        </p>
+      )}
+
       <div className="mapwrap" style={{ height, margin: 0 }}>
         <div ref={hostRef} style={{ width: "100%", height: "100%" }} />
       </div>
