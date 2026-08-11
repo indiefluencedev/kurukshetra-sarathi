@@ -59,3 +59,7 @@ apps/api/drizzle/meta/
 # production snapshot for Drizzle Studio — regenerate with `npm run db:snapshot`
 apps/api/.prod.sqlite
 apps/api/.prod-dump.sql
+
+# Transient secrets file written by apps/api/db/push-secrets.mjs. It is deleted
+# in a finally block, but a killed process can leave one behind.
+.secrets-upload.env

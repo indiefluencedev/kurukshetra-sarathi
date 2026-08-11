@@ -1,6 +1,6 @@
 # 14 · Accounts and roles
 
-Better Auth, running in the Worker, storing users in the same D1 as everything
+Better Auth, running in the Worker, storing users in the same database as everything
 else. Chosen over a hosted identity service so the client owns this the way
 they own the rest: the user table is a table in their own database, exportable
 with the rest of it, with no per-user bill and nobody to ask for the data back.
@@ -18,7 +18,7 @@ apps/web/src/features/account/
   Menu.tsx               the hamburger menu that reaches it
 ```
 
-`makeAuth(env)` is a factory, not a module-level constant, because a D1 binding
+`makeAuth(env)` is a factory, not a module-level constant, because a secret
 only exists inside a request. There is nothing to construct at import time.
 
 ---
@@ -98,7 +98,7 @@ the Worker does not fail at deploy — it fails to **start**, with
 ## The schema is generated
 
 ```bash
-npx @better-auth/cli generate --config src/auth.ts --output migrations/000N_auth.sql
+npx @better-auth/cli generate --config src/auth.ts --output db/migrations/000N_auth.sql
 ```
 
 Do not hand-edit `0003_auth.sql` to add a column. The library and the table
@@ -106,10 +106,10 @@ shape have to agree exactly, and hand-editing is how they stop agreeing. Change
 `auth.ts` and regenerate into a **new** migration.
 
 Generation needs a database to introspect — the CLI checks what already exists
-so it can emit only what is missing. `auth.ts` exports a stub that answers
-introspection with "no tables" for exactly this. Pointing the CLI at a live D1
-instead would make the generated schema depend on which database happened to be
-connected.
+so it can emit only what is missing. Under D1 that meant a hand-written stub
+answering "no tables", because a Node CLI could not reach a binding. Postgres
+has a URL, so the CLI is pointed at the real database and the schema it
+generates is the schema that database actually needs.
 
 ---
 
@@ -183,9 +183,85 @@ Against the deployed Worker, 4 Aug 2026:
 
 ---
 
+## Email verification and password reset
+
+Both live in `src/email.ts`. Added 11 August 2026; before that an address was
+never proved and a forgotten password was unrecoverable.
+
+**Who carries the mail is a variable, not a decision in the code.**
+`EMAIL_PROVIDER` is `cloudflare`, `resend` or `log`; `EMAIL_FROM` and
+`EMAIL_NAME` say who it is from. `deliver()` is the only function that has
+heard of a provider — the templates have not. Resend is where this is going,
+and getting there is two variables and a secret. See docs/15.
+
+**Verification is a six-digit code**, not a link. It suits the readers — a code
+can be read out over the phone to someone who cannot find their email app, and
+it is typed on the screen they are already looking at. It is also the only
+version that can be tested without a working mailbox: the code is a row in
+`verification`, so `npm run otp` prints it. The link flow is still configured
+and unused, ready for an "email me a link instead".
+
+`storeOTP: "plain"` is what makes that lookup possible, and is a live
+credential sitting in a readable row. **Turn it to `"hashed"` once mail is
+actually being delivered.**
+
+**Verification is required to sign in.** `requireEmailVerification: true`, so
+sign-up returns a user and **no session** — `token: null` — and signing in
+before confirming answers `403 EMAIL_NOT_VERIFIED`. The app turns that code
+into the box the OTP goes in, rather than showing "email not verified", which
+is a true sentence nobody can act on.
+
+A trap worth knowing, because nothing warns about it: in the emailOTP plugin
+`sendVerificationOnSignUp` and `overrideDefaultEmailVerification` are mutually
+exclusive — the hook is `sendVerificationOnSignUp && !overrideDefaultEmailVerification`.
+Set both and **no email is sent at all**, sign-up still returns 200, and
+`verification` stays empty. That is exactly how this shipped broken for twenty
+minutes.
+
+The two accounts that predate the flag were marked verified by migration
+`0005_verify_existing_users.sql`, which is scoped by `createdAt` so it cannot
+catch a future sign-up. Without it, turning the flag on locks the Board out of
+its own dashboard on deploy. See the header of that file.
+
+**A failed send never fails the operation behind it.** `send()` in `email.ts`
+logs and swallows. An account is worth more than its welcome email, and a
+person whose mail provider is having a bad afternoon must still be able to
+register — they can ask for another link. The log line carries the error code,
+because the failure that matters (`E_SENDER_NOT_VERIFIED`, the domain never
+onboarded) is every send rather than one.
+
+**Neither form says whether an address is registered.** `request-password-reset`
+answers 200 for an unknown address exactly as it does for a known one, and the
+app reports "sent" either way. Answering differently would turn the reset form
+into a way of asking who has an account here.
+
+| behaviour | verified |
+|---|---|
+| sign-up | 200, `token: null` — no session until confirmed |
+| sign-in before confirming | 403 `EMAIL_NOT_VERIFIED` |
+| wrong code | 400 `INVALID_OTP` |
+| right code | 200, `emailVerified: true`, session issued |
+| code after use | gone from `verification` |
+| verification link (still configured) | 302 back to the app |
+| reset request, unknown address | 200, same as a known one |
+| reset link, used twice | 400 `INVALID_TOKEN` |
+| old password after a reset | 401 |
+
+Codes last ten minutes and survive three wrong guesses; reset links last an
+hour. Everything here works once.
+
+The reset link points at the **app** (`/account?reset=<token>`) because the
+person needs a form to type into; the verification link points at the **Worker**,
+because confirming needs only the token. `Account.tsx` strips both parameters
+from the URL with `replaceState` as soon as it has read them — a live reset
+token in the address bar is one that survives in screenshots, restored tabs and
+autocomplete.
+
+---
+
 ## Rate limiting
 
-Counters live in D1 (`rateLimit` table, migration 0004), not in memory.
+Counters live in the database (`rateLimit` table, migration 0003), not in memory.
 
 In-memory limiting is the library default and is **worthless on Workers**: a
 request lands on whichever isolate is free, possibly in another city, so an

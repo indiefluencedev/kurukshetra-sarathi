@@ -4,7 +4,7 @@ Living document. Every other file in `docs/` describes how something *works*;
 this one is the only place that says what is **finished**. If they disagree,
 this file is wrong — fix it here.
 
-Last updated: **4 August 2026** (second pass)
+Last updated: **11 August 2026** (cleared; scope reopened)
 
 ---
 
@@ -12,13 +12,9 @@ Last updated: **4 August 2026** (second pass)
 
 | Stage | Means |
 |---|---|
-| **DEV** | Runs on a laptop. `wrangler dev`, local D1, `npm run dev`. Nobody outside sees it. |
+| **DEV** | Runs on a laptop. One `npm run dev` from the repo root. Nobody outside sees it. |
 | **STAGE** | Deployed to the client's Cloudflare account and reachable, but not announced. What is live today. |
 | **PROD** | A real visitor could be handed the URL without a caveat. **We are not here yet.** |
-
-The gap between STAGE and PROD is not deployment. It is the list under
-"Blocking production" below — every one of those is something a real user
-would hit.
 
 ---
 
@@ -26,112 +22,159 @@ would hit.
 
 | | |
 |---|---|
-| Worker | `kuk-saarthi-api` — **STAGE**, version `5f15721c` |
+| Worker | `kuk-saarthi-api` — **STAGE** |
 | App | `kuk-saarthi.pages.dev` — **STAGE** |
-| D1 | `discover_kurukshetra` — 10 tables, 36 places, 4 events, 1 admin |
-| Auth | Better Auth, email + password live. Google configured, no credentials yet |
+| Database | **Neon Postgres** (`neondb`, ap-southeast-1) in code; production still on D1 until the deploy |
+| Auth | Better Auth, email + password, **verified by email**. Google configured, no credentials yet |
+| Email | **Resend**, as `noreply@kkr.indietribe.space` — code done, domain pending DNS |
 
 ---
 
-## Done
+## Now
 
-### Foundation
-- [x] Repo split into `apps/web`, `apps/api`, `packages/shared`; docs outside the code
-- [x] npm workspaces; `@kuk/shared` imported by both sides instead of `../../`
-- [x] `.env.production` moved to the Vite root (it was silently ignored after the move)
+Day-by-day working notes live in **[`docs/tasks/`](tasks/)**, one file per date
+(`YYYY-MM-DD.md`). That is where a change is explained; this file only says
+what is true. Today: [2026-08-11](tasks/2026-08-11.md).
 
-### Backend
-- [x] D1 schema: events, subs, sent, audit, content, + 4 auth tables
-- [x] Migrations run through `wrangler d1 migrations apply` (tracked, ordered)
-- [x] `inspect-db.mjs` refuses a migration on a table-name collision — covers all 9 tables
-- [x] `content(kind, id, doc, updated_at)` for places / hotels / e-rickshaw
-- [x] `GET /content/<kind>.json` with ETag → **147 KB becomes 0 bytes** when unchanged
-- [x] `kind` validated against a closed list before it reaches SQL
-- [x] Admin CRUD for content, audited under the editing identity
-- [x] 36 places imported into remote D1
+### 1 — D1 → Neon Postgres, then D1 off
 
-### Auth
-- [x] Better Auth on Workers + D1, bearer tokens (cookies cannot work cross-site)
-- [x] Email + password sign-up / sign-in / sign-out / session
-- [x] `role` with `input:false` — verified a sign-up posting `"role":"admin"` stays a visitor
-- [x] `/admin` gated on role; Cloudflare Access no longer needed
-- [x] `nodejs_compat` (without it the Worker fails to *start*)
-- [x] `AUTH_SECRET` set in production, freshly generated, never the dev value
+**Migrated and verified locally; not deployed.** The Worker runs on Neon
+Postgres on a laptop — every feed, sign-up, sign-in, the admin gate and a write
+round trip all check out. `store.d1.ts`, `migrations/` and `kysely-d1` are gone.
 
-### App
-- [x] Hamburger menu in the top bar, reusing the existing bottom sheet
-- [x] Account screen: sign in / sign up / signed-in state, one route
-- [x] Session loaded at boot, never awaited before first paint
-- [x] Places read from D1 with the bundled copy as the floor
-- [x] New UI strings in both `en.json` and `hi.json`
-- [x] Push notifications: permission card on first visit, subscribe, Settings toggle
-- [x] Service-worker push + notificationclick (`public/push-sw.js`)
-- [x] `GET /config` — the app learns what the deployment can actually do
-- [x] Change password, requiring the current one, revoking other sessions
-- [x] Rate limiting in D1, keyed per client IP
-- [x] Admin dashboard sign-in (it was unreachable after the move to bearer tokens)
-- [x] Saved plans list — was crashing on the content cache sharing its store
-- [x] Five-tab bar with Explore restored; pill width driven by `--tabs`
-- [x] Show/hide password on every password field
-- [x] Drizzle Studio as a database browser (`npm run db`)
-- [x] `ADMIN_EMAILS` — admin access from env, not a database column
-- [x] `docs/15-environment.md` + `.dev.vars.example` — every variable, one page
-- [x] One route definition shared by both maps (`route-line.ts`)
-- [x] One map height token (`--map-h`)
-- [x] Deleting a saved plan no longer leaves the Plan screen claiming it is saved
+Two steps left, in this order:
+
+1. `wrangler secret put NEON_DB_URL` then `npm run deploy`, and verify
+   production against Neon. **Production is still the D1 Worker until this
+   happens** — which is why docs/12 still describes D1.
+2. Only then, disable D1. `apps/api/.prod.sqlite` is the rollback; keep it
+   until Neon has been serving for a while.
+
+Worth knowing before step 2: D1 holds 456 KB against a 5 GB free tier, so it is
+not generating a bill. Turning it off is housekeeping, not cost control.
+
+What was done, what was verified, and what is deliberately not:
+[tasks/2026-08-11](tasks/2026-08-11.md).
+
+### 2 — One source of truth: app, database and admin in sync
+
+**Next.** The database is settled; this is the work.
+
+Note that `npm run dev` now points the app at the local Worker, so an admin
+edit and its effect on the app can be seen in one place — which this task
+needs and did not have this morning.
+
+What the admin saves is what the database holds is what the app shows. Any field the
+admin can edit must reach the app, and any field the app reads must be editable
+in the admin. Where the three disagree today, the database wins and the other
+two are corrected to it.
+
+Two halves:
+
+1. **Sync.** Walk every content kind end to end — admin form → `PUT /admin/content/<kind>`
+   → `content` row → `GET /content/<kind>.json` → the screen that renders it.
+   Fields that are written but never read, read but never writable, or silently
+   dropped in between are the bugs to find.
+2. **The admin side.** Layout, and how values are stored. The forms grew one
+   feature at a time (folders, tabs, tagging, the map) and the storing has not
+   been reviewed as a whole.
+
+Everything under "Deprecated" stays parked until this lands.
+
+### 3 — Email verification and password reset
+
+**Built and verified locally; one manual step left.** Verification is now
+required to sign in, a forgotten password is recoverable, and neither form
+reveals whether an address is registered. Two of the oldest blocking items,
+closed together because they were always one item: both needed a sender.
+
+**The sender is configuration, not code.** `EMAIL_PROVIDER` is `cloudflare`,
+`resend` or `log`, with `EMAIL_FROM` / `EMAIL_NAME` alongside it. The move from
+Cloudflare to Resend was exactly that — three variables, no code touched.
+Verification is a six-digit code, and `npm run otp` reads it out of the
+database, so the whole flow is testable with no mail being delivered at all.
+
+**Before this is public:** `storeOTP` is `"plain"` so the code is readable.
+That is deliberate and temporary — turn it to `"hashed"` once mail works.
+
+**Provider is Resend**, sending as `noreply@kkr.indietribe.space`. Cloudflare
+Email Sending was abandoned — `wrangler email sending enable` answered `2036
+Unauthorized` on every credential available.
+
+**Left to do: three DNS records.** The domain is registered with Resend and
+**pending**. `indietribe.space` is on Hostinger, not Cloudflare, so the records
+have to be added there by hand:
+
+| Type | Name | Value |
+|---|---|---|
+| TXT | `resend._domainkey.kkr` | DKIM `p=…` — run `npm run email:status` for it |
+| MX | `send.kkr` | `feedback-smtp.ap-northeast-1.amazonses.com`, priority 10 |
+| TXT | `send.kkr` | `v=spf1 include:amazonses.com ~all` |
+
+Then `npm run email:status -- --verify`. Until it verifies every send fails
+with a Resend 403 — logged, and deliberately not fatal, so the symptom is
+sign-ups that work and mail that never arrives. `npm run otp` covers testing
+meanwhile.
+
+Also outstanding: `RESEND_API_KEY` is in `.env` but **not yet
+`wrangler secret put`** for production.
+
+### Done today, alongside 1
+
+- **`npm run dev` runs everything.** One command from the repo root: Worker and
+  app together, labelled output, both reachable from a phone on the same wifi.
+  See `dev.mjs`.
+- **Drizzle is gone** — viewer only, and it existed because looking at D1 was
+  awkward. The Neon console does the job. `npm run inspect` went with it; the
+  migration runner covers what it guarded.
+- **R2 is `remote` in dev.** Production was never broken — 99 objects, 99
+  content references, all serving. Local dev was: an empty emulated bucket
+  against the real Neon database, so every `/img/` 404'd and the media library
+  was empty. One line. Note the cost — an upload from a laptop is now an
+  upload in production, the same deal the database already has.
+
 
 ---
 
-## Blocking production
+## Deprecated — carried over from the 4 August 2026 list
 
-Ordered by what hurts a real visitor first.
+Kept verbatim as a record of what was open when the list was cleared. **None of
+these is a commitment.** Anything still wanted gets rewritten under "Now" in
+today's scope, in today's words; anything not rewritten is not being done.
+Several were already overtaken by the admin work of 5–11 August.
 
-- [x] ~~Change the admin password.~~ Removed the problem instead of the
-      password: admin access is now `ADMIN_EMAILS` in `wrangler.toml`
-      (docs/15). Nobody hands anyone a password, and the account can be
-      deleted and recreated at will without losing admin.
-- [ ] **`VAPID_SUBJECT` is still `mailto:REPLACE@example.org`.** Push services
-      may reject a token whose subject is not a real address, so the first
-      notification can fail. One line in `wrangler.toml` + redeploy.
-- [ ] **No password reset.** Someone who forgets their password today has no
-      way back in. The app now says so plainly instead of pretending
-      ("Forgotten your password?" explains it is unavailable), but that is a
-      message, not a fix. Needs an email sender — Cloudflare Email Sending is
-      free and in the same account.
-- [ ] **No email verification.** Anyone can sign up as anyone's address.
-      Tolerable while an account holds only itineraries; not once it holds
-      anything else. Turn on *with* the sender, not before.
-- [ ] **Saved plans still do not sync.** The account currently buys the user
-      nothing — plans live in IndexedDB on one device. This is the entire
-      reason login exists, and it is not built.
-- [ ] **Custom domain.** `pages.dev` + `workers.dev` are different sites, which
-      is why sessions use bearer tokens in localStorage. One domain with the
-      Worker on `/api/*` makes cookies first-party and is strictly better.
+### Was "blocking production"
 
----
+- `VAPID_SUBJECT` is still `mailto:REPLACE@example.org` — push services may
+  reject a token whose subject is not a real address. One line in
+  `wrangler.toml` + redeploy.
+- ~~No password reset.~~ **Done 11 Aug** — see 3 above.
+- ~~No email verification.~~ **Done 11 Aug** — see 3 above.
+- Saved plans do not sync. Plans live in IndexedDB on one device, so the
+  account currently buys the user nothing.
+- Custom domain. `pages.dev` + `workers.dev` are different sites, which is why
+  sessions use bearer tokens in localStorage. One domain with the Worker on
+  `/api/*` makes cookies first-party.
 
-## Not blocking, but promised
+### Was "not blocking, but promised"
 
-- [ ] **Hotels** — schema, endpoint and admin routes exist and serve empty.
-      Data to come from an OSM harvest (`tools/harvest-places.mjs` extension).
-- [ ] **E-rickshaw** — same, but OSM has no usable source. Needs a hand-made
-      list of stands and fares from the Board.
-- [ ] **Admin dashboard cannot edit places yet.** The API accepts it
-      (`PUT /admin/content/places`); the HTML in `admin.ts` only has an events
-      form.
-- [ ] **Google sign-in** — coded and dormant, and now correctly *hidden* until
-      the server reports credentials. Needs a Google Cloud OAuth client with
-      `https://kuk-saarthi-api.indiefluence-in-media.workers.dev/api/auth/callback/google`
-      as the authorised redirect URI, then:
-      `npx wrangler secret put GOOGLE_CLIENT_ID`, same for
-      `GOOGLE_CLIENT_SECRET`, then `npm run deploy`. Nothing else to change —
-      the button appears on its own once `/config` says `google: true`.
-- [ ] **Nothing has been pushed yet.** The cron fires every 15 minutes and the
-      encryption is unit-tested, but no real notification has reached a real
-      phone. It cannot until `VAPID_SUBJECT` is a real address.
-- [ ] **Promoting an admin is a raw SQL statement.** Fine for three people,
-      not a process.
-- [ ] `npm run build-matrix` after any new place, or its travel times stay estimated.
+- Hotels — schema, endpoint and admin routes exist and serve empty. Data to
+  come from an OSM harvest (`tools/harvest-places.mjs` extension).
+- E-rickshaw — same, but OSM has no usable source. Needs a hand-made list of
+  stands and fares from the Board.
+- Admin dashboard cannot edit places. *(Overtaken — `admin-forms.ts` now edits
+  and tags places; recheck before rewriting.)*
+- Google sign-in — coded and dormant, hidden until `/config` reports
+  credentials. Needs a Google Cloud OAuth client with
+  `https://kuk-saarthi-api.indiefluence-in-media.workers.dev/api/auth/callback/google`
+  as the authorised redirect URI, then `npx wrangler secret put
+  GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`, then `npm run deploy`.
+- Nothing has been pushed yet. The cron fires every 15 minutes and the
+  encryption is unit-tested, but no real notification has reached a real phone.
+- Promoting an admin is a raw SQL statement. Fine for three people, not a
+  process.
+- `npm run build-matrix` after any new place, or its travel times stay
+  estimated.
 
 ---
 
@@ -139,11 +182,16 @@ Ordered by what hurts a real visitor first.
 
 Recorded so they are not re-proposed.
 
-- **Drizzle.** One `content` table read as whole documents and four auth tables
-  the library owns. An ORM would add a build step and a second schema to keep
-  in step with `migrations/`, and remove no SQL worth removing — `store.d1.ts`
-  is the only file with any.
+- **Drizzle.** Both halves of it. As an ORM: one `content` table read as whole
+  documents and five auth tables the library owns, so it would add a build step
+  and a second schema to keep in step with `db/migrations/`, and remove no SQL
+  worth removing — `store.neon.ts` is the only file with any. As Studio: it was
+  a viewer, kept because looking at D1 was awkward, and the Neon console does
+  that better. Removed 11 August 2026.
 - **Per-field columns for places.** See docs/13.
 - **Cloudflare Access for `/admin`.** Replaced by the role check, so the Board
   uses one login rather than two systems.
 - **A client-side auth library.** See the header of `features/account/auth.ts`.
+- **Prose design specs.** The tokens in `apps/web/src/styles/global.css` are
+  the design system. Docs 06 and 07 were deleted on 11 August 2026 — they
+  described a palette the code had already replaced.

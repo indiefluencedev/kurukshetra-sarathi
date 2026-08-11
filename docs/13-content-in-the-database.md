@@ -1,7 +1,15 @@
-# 13 · Content in D1, and how the app stays usable offline
+# 13 · Content in the database, and how the app stays usable offline
 
-The calendar moved to D1 first (docs/11, docs/12). Places, hotels and
-e-rickshaw follow it, through the *same* mechanism rather than a second one.
+The calendar moved out of the bundle first (docs/11, docs/12). Places, hotels,
+start points, e-rickshaw and the home hero follow it, through the *same*
+mechanism rather than a second one.
+
+> The store was Cloudflare D1 until 11 August 2026 and is now Neon Postgres.
+> Nothing in this document's *design* changed with it — one `content` table,
+> whole JSON documents, a revision served as an ETag — because all of it lived
+> behind `Store` in `src/store.ts`. What changed is the file underneath
+> (`store.neon.ts`) and how migrations run. See
+> [tasks/2026-08-11](tasks/2026-08-11.md).
 
 ---
 
@@ -11,8 +19,8 @@ e-rickshaw follow it, through the *same* mechanism rather than a second one.
 
 The app ships a complete copy of its data and always will. That bundled copy is
 what renders on a dead signal in a village outside Pehowa, and it is the floor
-below which the app cannot fall. D1 exists so the Board can *change* that data
-without a release — not so the app has somewhere to fetch it from.
+below which the app cannot fall. The database exists so the Board can *change*
+that data without a release — not so the app has somewhere to fetch it from.
 
 Concretely, `apps/web/src/content/live.ts` applies three sources in order:
 
@@ -111,23 +119,30 @@ worse than ignoring an update.
 
 ```bash
 cd apps/api
-npm run migrate            # or migrate:local — applies every migration in order
-npm run import             # or import:local
+npm run migrate            # applies every migration in db/migrations, in order
+npm run import             # bundled JSON into the content table
+npm run import -- hero     # or just one kind
 ```
 
-`import-content.mjs` writes SQL to stdout and lets wrangler run it, rather than
-talking to D1 itself — wrangler already knows how to target local or remote,
-and reimplementing that means holding credentials in a script nobody audits.
+`import-content.mjs` writes to Postgres directly, with parameters. It used to
+emit SQL for `wrangler d1 execute --file` and hand-escape every quote to do it;
+sending parameters over the wire removed the escaping, which was one apostrophe
+in a blurb away from a syntax error in the middle of a bulk import.
+
+**There is one database now, not a local one and a remote one.** Under D1 the
+default was a copy on your laptop and reaching production took an extra flag.
+That safety net is gone: `npm run dev` and `npm run import` both point at the
+real rows. Use a Neon branch if you want somewhere to practise.
 
 Re-running is safe: every statement is an upsert on `(kind, id)`. It
 deliberately **does not** delete rows missing from the JSON. A script that can
 empty the live catalogue because someone mistyped a filename is a worse failure
 than a stale row; deletions go through the dashboard, where they are audited.
 
-Migrations are applied with `wrangler d1 migrations apply`, which tracks what
-has run. `0001_init.sql` was applied before that tracking existed, so it runs
-again on first use — harmless, because every statement in it is
-`CREATE TABLE IF NOT EXISTS`.
+Migrations are applied by `db/migrate.mjs`, which records what has run in a
+`_migrations` table and runs each file **inside a transaction**. That last part
+is the one thing D1 could not do: a migration that failed halfway used to leave
+a half-built table to be repaired by hand.
 
 ---
 

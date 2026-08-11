@@ -5,7 +5,8 @@
 - **React 18 + TypeScript + Vite**, PWA via `vite-plugin-pwa`.
 - **Leaflet + OpenStreetMap** tiles for the in-app map (free; no key).
 - **Google Maps deep-links** for the actual "Navigate" hand-off (free, accurate).
-- **Cloudflare Workers + D1** for content, accounts and push (`apps/api`).
+- **Cloudflare Workers + Neon Postgres** for content, accounts and push
+  (`apps/api`). D1 until 11 August 2026 — see docs/13.
   The app still runs entirely client-side and still ships a complete bundled
   copy of its data — the backend is what lets that data change without a
   release, never what the app waits on to draw. See [12](12-deploying-to-the-client-account.md).
@@ -39,8 +40,8 @@ apps/
 │                      search, settings, weather, location, planner/
 └── api/               THE BACKEND. The only place with SQL or secrets in it.
     ├── wrangler.toml  bindings, vars, cron
-    ├── migrations/    D1 schema, applied with `wrangler d1 migrations apply`
-    └── src/           index.ts (routes), store.d1.ts (all SQL), admin.ts, push.ts
+    ├── db/            migrations/ (the schema) + migrate.mjs (the runner)
+    └── src/           index.ts (routes), store.neon.ts (all SQL), admin.ts, push.ts
 packages/
 └── shared/            rules BOTH sides must agree on. Imports from neither.
 ```

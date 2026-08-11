@@ -1,4 +1,4 @@
-import { D1Store } from "./store.d1";
+import { NeonStore } from "./store.neon";
 import { isContentKind, type Store, type EventRow, type ContentKind } from "./store";
 import { makeAuth } from "./auth";
 import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
@@ -6,9 +6,29 @@ import { sendPush } from "./push";
 import { ADMIN_HTML } from "./admin";
 
 export interface Env {
-  DB: D1Database;
+  /**
+   * The Neon Postgres connection string. A secret, not a binding — which is
+   * the one real difference from D1: a binding could not leak because it was
+   * not a value, and this is. It is set with `wrangler secret put`, never in
+   * wrangler.toml. See docs/15.
+   */
+  NEON_DB_URL: string;
   /** every photograph the app shows — see the /img/ route */
   MEDIA: R2Bucket;
+  /**
+   * Outgoing mail. Only read when EMAIL_PROVIDER is "cloudflare" (the
+   * default) — under "resend" or "log" nothing touches this binding, so a
+   * deployment can drop it entirely. See email.ts.
+   */
+  EMAIL: SendEmail;
+  /** "cloudflare" (default) | "resend" | "log" — who carries the mail */
+  EMAIL_PROVIDER?: string;
+  /** the From address. Its domain must be verified with whichever provider */
+  EMAIL_FROM?: string;
+  /** the From display name */
+  EMAIL_NAME?: string;
+  /** secret; only read when EMAIL_PROVIDER is "resend" */
+  RESEND_API_KEY?: string;
   VAPID_PUBLIC: string;
   VAPID_PRIVATE: string;
   /** mailto: address Web Push requires as the JWT subject */
@@ -154,7 +174,7 @@ async function sameStem(media: R2Bucket, key: string): Promise<R2ObjectBody | nu
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
-    const store: Store = new D1Store(env.DB);
+    const store: Store = new NeonStore(env.NEON_DB_URL);
 
     if (req.method === "OPTIONS")
       return new Response(null, {
@@ -451,7 +471,7 @@ export default {
 
   /** Cron. Set to every 15 minutes in wrangler.toml. */
   async scheduled(_c: ScheduledController, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(notify(env, new D1Store(env.DB)));
+    ctx.waitUntil(notify(env, new NeonStore(env.NEON_DB_URL)));
   },
 };
 

@@ -92,8 +92,8 @@ export function Place() {
           </span>
         )}
 
-        {/* The name belongs ON the photograph. 06-design-system.md asks for
-            "title inside image" over a bottom gradient and `.hero .grad` was
+        {/* The name belongs ON the photograph — title inside the image over a
+            bottom gradient, and `.hero .grad` was
             already drawing that gradient — the title just wasn't using it, so
             the most photographic screen in the app opened on a cropped picture
             followed by a heading floating on cream. */}

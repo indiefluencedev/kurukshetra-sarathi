@@ -1,8 +1,16 @@
 # 12 · The backend: access, deployment, and what is live
 
-The Worker, the D1 database and the push keys live in **the client's**
-Cloudflare account, not ours. That is the right way round — they own the data,
-the subscriber list and the bill — and it decides how deployment works.
+> **The database section of this page is out of date, on purpose.** As of
+> 11 August 2026 the code has moved to Neon Postgres (docs/13,
+> [tasks/2026-08-11](tasks/2026-08-11.md)) but **production has not been
+> redeployed yet** — the live Worker is still the D1 one. Everything below
+> describes what is actually deployed, which is the whole job of this page.
+> Correct it in the same commit as the cut-over, not before.
+
+The Worker and the push keys live in **the client's** Cloudflare account, not
+ours. That is the right way round — they own the data, the subscriber list and
+the bill — and it decides how deployment works. The database has moved out of
+that account to Neon; R2 and the Worker have not.
 
 ---
 
@@ -142,7 +150,7 @@ Currently set: `VAPID_PUBLIC`, `VAPID_PRIVATE`, `AUTH_SECRET`.
 
 `AUTH_SECRET` signs every session — rotating it logs everyone out. Generate it
 with `openssl rand -base64 32 | npx wrangler secret put AUTH_SECRET`, and never
-reuse the value from `.dev.vars`.
+reuse the local value from `apps/api/.env`.
 
 **Adding a new one:**
 
@@ -152,8 +160,8 @@ reuse the value from `.dev.vars`.
 3. `npm run deploy`.
 
 A secret that only exists in production will be `undefined` in `wrangler dev`.
-For local work put it in `apps/api/.dev.vars` (gitignored, same `KEY=value`
-shape as `.env`) — never in `wrangler.toml`.
+For local work put it in `apps/api/.env` (gitignored; `wrangler dev` reads it
+via `--env-file`) — never in `wrangler.toml`.
 
 ### The app's own build variable
 
@@ -356,37 +364,14 @@ npx wrangler d1 execute discover_kurukshetra --remote --json \
   --command "select id, name_en from events" | jq -r '.[0].results[]|@tsv'
 ```
 
-**3. Drizzle Studio, for actually looking at the data.**
+**3. The Neon console, for actually looking at the data.**
 
-```bash
-cd apps/api
-npm run db          # local D1 — no credentials at all
-npm run db:remote   # production — needs a token, below
-```
+Tables, a SQL editor and query history, already authenticated. Drizzle Studio
+used to fill this role and was removed on 11 August 2026 along with D1: it
+existed because looking at D1 was awkward, and a hosted Postgres console is
+not.
 
-Opens a real table browser at `local.drizzle.studio`.
-
-For `db:remote`, create a Cloudflare API token (My Profile → API Tokens) with
-**Account → D1 → Edit**, restricted to this account, then:
-
-```bash
-export CLOUDFLARE_ACCOUNT_ID=4768790aa47814f60dd70c187c7a7bd9
-export CLOUDFLARE_D1_TOKEN=…
-```
-
-That token is a password for the client's database — keep it in a password
-manager and prefer the local view for anything that does not need live rows.
-
-### What Drizzle is and is not here
-
-It is a **viewer**. It is not the app's data layer and must not become one.
-
-- `apps/api/src/store.d1.ts` still holds every query the Worker runs.
-- `apps/api/migrations/` is still the only thing that changes the schema.
-- `apps/api/drizzle/schema.ts` is **generated** by `npm run db:pull`,
-  introspected *from* the database. It follows the schema rather than defining
-  it, so it cannot drift into being a second source of truth. Do not edit it,
-  and never migrate from it.
-
-Nothing under `drizzle/` is imported by the Worker — it is a dev dependency
-that never ships.
+Whatever you use to look, two things stay true: `apps/api/src/store.neon.ts`
+holds every query the Worker runs, and `apps/api/db/migrations/` is the only
+thing that changes the schema. Nothing that browses the database is allowed to
+become either.
