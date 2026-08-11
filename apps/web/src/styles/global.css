@@ -348,7 +348,15 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
    (inset well, no lift). Same palette, opposite depth, so a page reads as a
    hierarchy at a glance instead of a stack of equal boxes. */
 .card{background:var(--surface);border:1px solid var(--stone);border-radius:var(--r-lg);box-shadow:var(--shadow-2)}
-.ph{background:var(--stone);position:relative;overflow:hidden}
+/* `display:block`, and it is load-bearing.
+   Photo renders a <span>, so .ph was an INLINE box — and aspect-ratio, width
+   and height do nothing on one. Every card that set `.ph{aspect-ratio}` and
+   relied on it was quietly ignored: .fcard asked for 16/10 and got the
+   photograph's own proportions instead, so a portrait shot rendered full-width
+   and several hundred pixels tall, pushing the name and the meta line off the
+   bottom of the card. It read as "the card has no text".
+   .pcard escaped it only because a flex container blockifies its children. */
+.ph{display:block;background:var(--stone);position:relative;overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity var(--t-slow) var(--ease)}
 .ph img.in{opacity:1}
 .ph::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(26,24,20,.06);pointer-events:none}
@@ -2351,3 +2359,101 @@ a.btn:hover{text-decoration:none}
 
 /* The town a place is in, shown only when both towns are listed together. */
 .tag.town{background:var(--brass-wash);color:var(--brass-deep);border-color:transparent}
+
+/* ---- the event page --------------------------------------------------------
+   One event, and what a visitor can do about it. Reached from the home rail,
+   which used to jump straight into the planner — see features/event/Event.tsx
+   for why that was the wrong first question.
+
+   It borrows the place page's hero and .dtitle wholesale: two detail screens
+   that look like two different apps is a worse problem than any of the small
+   things a bespoke layout would have solved. */
+.ev-hero{aspect-ratio:16/10}
+.ev-hero .hero-cap .ev-kick{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);margin-bottom:6px}
+.ev-hero .hero-cap .ev-dot{background:var(--live)}
+
+/* The lead line under the title. Larger than body copy because it is the
+   sentence that says what this is, and smaller than the title because it is
+   not the title. */
+.lead{font-size:calc(16.5px*var(--ts));line-height:1.55;color:var(--ink-2);margin:2px 0 14px}
+:lang(hi) .lead{font-family:var(--deva);font-size:calc(16px*var(--ts));line-height:1.7}
+
+/* What a visitor should DO differently. The most useful sentence on the page
+   for anybody who lives here, so it is a panel and not a paragraph.
+
+   `avoid` takes the shut colour. "Keep away from this road" and "worth going
+   to" arriving in the same beige box is the one confusion this page could
+   actually cause — a closure read as an invitation. */
+.ev-notice{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;padding:12px 14px;
+  border-radius:12px;background:var(--open-wash);border:1px solid var(--stone);
+  font-size:calc(14.5px*var(--ts));line-height:1.5;color:var(--ink-2)}
+.ev-notice svg{width:19px;height:19px;flex:0 0 auto;margin-top:1px;color:var(--open)}
+.ev-notice.avoid{background:var(--shut-wash);border-color:var(--shut)}
+.ev-notice.avoid svg{color:var(--shut)}
+:lang(hi) .ev-notice{font-family:var(--deva);line-height:1.7}
+
+/* ---- "Where it happens" ----------------------------------------------------
+   The section the page exists for. Everything above it describes an event;
+   this is where the reader does something about it.
+
+   It is set apart deliberately — its own ground, inset from the page — because
+   it is a DECISION, not more reading. Five temples on one night, and the job
+   is to compare them and pick. Nothing else on the page asks for a choice, so
+   nothing else gets this treatment. */
+.ev-where{margin:26px calc(-1*var(--pad)) 8px;padding:22px var(--pad) 20px;
+  background:var(--surface-2);border-top:1px solid var(--stone);border-bottom:1px solid var(--stone)}
+
+/* The count is the point of the heading — "five temples" is the fact that
+   makes this a choice rather than an address. It rides in the heading as a
+   brass counter rather than sitting in the prose, where it would be read as
+   decoration and skipped. */
+.ev-wh{font-family:var(--serif);font-size:calc(20px*var(--ts));font-weight:600;
+  display:flex;align-items:center;gap:10px;margin:0}
+:lang(hi) .ev-wh{font-family:var(--deva);font-size:calc(19px*var(--ts))}
+.ev-wh .n{font-family:var(--sans);font-size:calc(12.5px*var(--ts));font-weight:700;
+  color:var(--brass-deep);background:var(--brass-wash);border:1px solid var(--brass-soft);
+  min-width:23px;height:23px;border-radius:99px;display:inline-flex;align-items:center;
+  justify-content:center;padding:0 6px;letter-spacing:.01em}
+.ev-whsub{margin:7px 0 16px;font-size:calc(14px*var(--ts));line-height:1.55;color:var(--muted);
+  max-width:52ch}
+:lang(hi) .ev-whsub{font-family:var(--deva);line-height:1.7}
+
+/* Stacked, never a rail — see the comment where this is built. Each card is
+   the full width of the column so two of them can be read against each other,
+   which is the whole job of this list. */
+.ev-places{display:flex;flex-direction:column;gap:10px}
+.ev-places .pcard{background:var(--surface)}
+
+/* The actions. Full width and stacked, because on a phone a row of two puts
+   the primary one under a thumb that is reaching for the other. */
+.ev-acts{display:flex;flex-direction:column;gap:10px;margin:22px 0 8px}
+.ev-acts .btn{width:100%;justify-content:center}
+
+/* ---- the photographs of a place --------------------------------------------
+   Half the catalogue has more than one, and the page used to show the first
+   and drop the rest. See features/place/HeroGallery.tsx for why they live in
+   the hero rather than in a strip further down. */
+.hg-track{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+  scrollbar-width:none;-ms-overflow-style:none}
+.hg-track::-webkit-scrollbar{display:none}
+.hg-shot{flex:0 0 100%;scroll-snap-align:center;position:relative;background:var(--stone)}
+.hg-shot img{width:100%;height:100%;object-fit:cover;opacity:0;
+  transition:opacity var(--t-slow) var(--ease)}
+.hg-shot img.in{opacity:1}
+
+/* Above the caption gradient, clear of the name. Light on dark because they
+   sit on a photograph, which is the one place in this app where that is true. */
+.hg-dots{position:absolute;left:0;right:0;bottom:8px;z-index:4;display:flex;gap:6px;
+  justify-content:center;pointer-events:none}
+.hg-dots i{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.5);
+  box-shadow:0 1px 2px rgba(0,0,0,.35);transition:width var(--t-fast) var(--ease),
+  background var(--t-fast) var(--ease)}
+.hg-dots i.on{width:18px;background:#fff}
+
+/* The count, so "there are more" is legible without counting dots. */
+.hg-n{position:absolute;top:14px;right:62px;z-index:4;display:inline-flex;align-items:center;
+  gap:4px;padding:4px 9px;border-radius:99px;background:rgba(28,24,21,.5);color:#fff;
+  font-size:calc(11.5px*var(--ts));font-weight:700;letter-spacing:.03em;
+  backdrop-filter:blur(4px)}
+.hg-n:before{content:"";width:11px;height:9px;border-radius:2px;border:1.5px solid currentColor;
+  display:inline-block}

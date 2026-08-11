@@ -22,9 +22,9 @@ Last updated: **11 August 2026** (cleared; scope reopened)
 
 | | |
 |---|---|
-| Worker | `kuk-saarthi-api` — **STAGE** |
-| App | `kuk-saarthi.pages.dev` — **STAGE** |
-| Database | **Neon Postgres** (`neondb`, ap-southeast-1) in code; production still on D1 until the deploy |
+| Worker | `kuk-saarthi-api` — **STAGE**, deployed 11 Aug **on Neon** |
+| App | `kuk-saarthi.pages.dev` — **STAGE**, rebuilt 11 Aug with the code screen |
+| Database | **Neon Postgres** (`neondb`, ap-southeast-1) — live, serving production |
 | Auth | Better Auth, email + password, **verified by email**. Google configured, no credentials yet |
 | Email | **Resend**, as `noreply@kkr.indietribe.space` — code done, domain pending DNS |
 
@@ -32,33 +32,47 @@ Last updated: **11 August 2026** (cleared; scope reopened)
 
 ## Now
 
-Day-by-day working notes live in **[`docs/tasks/`](tasks/)**, one file per date
-(`YYYY-MM-DD.md`). That is where a change is explained; this file only says
-what is true. Today: [2026-08-11](tasks/2026-08-11.md).
+Day-by-day work lives in **[`docs/tasks/`](tasks/)**, a checklist per date —
+two lines an item, issues logged under the task they happened in. That is where
+a change is explained; this file only says what is true.
+Today: [2026-08-11](tasks/2026-08-11.md).
 
 ### 1 — D1 → Neon Postgres, then D1 off
 
-**Migrated and verified locally; not deployed.** The Worker runs on Neon
-Postgres on a laptop — every feed, sign-up, sign-in, the admin gate and a write
-round trip all check out. `store.d1.ts`, `migrations/` and `kysely-d1` are gone.
+**DEPLOYED 11 Aug and verified in production.** All five secrets are set, the
+Worker and the app are both rebuilt, and production reads Neon:
 
-Two steps left, in this order:
+| | |
+|---|---|
+| feeds | 57 places · 13 startpoints · 2 hotels · 15 hero · 4 events, all 200 |
+| `/img/` | 200 — R2 unaffected by the move |
+| `/admin/events` unauthenticated | 403 |
+| sign-up | 200 with `token: null`, and the code lands in Neon |
 
-1. `wrangler secret put NEON_DB_URL` then `npm run deploy`, and verify
-   production against Neon. **Production is still the D1 Worker until this
-   happens** — which is why docs/12 still describes D1.
-2. Only then, disable D1. `apps/api/.prod.sqlite` is the rollback; keep it
-   until Neon has been serving for a while.
+**One step left: turn D1 off.** It still exists — 475 KB, and `num_tables: 0`
+now reports oddly, but the data is there. It is the rollback that does not
+depend on a file on one laptop, so leave it a few days. When you are ready,
+docs/16 step 5.
 
-Worth knowing before step 2: D1 holds 456 KB against a 5 GB free tier, so it is
-not generating a bill. Turning it off is housekeeping, not cost control.
+D1 holds 475 KB against a 5 GB free tier, so it is not billing. Turning it off
+is housekeeping, not cost control.
 
 What was done, what was verified, and what is deliberately not:
 [tasks/2026-08-11](tasks/2026-08-11.md).
 
 ### 2 — One source of truth: app, database and admin in sync
 
-**Next.** The database is settled; this is the work.
+**Events are done, both sides.** The admin form and the app agree, and the work
+that came out of checking them is shipped: the event form was rebuilt around
+one map, the app gained an event detail page, and place photographs are visible
+for the first time.
+
+**Four kinds left** — places, stays, start points, e-rickshaw — plus a review of
+how values are stored across the forms as a whole.
+
+**Next session (12 August):** the admin gallery (a place has up to three
+photographs and the dashboard manages them one at a time), the same form pass
+for places that events got, and a UI restructure of the dashboard as a whole.
 
 Note that `npm run dev` now points the app at the local Worker, so an admin
 edit and its effect on the app can be seen in one place — which this task

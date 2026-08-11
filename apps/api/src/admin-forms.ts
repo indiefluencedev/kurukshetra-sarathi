@@ -155,8 +155,20 @@ const SPEC = {
       hint:"Search the catalogue and tag every place it happens at. Janmashtami is at five temples on the same night, and a place that is not tagged here hears nothing about the event." },
     { k:"advice", t:"sel", lb:"Advice", opts:["avoid","join"],
       hint:"avoid — keep away from this road. join — worth going to." },
-    { k:"corridor", t:"pts", lb:"The route it runs along",
-      hint:"For a yatra or a closure. Click along the road, in order, at least twice. Drag a point to correct it." },
+    /* Only a procession or a road closure HAS a route it runs along.
+     *
+     * Janmashtami is at five temples on one night and there is no road
+     * connecting them — a visitor drives between whichever ones they pick.
+     * Offering "the route it runs along" on a festival invited a line to be
+     * drawn that looks like a road and is not one, and it was the reason a
+     * second map sat under the first on every event in the calendar.
+     *
+     * Hidden, not removed: an event whose kind is corrected from yatra to
+     * festival keeps whatever was drawn, and it comes back if the kind is
+     * corrected again. Deleting on a dropdown change would lose work to a
+     * mis-click. */
+    { k:"corridor", t:"pts", lb:"The route it runs along", when:{ k:"kind", is:["yatra","closure"] },
+      hint:"Click along the road the procession takes, in order, at least twice. Drag a point to correct it." },
     { k:"visitFactor", t:"num", lb:"How much longer a visit takes", req:1, step:"0.1", ph:"1.5",
       hint:"1.0 is normal. 1.5 means half as long again, because of the crowd." },
     { k:"travelFactor", t:"num", lb:"How much slower the roads are", req:1, step:"0.1", ph:"1.3",
@@ -414,7 +426,19 @@ function fieldHtml(f, v) {
     // is still the fastest way to enter one, and because it is what readField
     // reads — the map writes into it, so there is exactly one value.
     const txt = (Array.isArray(v) ? v : []).map(p => p.lat + ", " + p.lng).join("\n");
-    inner = '<div class="geo"><div class="gmap tall" data-cmap></div>' +
+    /* NO MAP OF ITS OWN when the record already has one.
+     *
+     * An event drew two: the places field showed the tagged temples, and this
+     * one showed the route AND the same tagged temples again, as circles. Two
+     * maps of the same district, one above the other, both loading their own
+     * tiles, and the question the editor is actually asking spans them —
+     * "does the line I clicked run past the places I tagged". That cannot be
+     * answered by looking at two pictures.
+     *
+     * So this borrows the places map when there is one, and only builds its
+     * own when there is not. "data-cmap" is emitted empty as the fallback
+     * host; initPts decides which to use. */
+    inner = '<div class="geo"><div class="gmap tall" data-cmap hidden></div>' +
       '<div class="cbar"><span class="cn" data-cn></span><span style="flex:1"></span>' +
       '<button type="button" class="ghost sm" data-cundo>Undo last point</button>' +
       '<button type="button" class="danger sm" data-cclear>Clear</button></div>' +
@@ -435,7 +459,14 @@ function fieldHtml(f, v) {
      control starts on one line. Without the .ctl wrapper an image field (an
      input, a button AND a strip of thumbnails) would be four rows deep and
      nothing beside it would align. */
-  return '<div class="fld" data-k="' + ek(f.k) + '" data-t="' + ek(t) + '"><label class="fl">' + lb +
+  /* A field that only applies to some kinds of record carries the condition
+     with it, and applyWhen does the hiding. See the "when" on events.corridor
+     for the case that forced it. */
+  const when = f.when
+    ? ' data-when-k="' + ek(f.when.k) + '" data-when-is="' + ek(f.when.is.join("|")) + '"'
+    : "";
+  return '<div class="fld" data-k="' + ek(f.k) + '" data-t="' + ek(t) + '"' + when +
+    '><label class="fl">' + lb +
     hintOf(f) + '</label><div class="ctl">' + inner + "</div></div>";
 }
 
@@ -457,6 +488,28 @@ function listRow(f, item) {
  * are never stepped — a list row is one small thing, and hiding half of it
  * behind a Next button would be the same mistake at a smaller scale.
  */
+/**
+ * One line under a step's heading, saying what the step is for.
+ *
+ * Keyed by the section name, so it is shared wherever two kinds use the same
+ * one — "Photographs" means the same thing on a place and on a stay. A section
+ * with no entry here simply gets no line, which is the right default: a
+ * sentence that only restates the heading is worse than the heading alone.
+ *
+ * Written for the person filling it in, not for us. Every one answers "why am
+ * I being asked this", because that is the question a form cannot answer by
+ * naming its fields.
+ */
+const SEC_HINT = {
+  "What it is": "The name, and how the app files it. The id is how everything else points at this record.",
+  "The banner": "The picture behind the name on the home screen. One photograph, and the app crops it to a wide strip.",
+  "When": "The days it runs. The app counts down to the first one and says “happening now” between them.",
+  "Where, and what it does to the day": "Which places it touches, and how much it slows a visit down. This is what the planner reads when it builds someone's day.",
+  "Where it is": "The pin. Every route the app draws starts or ends at this exact point.",
+  "Photographs": "What the app shows. The first one is the face of this record everywhere it appears.",
+  "What it costs": "Indicative only. A tariff card is never one number, and the app says “from”.",
+};
+
 function stepsOf(fields) {
   const out = [];
   let sec = null;
@@ -496,7 +549,9 @@ function groupHtml(fields, obj, top) {
       body += fieldHtml(f, val(f));
     }
     flush();
+    const hint = SEC_HINT[s.lb];
     return '<div class="step" data-step="' + i + '" hidden><h3 class="sec">' + ek(s.lb) + "</h3>" +
+      (hint ? '<p class="sechint">' + ek(hint) + "</p>" : "") +
       '<div class="sfields">' + body + "</div></div>";
   }).join("");
 }
@@ -781,7 +836,35 @@ function newMap(host, centre, zoom) {
   const sat = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 19, attribution: 'Imagery &copy; Esri',
   });
-  L.control.layers({ "Map": street, "Satellite": sat }, {}, { collapsed: false }).addTo(map);
+  /* Two words and a toggle, not Leaflet's own layers control.
+   *
+   * "collapsed:false" drew a white panel with two radio buttons and their
+   * labels, about 130x90 of it, parked over the top-right corner of every map
+   * on the page. On the small maps in this form that is a quarter of the map
+   * covered by a control offering one binary choice — and the corner it covers
+   * is the one a route usually runs through.
+   *
+   * A two-state switch is one button: it says what you will get if you press
+   * it, which is also the name of the thing you are not looking at. */
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "maplayer";
+  let onSat = false;
+  const paint = () => { btn.textContent = onSat ? "Map" : "Satellite"; };
+  paint();
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();          // the map is a click target; this is not a pin
+    onSat = !onSat;
+    if (onSat) { map.removeLayer(street); sat.addTo(map); }
+    else { map.removeLayer(sat); street.addTo(map); }
+    paint();
+  });
+  // Leaflet stops map clicks reaching controls unless told not to; without
+  // this the button reads as dead on the maps that place pins.
+  const wrap = L.control({ position: "topright" });
+  wrap.onAdd = () => { L.DomEvent.disableClickPropagation(btn); return btn; };
+  wrap.addTo(map);
   return map;
 }
 
@@ -1011,6 +1094,11 @@ async function initRefs(fld) {
   if (window.L) {
     map = newMap(host, HOME, 12);
     pins = L.layerGroup().addTo(map);
+    /* Recorded on the host, like initGeo and initPts do with theirs.
+     * Without this the corridor field cannot find it and quietly builds a
+     * SECOND map of the same district — which is exactly what shipped, and
+     * looked from the code like the merge was working. */
+    host._map = map;
   } else {
     host.innerHTML = '<div class="gdead">The map could not load, so the pins cannot be drawn.<br>' +
       "The tags above are still what gets saved.</div>";
@@ -1049,7 +1137,12 @@ async function initRefs(fld) {
     });
     // maxZoom, or a single tagged place fills the frame at street level and
     // gives no clue where in the district it is.
-    if (fit && at.length) map.fitBounds(L.latLngBounds(at), { padding: [34, 34], maxZoom: 15 });
+    //
+    // Not while a route is being drawn on this same map: tagging one more
+    // temple would otherwise jump the view away from the road being clicked,
+    // mid-click, which is the most annoying possible moment to move a map.
+    if (fit && at.length && !host._drawing)
+      map.fitBounds(L.latLngBounds(at), { padding: [34, 34], maxZoom: 15 });
   }
 
   const set = (a) => {
@@ -1105,8 +1198,16 @@ async function initRefs(fld) {
 /** The corridor field: click along a road, drag to correct, undo, clear. */
 function initPts(fld) {
   if (!window.L) return noMap(fld);
-  const host = fld.querySelector("[data-cmap]");
-  if (!host || host._map) return;
+  /* Borrow the places map if this record has one — see the field's own comment.
+   * initRefs runs first (see initMaps), so by here that map exists and already
+   * carries the tagged pins. Its own host stays hidden and unused. */
+  const shared = $("#cform").querySelector('.fld[data-t="places"] [data-rmap]');
+  const own = fld.querySelector("[data-cmap]");
+  const borrowed = !!(shared && shared._map);
+  const host = borrowed ? shared : own;
+  if (!host || (host._map && host._ptswired)) return;
+  if (!borrowed) own.hidden = false;     // no places field: this map is the only one
+  host._ptswired = 1;
   const ta = fld.querySelector("[data-i]");
 
   const read = () => ta.value.split("\n").map(l => l.trim()).filter(Boolean).map(l => {
@@ -1115,7 +1216,14 @@ function initPts(fld) {
   }).filter(p => !isNaN(p.lat) && !isNaN(p.lng));
 
   let pts = read();
-  const map = newMap(host, pts.length ? [pts[0].lat, pts[0].lng] : HOME, pts.length ? 15 : 13);
+  // A borrowed map is already built and already centred on the tagged places.
+  const map = borrowed ? host._map : newMap(host, pts.length ? [pts[0].lat, pts[0].lng] : HOME, pts.length ? 15 : 13);
+  if (borrowed) {
+    // Tell the shared map it is now a drawing surface, so the places field
+    // stops refitting the view out from under a route being clicked.
+    host._drawing = 1;
+    if (pts.length) map.setView([pts[0].lat, pts[0].lng], 15);
+  }
   const line = L.polyline([], { weight: 5, opacity: 0.85 }).addTo(map);
   const pins = L.layerGroup().addTo(map);
 
@@ -1132,6 +1240,9 @@ function initPts(fld) {
     // The form is rebuilt every time one is opened, which leaves this listener
     // bound to a map that is no longer on the page.
     if (!map._container || !map._container.isConnected) return;
+    // On a borrowed map the places field has already drawn its own pins. Two
+    // markers on one coordinate is not twice as clear.
+    if (borrowed) return;
     ctx.clearLayers();
     const at = [];
     taggedPlaces().forEach(p => {
@@ -1160,11 +1271,25 @@ function initPts(fld) {
     });
     fld.querySelector("[data-cn]").textContent = pts.length
       ? pts.length + " point" + (pts.length === 1 ? "" : "s") + (pts.length < 2 ? " — a route needs at least two" : "")
-      : "Click the map along the road, in order.";
+      // On a borrowed map the control sits below the map it draws on, and
+      // nothing else on screen says so. "The map" is ambiguous when there is
+      // no map attached to this field.
+      : borrowed ? "Click the map above, along the road, in order." : "Click the map along the road, in order.";
     if (fit && pts.length > 1) map.fitBounds(line.getBounds(), { padding: [30, 30] });
   };
 
-  map.on("click", (e) => { pts.push(e.latlng); draw(false); });
+  /* Clicks add a point — but only while this field is on screen.
+   *
+   * On a BORROWED map that matters, because the map belongs to the places
+   * field and outlives this one: change an event's kind from yatra to
+   * festival and the corridor field hides, while this listener stays bound to
+   * a map the editor is still using to check their tagged temples. Every
+   * click on it would silently add a route point to a festival. */
+  map.on("click", (e) => {
+    if (fld.hidden) return;
+    pts.push(e.latlng);
+    draw(false);
+  });
   fld.querySelector("[data-cundo]").addEventListener("click", () => { pts.pop(); draw(false); });
   fld.querySelector("[data-cclear]").addEventListener("click", () => { pts = []; draw(false); });
   // Pasting into the textarea is still a supported way in.
@@ -1185,6 +1310,32 @@ function initPts(fld) {
  * exactly the same problem the drawer did. Building is idempotent (initGeo
  * bails on host._map); the resize is the part that has to happen every time.
  */
+/**
+ * Hide the fields that do not apply to what is being edited.
+ *
+ * Runs on build and on every change to a field something depends on, so the
+ * form follows the record rather than showing every field any record could
+ * have. One condition shape — "this key is one of these values" — because that
+ * is the only one anything here needs, and a rules engine for one rule is a
+ * rules engine nobody can read.
+ *
+ * A hidden field KEEPS ITS VALUE and is still read back on save. That is
+ * deliberate: hiding is about attention, not about deleting somebody's work
+ * because they touched a dropdown. The one thing it must not do is hide a
+ * required field — nothing here does, and this would refuse to save with an
+ * error pointing at a box that is not on screen.
+ */
+function applyWhen() {
+  $("#cform").querySelectorAll(".fld[data-when-k]").forEach(fld => {
+    const on = fld.getAttribute("data-when-k");
+    const want = fld.getAttribute("data-when-is").split("|");
+    // The controlling field, at the top level of the same form.
+    const ctl = $("#cform").querySelector('.fld[data-k="' + on + '"] [data-i]');
+    const has = ctl ? String(ctl.value || "").trim() : "";
+    fld.hidden = want.indexOf(has) < 0;
+  });
+}
+
 function initMaps() {
   const on = $("#cform").querySelectorAll('.step:not([hidden])');
   on.forEach(s => {
@@ -1192,7 +1343,9 @@ function initMaps() {
     // Before the corridor: initPts draws whatever is already tagged, and the
     // picker is what loads the catalogue those tags are looked up in.
     s.querySelectorAll('.fld[data-t="places"]').forEach(initRefs);
-    s.querySelectorAll('.fld[data-t="pts"]').forEach(initPts);
+    // Not a hidden one: a corridor field that does not apply to this kind must
+    // not wire click-to-draw onto the map the places field is sharing.
+    s.querySelectorAll('.fld[data-t="pts"]').forEach(f => { if (!f.hidden) initPts(f); });
     s.querySelectorAll(".gmap").forEach(h => { if (h._map) h._map.invalidateSize(); });
   });
 }
@@ -1249,10 +1402,25 @@ function paintTable() {
     // onerror. "no photograph set" and "photograph id points at nothing" are
     // different problems and only the second one is a mistake — an empty frame
     // for both is how a broken id survives a review.
-    const thumb = it.img
+    /* The picture is a BUTTON, not a decoration.
+     *
+     * Changing a photograph and changing a record are different jobs done on
+     * different days: a banner is swapped because a better one arrived, and
+     * nothing else about the event has changed. Making that go through the
+     * whole form means opening twenty fields, walking four steps and saving
+     * them all back to alter one string — every one of those fields a chance
+     * to knock something else on the way past.
+     *
+     * So the thumbnail opens the picker and writes the one key. Same picker,
+     * same upload, same folder-first behaviour as the form's own field. */
+    const pic = it.img
       ? '<img src="' + ek(imgSrc(it.img)) + '" alt="" loading="lazy" onerror="this.classList.add(\'bad\')">' +
         '<span class="nopic missing">missing</span>'
       : '<span class="nopic">none</span>';
+    const thumb = '<button type="button" class="picbtn" data-pic="' + i + '" ' +
+      'title="' + (it.img ? "Change this photograph" : "Add a photograph") + '" ' +
+      'aria-label="' + (it.img ? "Change the photograph on " : "Add a photograph to ") + ek(en || it.id) + '">' +
+      pic + '<span class="picedit">change</span></button>';
     const gal = (it.gallery || []).length;
 
     const where = [
@@ -1408,6 +1576,9 @@ function showStep(n) {
   });
   if (pv && !json) renderPreview();
   paintSteps();
+  // Before the maps: a hidden field must not have a map built inside it, and
+  // applyWhen is what decides which are hidden.
+  if (!pv && !json) applyWhen();
   // After the step is on screen, never before: a map measured inside a hidden
   // step comes out zero pixels tall, which is the same bug the drawer had.
   if (!pv && !json) initMaps();
@@ -1852,6 +2023,7 @@ function kindWord() {
 function openEditor() {
   $("#editor").hidden = false;
   document.body.style.overflow = "hidden";
+  applyWhen();
   initMaps();
 }
 function closeEditor() {
@@ -2092,20 +2264,99 @@ async function mediaList(force) {
  */
 let PICK_FOR = null;
 let PICK_ALL = false;    // false = this record's folder; true = the bucket
+/* Set when the picker was opened from a LIST ROW rather than from a field.
+   Holds the record, so choosing can write one key and save it without a form
+   ever being built. Cleared on every open, because a stale one would write the
+   previous record's picture onto this one. */
+let PICK_ROW = null;
 
 async function pickImage(fld, multi) {
   PICK_FOR = fld;
+  PICK_ROW = null;
   PICK_ALL = false;      // every opening starts in the folder it belongs to
   $("#picker").hidden = false;
   $("#picker").setAttribute("data-multi", multi ? "1" : "");
+  // Row-mode controls, hidden again — this opening has a field behind it.
+  $("#picker").querySelector("[data-prm]").hidden = true;
+  $("#picker").querySelector("[data-rowup]").hidden = true;
   await paintPicker();
+}
+
+/**
+ * The picker, opened from the table to change one picture and nothing else.
+ *
+ * Saves the record it was given with "img" replaced — read from CITEMS, which
+ * is what the server last sent, so no other field is re-serialised from a form
+ * that was never opened and cannot have edited them.
+ */
+async function pickForRow(i) {
+  const it = CITEMS[i];
+  if (!it) return;
+  PICK_FOR = null;
+  PICK_ROW = it;
+  PICK_ALL = false;
+  $("#picker").hidden = false;
+  $("#picker").setAttribute("data-multi", "");
+  // Nothing to remove when there is nothing on it yet.
+  $("#picker").querySelector("[data-prm]").hidden = !it.img;
+  $("#picker").querySelector("[data-rowup]").hidden = false;
+  await paintPicker();
+}
+
+/**
+ * Upload one file and put it straight on the record. Row picker only.
+ *
+ * "uploadInto" cannot serve here: it reads and writes a form field, and in row
+ * mode there is no form. This is the same three steps without that — name it
+ * after the record so it lands in the record's own folder, put it, save it.
+ */
+async function uploadForRow(file) {
+  const it = PICK_ROW;
+  if (!it || !file) return;
+  if (file.size > 6 * 1024 * 1024) {
+    alert(file.name + " is " + (file.size / 1024 / 1024).toFixed(1) + " MB. The limit is 6 MB — " +
+      "save it smaller, or export it as webp.");
+    return;
+  }
+  const where = $("#pickwhere");
+  const said = where.textContent;
+  where.textContent = "uploading…";
+  try {
+    const id = await putImage(file, await nextKey(slug(it.id) || "photo"));
+    await mediaList(true);
+    USES = null;                    // the bucket changed; the library must not cache past it
+    PICK_ROW = null;
+    $("#picker").hidden = true;
+    await saveImgOnly(it, id);
+  } catch (e) {
+    where.textContent = said;
+    alert((e && e.message) || "Upload failed.");
+  }
+}
+
+/** Write one key onto one record and save it. Used by the row picker only. */
+async function saveImgOnly(it, img) {
+  const doc = Object.assign({}, it);
+  if (img) doc.img = img; else delete doc.img;
+  const r = await api(cUrl(), {
+    method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(doc),
+  });
+  if (!r.ok) {
+    const j = await r.json().catch(() => ({}));
+    alert((j.problems && j.problems.length ? j.problems : [j.error || "Save failed"]).join("\n"));
+    return;
+  }
+  await cLoad();
 }
 
 async function paintPicker() {
   const items = await mediaList();
   await usage();      // cached; fills RECS so the folders here are the library's
+  // Whose folder to open on. From the record when the picker came from a table
+  // row, otherwise from the form's own id field — there is no form in row mode
+  // and reading one would silently scope to nothing.
   const idIn = $("#cform").querySelector('.fld[data-k="id"] [data-i]');
-  const mine = slug(idIn ? idIn.value : "");
+  const mine = slug(PICK_ROW ? PICK_ROW.id : idIn ? idIn.value : "");
   /* The same folder the library would draw, which matters wherever one id is
      the start of another: jyotisar, jyotisar-virat and jyotisar-water are three
      places, and the naming rule alone would hand all three to jyotisar. RECS is
@@ -2116,8 +2367,20 @@ async function paintPicker() {
     const s = stemOf(k), r = folderOf(s);
     return r ? r.id === mine : (s === mine || s.indexOf(mine + "-") === 0);
   };
-  // No id typed yet — a brand new record — so there is no folder to open on.
-  const scoped = !!mine && !PICK_ALL;
+  /* No id typed yet — a brand new record — so there is no folder to open on.
+   *
+   * EVENTS ARE NOT SCOPED. A folder is the right idea for a place: Jyotisar
+   * accumulates photographs of Jyotisar over years, and putting the other
+   * ninety in front of you to find one of them is a search done by eye. An
+   * event has one banner and is dated — janmashtami-2026 will never have a
+   * folder, so scoping opened every single time on "there is no folder called
+   * janmashtami-2026 yet", which is a wall where a picture library should be,
+   * every time, for a folder that is not coming.
+   *
+   * And the banner is usually a picture of the PLACE it happens at, which
+   * lives in that place's folder and never in the event's. Scoping hid the
+   * only photographs the editor actually wanted. */
+  const scoped = !!mine && !PICK_ALL && CKIND !== "events";
   const list = scoped ? items.filter(o => own(o.key)) : items.slice();
   if (!scoped && mine) list.sort((a, b) => (own(b.key) ? 1 : 0) - (own(a.key) ? 1 : 0));
 
@@ -2133,13 +2396,28 @@ async function paintPicker() {
       '<img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
       "<small>" + ek(id) + "</small></button>";
   }).join("") || (scoped
-    ? '<p class="muted">There is no folder called <code>' + ek(mine) + '</code> yet — nothing ' +
-      "has been uploaded under that name. Upload one and the folder exists.</p>" +
-      '<button type="button" class="primary" data-pup>Upload the first photograph</button>'
-    : '<p class="muted">Nothing uploaded yet.</p>');
+    /* The empty state is a BLOCK, not two grid cells.
+     *
+     * It was a paragraph and a button dropped straight into the picture grid,
+     * so the grid laid them out as two pictures: a column of text six words
+     * wide next to a tall orange slab. Nothing about it read as a sentence.
+     * ".pkempty" spans the grid and centres, so it reads as what it is —
+     * one message and one thing to do about it. */
+    ? '<div class="pkempty"><p>Nothing has been uploaded under <code>' + ek(mine) + "</code> yet.</p>" +
+      '<button type="button" class="primary" data-pup>Upload the first photograph</button>' +
+      '<p class="pkalt">Or look through everything already in the library, above.</p></div>'
+    : '<div class="pkempty"><p>Nothing uploaded yet.</p>' +
+      '<button type="button" class="primary" data-pup>Upload a photograph</button></div>');
 }
 
 function pickChoose(id) {
+  // Opened from a table row: one key, saved, done. No form is involved.
+  if (PICK_ROW) {
+    const it = PICK_ROW;
+    PICK_ROW = null;
+    $("#picker").hidden = true;
+    return saveImgOnly(it, id);
+  }
   if (!PICK_FOR) return;
   const input = PICK_FOR.querySelector("[data-i]");
   const multi = $("#picker").getAttribute("data-multi") === "1";
@@ -2559,6 +2837,10 @@ function wireForms() {
     if (ed) return cEdit(Number(ed.getAttribute("data-edit")));
     const dl = e.target.closest("[data-cdel]");
     if (dl) return cDel(dl.getAttribute("data-cdel"));
+    // The thumbnail. Opens the picker on this record's folder and writes only
+    // "img" — see pickForRow.
+    const pic = e.target.closest("[data-pic]");
+    if (pic) return pickForRow(Number(pic.getAttribute("data-pic")));
   });
 
   $("#editor").addEventListener("click", (e) => {
@@ -2634,6 +2916,11 @@ function wireForms() {
   // A dropdown fires change, not input.
   $("#editor").addEventListener("change", (e) => {
     if (e.target.closest('.fld[data-k="city"]')) { autoId(); paintFolderNotes(); paintSteps(); }
+    /* Changing the kind changes which fields apply — a festival has no route.
+     * The map inside a field that has just been revealed has never been
+     * measured, so initMaps has to follow: a map built while its field was
+     * hidden comes out zero pixels tall and stays that way. */
+    if (e.target.closest('.fld[data-k="kind"]')) { applyWhen(); initMaps(); }
   });
 
   /* The rail. Any step, in any order — an editor correcting one phone number
@@ -2687,14 +2974,38 @@ function wireForms() {
   $("#picker").addEventListener("click", (e) => {
     if (e.target.id === "picker" || e.target.closest("[data-pclose]")) return void ($("#picker").hidden = true);
     if (e.target.closest("[data-pall]")) { PICK_ALL = !PICK_ALL; return void paintPicker(); }
-    // The folder is empty, so the way out of the picker is to fill it. The
-    // field's own Upload does the naming, which is what makes the folder.
+
+    // Row mode: upload straight onto the record, or take its picture off.
+    if (e.target.closest("[data-rowup]")) return void $("#picker").querySelector("[data-rowfile]").click();
+    if (e.target.closest("[data-prm]")) {
+      const it = PICK_ROW;
+      PICK_ROW = null;
+      $("#picker").hidden = true;
+      // No confirmation: this takes the picture OFF the record, it does not
+      // delete the file. The library's Delete is the one that warns.
+      return void saveImgOnly(it, "");
+    }
+
+    // The folder is empty, so the way out of the picker is to fill it.
     if (e.target.closest("[data-pup]")) {
+      // In row mode there is no field to upload into — the picker's own file
+      // input is the one that does the naming. Without this branch, PICK_FOR
+      // is null here and the button throws instead of opening anything.
+      if (PICK_ROW) return void $("#picker").querySelector("[data-rowfile]").click();
       $("#picker").hidden = true;
       return void PICK_FOR.querySelector("[data-file]").click();
     }
     const b = e.target.closest("[data-key]");
     if (b) pickChoose(b.getAttribute("data-key"));
+  });
+
+  $("#picker").addEventListener("change", (e) => {
+    const f = e.target.closest("[data-rowfile]");
+    if (!f) return;
+    const file = f.files && f.files[0];
+    // Cleared so choosing the same file twice in a row still fires change.
+    f.value = "";
+    uploadForRow(file);
   });
 
   $("#mgroups").addEventListener("click", (e) => {
@@ -2835,7 +3146,21 @@ export const FORMS_CSS = String.raw`
  .steprail .pvstep.on i{background:var(--accent);border-color:var(--accent)}
  /* One step's fields. The heading is the step's own name, so it is a title
     rather than the divider it is inside a sub-group. */
- .step > h3.sec{margin:0 0 12px;border-top:0;padding-top:0;font-size:12px;color:var(--ink)}
+ /* ---- a step, as a panel -------------------------------------------------
+    The fields were laid straight onto the drawer's background under a small
+    grey heading, so a step with nine fields in it read as one undifferentiated
+    wall — the heading was the only thing separating "Where it is" from "What
+    it costs" and it weighed less than any label under it.
+    A step is a card now: its own ground, its own edge, and a heading that is
+    the largest thing in it. Same fields, same order; what changed is that the
+    eye is told where a thought starts and stops. */
+ .step{background:var(--paper);border:1px solid var(--line);border-radius:14px;
+   padding:18px 20px 20px;box-shadow:0 1px 2px rgba(28,24,21,.04)}
+ .step > h3.sec{margin:0 0 4px;border-top:0;padding-top:0;font-size:16px;color:var(--ink);
+   text-transform:none;letter-spacing:0;font-weight:700}
+ /* The step's own line of explanation, under its heading. */
+ .step > .sechint{margin:0 0 16px;font-size:13px;color:var(--muted);line-height:1.5;
+   padding-bottom:14px;border-bottom:1px solid var(--line)}
  .modes{display:flex;gap:2px;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:2px}
  .modes button{background:none;border:0;color:var(--muted);padding:6px 13px;border-radius:7px;font-size:13px}
  .modes button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(28,24,21,.12)}
@@ -3071,6 +3396,12 @@ export const FORMS_CSS = String.raw`
  .geo{margin-top:4px}
  .gmap{height:240px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg)}
  .gmap.tall{height:320px}
+ /* The layer switch. One word, the size of a label — see newMap for what it
+    replaced and why the corner it sits in matters. */
+ .maplayer{background:var(--paper);border:1px solid var(--line);border-radius:7px;
+   padding:5px 9px;font-size:11.5px;font-weight:700;color:var(--ink);cursor:pointer;
+   box-shadow:0 1px 3px rgba(28,24,21,.18);letter-spacing:.02em}
+ .maplayer:hover{border-color:var(--accent);color:var(--accent)}
  .leaflet-container{font:inherit;font-size:12px}
  .gsearch{display:flex;gap:8px;margin-bottom:8px}
  .gsearch input{margin:0}
@@ -3104,6 +3435,14 @@ export const FORMS_CSS = String.raw`
  .craw{margin-top:10px}
  .craw summary{font-size:12px;color:var(--muted);cursor:pointer}
  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+ /* The empty state spans the grid instead of being laid out as two pictures —
+    see where it is built. */
+ .pkempty{grid-column:1/-1;display:flex;flex-direction:column;align-items:center;gap:12px;
+   text-align:center;padding:38px 20px;color:var(--muted);
+   border:1px dashed var(--line);border-radius:12px;background:var(--bg)}
+ .pkempty p{margin:0;font-size:14px;max-width:46ch;line-height:1.6}
+ .pkempty .pkalt{font-size:12.5px}
+ .pkempty code{background:var(--paper);padding:2px 6px;border-radius:5px;font-size:12.5px}
  .pk{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;text-align:center}
  .pk img{width:100%;height:76px;object-fit:cover;border-radius:5px;display:block}
  .pk small{display:block;font-size:10px;color:var(--muted);margin-top:4px;overflow:hidden;
@@ -3216,12 +3555,25 @@ export const FORMS_CSS = String.raw`
  /* The photograph column. A missing picture and a WRONG id have to look
     different — both are empty frames otherwise, and only one is a mistake. */
  .tpic{width:64px}
+ /* The whole cell is one button — see the comment where it is built. It has to
+    read as pressable without shouting, so the affordance is a hover state and
+    a word that appears over the picture, not a border competing with the row. */
+ .picbtn{position:relative;display:block;padding:0;border:0;background:none;cursor:pointer;
+   border-radius:6px;line-height:0}
+ .picbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
  .tpic img{width:56px;height:42px;object-fit:cover;border-radius:5px;border:1px solid var(--line);display:block}
  .tpic img.bad{display:none}
  .tpic .nopic{display:inline-block;font-size:10px;color:var(--muted);
-   border:1px dashed var(--line);border-radius:5px;padding:12px 4px;width:56px;text-align:center}
+   border:1px dashed var(--line);border-radius:5px;padding:12px 4px;width:56px;text-align:center;
+   line-height:1.2}
  .tpic img + .nopic{display:none}
  .tpic img.bad + .nopic{display:inline-block;color:var(--bad);border-color:var(--bad);font-weight:700}
+ .picedit{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+   border-radius:5px;background:rgba(28,24,21,.62);color:#fff;font-size:10px;font-weight:700;
+   letter-spacing:.06em;text-transform:uppercase;opacity:0;transition:opacity .12s;line-height:1}
+ .picbtn:hover .picedit,.picbtn:focus-visible .picedit{opacity:1}
+ .picbtn:hover img{border-color:var(--accent)}
+ .picbtn:hover .nopic{border-color:var(--accent);border-style:solid;color:var(--accent)}
  /* ---- the shape of a form -------------------------------------------------
     Two columns, and every control in a row starting on the same line.
  *
@@ -3246,6 +3598,11 @@ export const FORMS_CSS = String.raw`
  .sfields > .fld[data-t="geo"],.sfields > .fld[data-t="pts"],
  .sfields > .fld[data-t="days"],.sfields > .fld[data-t="imgs"],
  .sfields > .fld[data-t="csv"],
+ /* "places" holds chips, a search box AND a map. In half a row the map was
+    340px wide and five tagged temples wrapped to three lines of chips beside
+    an empty column, because the field sharing the row was a dropdown with two
+    options in it. A control's width should follow what is inside it. */
+ .sfields > .fld[data-t="places"],
  .sub > .fld[data-t="loc"],.sub > .fld[data-t="locarea"],
  .sub > .fld[data-t="list"],.sub > .fld[data-t="obj"]{grid-column:1/-1}
  /* Browsers without subgrid get the old ragged rows rather than a broken page:
@@ -3316,6 +3673,12 @@ export const FORMS_HTML = String.raw`
    <code id="pickwhere"></code>
    <span style="flex:1"></span>
    <button class="ghost sm" type="button" data-pall hidden></button>
+   <!-- These three appear only when the picker was opened from a table row.
+        Uploading a new one and taking the old one off are both wanted at the
+        same moment as changing it; inside the form they live on the field. -->
+   <button class="primary sm" type="button" data-rowup hidden>Upload a photograph…</button>
+   <input type="file" data-rowfile accept="image/*" hidden>
+   <button class="danger sm" type="button" data-prm hidden>Remove the photograph</button>
    <button class="ghost" type="button" data-pclose>Done</button>
   </div>
   <div class="grid" id="pickgrid"></div>

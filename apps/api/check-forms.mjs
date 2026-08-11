@@ -241,8 +241,14 @@ for (const [kind, fields] of Object.entries(SPEC)) {
 
      There is no DOM here, so this proves the two halves of that agree rather
      than querying the result: the wrapper is emitted in the exact shape the
-     selector describes, and each field lands in its own step. */
-  const wrap = html.match(/<div class="step" data-step="\d+" hidden><h3 class="sec">[^<]*<\/h3><div class="sfields">/g) || [];
+     selector describes, and each field lands in its own step.
+
+     What it must NOT pin is anything between the heading and the fields. It
+     used to require the two be adjacent, so adding a line of explanation under
+     a step heading failed this with "no longer emits the wrapper" — which is
+     not what had happened and sends you looking in the wrong place. `.sfields`
+     is a CHILD of `.step`, and that is the whole of what readGroup needs. */
+  const wrap = html.match(/<div class="step" data-step="\d+" hidden><h3 class="sec">[^<]*<\/h3>(?:<p class="sechint">[^<]*<\/p>)?<div class="sfields">/g) || [];
   assert.equal(wrap.length, steps.length,
     kind + ": groupHtml no longer emits the step > sfields wrapper readGroup selects through");
 

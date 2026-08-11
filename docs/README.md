@@ -14,7 +14,7 @@ copy of everything that keeps working when neither answers.
 | If you want to… | Read |
 |---|---|
 | know what is finished and what is not | **[TASKS.md](TASKS.md)** — the only file that claims completion |
-| know what changed on a given day, and why | **[tasks/](tasks/)** — one file per date, `YYYY-MM-DD.md` |
+| know what changed on a given day, and why | **[tasks/](tasks/)** — a checklist per date; [the format](tasks/README.md) is two lines an item |
 | find a config value, or grant admin access | **[15](15-environment.md)** |
 | understand the whole system | [01-architecture.md](01-architecture.md) |
 | **deploy the Neon cut-over** | **[16](16-the-neon-cutover.md)** — step by step, in order, with the rollback |

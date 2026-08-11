@@ -5,7 +5,8 @@ import { ongoing, upcoming, type EventDef } from "@/data/events";
 import { imgUrl } from "@/data/images";
 import { byId } from "@/shared/lib/geo";
 import { isoToday, daysBetween } from "@/shared/lib/datetime";
-import { shortDate, planForEvent } from "@/features/planner/plan";
+import { shortDate } from "@/features/planner/plan";
+import { go } from "@/app/nav";
 import { Icon } from "@/shared/icons/Icon";
 import { useRail } from "./useRail";
 
@@ -69,9 +70,14 @@ export function EventRail() {
               <button
                 key={e.id}
                 className={"ev-slide" + (live ? " live" : "")}
-                onClick={() => planForEvent(e)}
+                /* The card opens the EVENT, not the planner.
+                   It used to go straight into "how long do you have?", which
+                   answers a question the reader has not asked yet: somebody
+                   who has just seen "in 24 days" is deciding whether to come
+                   at all. Planning is still one tap, one screen later. */
+                onClick={() => go("/event/" + e.id)}
                 aria-label={
-                  nm(e.name) + " — " + kicker(e, today) + ". " + nm({ en: "Plan a visit", hi: "यात्रा की योजना बनाएँ" })
+                  nm(e.name) + " — " + kicker(e, today) + ". " + nm({ en: "See the details", hi: "विवरण देखें" })
                 }
               >
                 <span className="ev-img">{img && <img src={img} alt="" loading="lazy" />}</span>
@@ -89,7 +95,7 @@ export function EventRail() {
                     {nm(e.blurb)}
                   </span>
                   <span className="ev-cta">
-                    {nm({ en: "Plan around it", hi: "इसके अनुसार योजना बनाएँ" })}
+                    {nm({ en: "See what is on", hi: "क्या है, देखें" })}
                     <Icon name="fwd" />
                   </span>
                 </span>
