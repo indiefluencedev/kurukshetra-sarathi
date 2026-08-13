@@ -37,6 +37,25 @@ export const imgUrl = (id?: string): string | undefined =>
   id ? `${MEDIA}/img/${encodeURIComponent(id)}.webp` : undefined;
 
 /**
+ * What a photograph shows, in words.
+ *
+ * Every picture in the app was announced as the place's name or as nothing at
+ * all, because there was nowhere to say anything else: a document held ids and
+ * no room for a sentence about one. The dashboard now writes an `alt` map on
+ * the record, keyed by photograph id, and this is the one place that reads it.
+ *
+ * The fallback is the record's name rather than "" — for the FIRST picture,
+ * where the name is a true description of what is on screen. A caller drawing a
+ * second or third shot of the same place passes "" instead, because repeating
+ * the name three times tells a screen reader nothing it has not just heard.
+ */
+export const photoAlt = (
+  rec: { alt?: Record<string, string> } | undefined,
+  id: string | undefined,
+  fallback: string,
+): string => (id && rec?.alt?.[id]) || fallback;
+
+/**
  * The seal, and it stays in the bundle.
  *
  * Deliberately not in R2 with the rest. This is not content — nobody is going

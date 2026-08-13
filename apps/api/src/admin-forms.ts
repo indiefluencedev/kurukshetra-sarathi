@@ -37,7 +37,10 @@ export const FORMS_JS = String.raw`
      csv   comma list -> array of strings
      sel   dropdown        time    HH:MM
      days  weekday checkboxes -> [0..6]
-     img   one image id    imgs    several
+     photos  every photograph on the record, in order. Like geo, its value is
+             not one key: it writes img (the first, the record's face), gallery
+             (the rest) and alt (id -> the line a screen reader and a search
+             engine get). max:1 for a record that has one picture and no gallery.
      obj   fixed sub-object (of: fields)
      list  repeating group (of: fields)
      geo   a map. Searches, pins, and writes lat AND lng onto the parent —
@@ -56,8 +59,7 @@ const SPEC = {
     { k:"lat", t:"geo", lb:"Where it is", req:1, sec:"Where it is",
       hint:"Search for it, or click the map. Drag the pin to correct it. Put the pin where a visitor actually arrives — the gate, not the middle of the grounds." },
     { k:"placeId", t:"text", lb:"Google place id", hint:"Optional. Lets Directions open the right pin rather than a coordinate.", ph:"ChIJL6JHE1ZHDjkRLrWe5di8dqg" },
-    { k:"img", t:"img", lb:"Main photograph", sec:"Photographs" },
-    { k:"gallery", t:"imgs", lb:"More photographs" },
+    { k:"img", t:"photos", lb:"Photographs", sec:"Photographs" },
     { k:"visit", t:"obj", lb:"How long people spend", sec:"When to come", of:[
       { k:"rec", t:"num", lb:"Usually (minutes)", req:1, hint:"What the planner budgets.", ph:"60" },
       { k:"min", t:"num", lb:"Rushed (minutes)", ph:"30" },
@@ -121,8 +123,7 @@ const SPEC = {
     ] },
     { k:"phone", t:"text", lb:"Phone", hint:"The number someone should actually ring. With the STD code.", ph:"01744-220123" },
     { k:"note", t:"locarea", lb:"What a local would tell you", ph:"Simple rooms, no food. Ask for one on the sarovar side.", phHi:"साधारण कमरे, भोजन नहीं। सरोवर की ओर का कमरा माँगें।" },
-    { k:"img", t:"img", lb:"Photograph", sec:"Photographs" },
-    { k:"gallery", t:"imgs", lb:"More photographs" },
+    { k:"img", t:"photos", lb:"Photographs", sec:"Photographs" },
     { k:"facilities", t:"csv", lb:"Facilities", hint:"Comma separated. Known: ${FACILITIES}", ph:"washroom, water, parking" },
     { k:"pending", t:"bool", lb:"Hide from the app", hint:"For somewhere that has closed." },
   ],
@@ -157,7 +158,7 @@ const SPEC = {
       phHi:"जिले के हर कृष्ण मंदिर में मध्यरात्रि आरती, झांकियाँ और कीर्तन।", hint:"One sentence, shown on the banner." },
     { k:"notice", t:"locarea", lb:"Warning", req:1, ph:"Come before 7pm or park at the university and walk.",
       phHi:"शाम 7 बजे से पहले आएँ, या विश्वविद्यालय में पार्क कर पैदल चलें।", hint:"What a visitor should do differently." },
-    { k:"img", t:"img", lb:"Banner photograph", sec:"The banner",
+    { k:"img", t:"photos", max:1, lb:"Banner photograph", sec:"The banner",
       hint:"Runs the full width of the home screen. It is cropped to 16:9 there, so a picture of another shape loses its top and bottom — the preview below says so if it will." },
     { k:"from", t:"date", lb:"First day", req:1, sec:"When" },
     { k:"to", t:"date", lb:"Last day", req:1, hint:"The same as the first day for a one-day event." },
@@ -209,7 +210,7 @@ const SPEC = {
     { k:"id", t:"text", lb:"Id", req:1, sec:"What it is", hint:"Usually the place's own id.", ph:"brahma-sarovar" },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"],
       hint:"Whose home screen it opens on. A visitor in Pehowa must not be shown Brahma Sarovar under a header that says Pehowa." },
-    { k:"img", t:"img", lb:"Photograph",
+    { k:"img", t:"photos", max:1, lb:"Photograph",
       hint:"Optional. Leave it empty and the place's own main photograph is used — which is usually the right " +
            "answer, and one picture instead of two. Set one only when the home screen wants a wider crop; it " +
            "fills the top of the screen at 16:9." },
@@ -374,29 +375,40 @@ function fieldHtml(f, v) {
     inner = '<div class="days">' + DAYS.map((d, i) =>
       '<label class="chk"><input data-i="' + i + '" type="checkbox"' +
       (Array.isArray(v) && v.indexOf(i) >= 0 ? " checked" : "") + "> " + d + "</label>").join("") + "</div>";
-  } else if (t === "img" || t === "imgs") {
-    /* The photographs themselves, then the ways to add one.
+  } else if (t === "photos") {
+    /* Every photograph on the record, in one place.
      *
-     * This used to be a text box holding "brahma-sarovar-1, brahma-sarovar-2"
-     * and a Pick button — which asks an editor to know the id of a picture
-     * before they can attach it, and offers no way at all to attach one that
-     * is not in the bucket yet. Getting a photograph off a phone and onto a
-     * place meant going to the Photographs screen, choosing the place from a
-     * dropdown to name the file, uploading, coming back, and typing the id.
+     * It was two fields — "Main photograph" and "More photographs" — because
+     * that is how the document stores it: one "img" key and a "gallery" array.
+     * That is a storage detail, and it was being put to the editor as a
+     * question. It made the same act ("add a picture of this temple") two
+     * different jobs with two upload buttons, and it made "this one should be
+     * the face" a matter of taking a picture off one field and re-attaching it
+     * to the other. The first block also drew a Main badge on a photograph that
+     * was already alone under a heading saying Main.
      *
-     * So: the pictures are the field, Upload is the first button, and the ids
-     * are folded away underneath. The text input survives down there because
-     * it is still the VALUE — readField reads it and knows nothing about any
-     * of this, exactly as the corridor map writes into its textarea.
+     * So: one grid, in the order the app shows them, and the first one is the
+     * face. "img" and "gallery" are still what gets SAVED — readGroup splits
+     * them back apart, the way geo writes lat and lng — so no document changed
+     * and the app reads exactly what it read before.
+     *
+     * The ids stay folded away underneath because they are still the value:
+     * readField reads that one input for the order, and pasting a list someone
+     * sent you is still the fastest way in.
      */
-    const val = t === "imgs" ? (Array.isArray(v) ? v.join(", ") : "") : (v == null ? "" : v);
-    const many = t === "imgs";
+    const many = f.max !== 1;
+    const ids = many
+      ? [v && v.img, ...((v && v.gallery) || [])].filter(Boolean)
+      : [v && v.img].filter(Boolean);
+    // Seeded here and kept in step by paintPhotos; altsOf merges it with
+    // whatever is being typed into the cards right now.
+    const alts = (v && v.alt) || {};
     inner = '<div class="imgf">' +
-      '<div class="thumbs" data-thumbs></div>' +
+      '<div class="pgrid" data-thumbs></div>' +
       '<div class="imgbar">' +
         '<button type="button" class="primary sm" data-up>Upload ' +
           (many ? "photographs…" : "a photograph…") + "</button>" +
-        '<button type="button" class="ghost sm" data-pick="' + t + '">Choose from the library</button>' +
+        '<button type="button" class="ghost sm" data-pick="' + (many ? "many" : "one") + '">Choose from the library</button>' +
         // The real file input, driven by the button above it. A bare file input
         // says "No file chosen" in a system font nobody can style and gives no
         // hint that several may be picked at once.
@@ -407,9 +419,10 @@ function fieldHtml(f, v) {
       // discovered afterwards in the library.
       '<div class="foldnote" data-fold></div>' +
       '<div class="upnote" data-upnote></div>' +
+      '<input type="hidden" data-alts value="' + ek(JSON.stringify(alts)) + '">' +
       '<details class="idraw"><summary>' +
         (many ? "Type the photograph ids instead" : "Type the photograph id instead") +
-        '</summary><input data-i type="text" value="' + ek(val) + '" placeholder="' +
+        '</summary><input data-i type="text" value="' + ek(ids.join(", ")) + '" placeholder="' +
         (many ? "brahma-sarovar-1, brahma-sarovar-2" : "brahma-sarovar") + '"></details></div>';
   } else if (t === "geo") {
     // ONE field that writes two keys. A latitude box and a longitude box asked
@@ -480,6 +493,7 @@ function fieldHtml(f, v) {
     ? ' data-when-k="' + ek(f.when.k) + '" data-when-is="' + ek(f.when.is.join("|")) + '"'
     : "";
   return '<div class="fld" data-k="' + ek(f.k) + '" data-t="' + ek(t) + '"' + when +
+    (f.max === 1 ? ' data-max="1"' : "") +
     '><label class="fl">' + lb +
     hintOf(f) + '</label><div class="ctl">' + inner + "</div></div>";
 }
@@ -520,7 +534,7 @@ const SEC_HINT = {
   "When": "The days it runs. The app counts down to the first one and says “happening now” between them.",
   "Where, and what it does to the day": "Which places it touches, and how much it slows a visit down. This is what the planner reads when it builds someone's day.",
   "Where it is": "The pin. Every route the app draws starts or ends at this exact point.",
-  "Photographs": "What the app shows. The first one is the face of this record everywhere it appears.",
+  "Photographs": "What the app shows, in the order it shows them — the first one is the face of this record everywhere it appears. The line under each picture is what a screen reader reads out and what a search engine indexes.",
   "What it costs": "Indicative only. A tariff card is never one number, and the app says “from”.",
 };
 
@@ -536,8 +550,10 @@ function stepsOf(fields) {
 }
 
 function groupHtml(fields, obj, top) {
-  // "geo" is the one field whose value is the object around it, not a key in it.
-  const val = (f) => f.t === "geo" ? obj : (obj ? obj[f.k] : undefined);
+  // "geo" and "photos" are the fields whose value is the object around them,
+  // not one key in it — a map writes lat and lng, a photograph grid writes img,
+  // gallery and alt. See readGroup for the other half.
+  const val = (f) => f.t === "geo" || f.t === "photos" ? obj : (obj ? obj[f.k] : undefined);
   if (!top) {
     let sec = "";
     return fields.map(f => {
@@ -590,12 +606,47 @@ function readGroup(fields, root) {
     // A map writes lat AND lng, so its value merges rather than nesting. It is
     // keyed on "lat" so the required check downstream needs no special case.
     if (f.t === "geo") { if (v) { out.lat = v.lat; out.lng = v.lng; } continue; }
+    /* One grid, three keys. The first photograph is the record's face and is
+       what every list in the app reads, so it stays in "img" exactly as before;
+       the rest are the gallery; the alt lines are keyed by photograph id so
+       they survive reordering and follow the picture, not the position. */
+    if (f.t === "photos") {
+      if (v) {
+        out.img = v.img;
+        if (v.gallery) out.gallery = v.gallery;
+        if (v.alt) out.alt = v.alt;
+      }
+      continue;
+    }
     // Absent rather than empty: the app treats a missing field and an empty one
     // the same, and documents that carry "" for every unanswered field are
     // twice the size and much harder to read in the database.
     if (v !== undefined) out[f.k] = v;
   }
   return out;
+}
+
+/**
+ * One grid of photographs, as the three keys a document actually holds.
+ *
+ * Kept out of readField and free of the DOM so that it can be called for real
+ * by check-forms: this is the step where a place's face is decided, and getting
+ * it wrong — the wrong id in "img" — is invisible in the form and wrong in
+ * every list in the app.
+ *
+ * A description whose photograph is no longer attached is dropped. Taking a
+ * picture off a record leaves its line in the field, so that putting it back is
+ * free; this is what keeps it out of the saved document.
+ */
+function splitPhotos(ids, alts) {
+  if (!ids.length) return undefined;
+  const alt = {};
+  for (const id of ids) if (alts[id]) alt[id] = alts[id];
+  return {
+    img: ids[0],
+    gallery: ids.length > 1 ? ids.slice(1) : undefined,
+    alt: Object.keys(alt).length ? alt : undefined,
+  };
 }
 
 function readField(f, el) {
@@ -644,11 +695,7 @@ function readField(f, el) {
     }).filter(p => !isNaN(p.lat) && !isNaN(p.lng));
     return rows.length ? rows : undefined;
   }
-  if (t === "img") { const s = one().value.trim(); return s || undefined; }
-  if (t === "imgs") {
-    const a = one().value.split(",").map(s => s.trim()).filter(Boolean);
-    return a.length ? a : undefined;
-  }
+  if (t === "photos") return splitPhotos(idsOf(el), altsOf(el));
   if (t === "obj") {
     const o = readGroup(f.of, el.querySelector("[data-group]"));
     return Object.keys(o).length ? o : undefined;
@@ -1672,7 +1719,7 @@ let MODE = "form";    // "form" or "json" — two ways into the same record
 /** The fields only. cForm resets the editor around them; applyJSON does not. */
 function drawForm(obj) {
   $("#cform").innerHTML = groupHtml(cSpec(), obj || {}, true);
-  $("#cform").querySelectorAll("[data-thumbs]").forEach(paintThumbs);
+  $("#cform").querySelectorAll("[data-thumbs]").forEach(paintPhotos);
   /* A record with no id yet is a NEW one, and its id may be made from its name.
      One that has an id keeps it, always: an id is the key the record is stored
      under, so changing it does not rename anything — it writes a second record
@@ -1936,7 +1983,17 @@ function applyJSON() {
 /** Every key the form can actually save. geo is two keys under one field. */
 function keySet(fields) {
   const o = {};
-  fields.forEach(f => { if (f.t === "geo") { o.lat = 1; o.lng = 1; } else o[f.k] = 1; });
+  fields.forEach(f => {
+    if (f.t === "geo") { o.lat = 1; o.lng = 1; return; }
+    // One control, three keys — the same shape geo has. See splitPhotos.
+    if (f.t === "photos") {
+      o.img = 1;
+      if (f.max !== 1) o.gallery = 1;
+      o.alt = 1;
+      return;
+    }
+    o[f.k] = 1;
+  });
   return o;
 }
 
@@ -1948,6 +2005,15 @@ function jsonTemplate(fields) {
   const out = {};
   for (const f of fields) {
     if (f.t === "geo") { out.lat = 29.961355; out.lng = 76.828553; continue; }
+    /* The grid is three keys, and the template has to show the shape that is
+       actually stored — somebody editing the JSON is editing img and gallery,
+       not a key called "photos", which does not exist in any document. */
+    if (f.t === "photos") {
+      out.img = "brahma-sarovar";
+      if (f.max !== 1) out.gallery = ["brahma-sarovar-2"];
+      out.alt = { "brahma-sarovar": "The ghats at sunset" };
+      continue;
+    }
     out[f.k] = exampleOf(f);
   }
   return out;
@@ -1964,7 +2030,7 @@ function exampleOf(f) {
   if (t === "csv") return f.ph ? f.ph.split(",").map(s => s.trim()) : [];
   if (t === "sel") return f.opts[0];
   if (t === "loc" || t === "locarea") return { en: f.ph || "", hi: f.phHi || "" };
-  if (t === "days" || t === "imgs" || t === "pts") return [];
+  if (t === "days" || t === "pts") return [];
   if (t === "obj") return jsonTemplate(f.of);
   if (t === "list") return [jsonTemplate(f.of)];
   return f.ph || "";   // text, time, date, area, img
@@ -1976,6 +2042,16 @@ function refHtml(fields, prefix) {
     if (f.t === "geo") {
       return '<div class="jr"><code>lat</code> <code>lng</code><span>' + ek(f.lb) +
         ' <em class="req">required</em> — decimal degrees. Latitude is the one near 29.</span></div>';
+    }
+    // Three keys from one control, so the reference lists the keys — that is
+    // what somebody in the JSON view has in front of them.
+    if (f.t === "photos") {
+      return '<div class="jr"><code>img</code><span>' + ek(f.lb) +
+        " — the first photograph, and the face of this record everywhere.</span></div>" +
+        (f.max === 1 ? "" :
+          '<div class="jr"><code>gallery</code><span>The rest, in order — a list of photograph ids.</span></div>') +
+        '<div class="jr"><code>alt</code><span>Photograph id → the line describing it, ' +
+        "for screen readers and search engines.</span></div>";
     }
     const kids = (f.t === "obj" || f.t === "list") ? refHtml(f.of, prefix + f.k + ".") : "";
     return '<div class="jr"><code>' + ek(prefix + f.k) + "</code><span>" + ek(f.lb) +
@@ -1999,8 +2075,7 @@ function allowOf(f) {
   if (t === "time") return "“HH:MM”, 24-hour";
   if (t === "date") return "“YYYY-MM-DD”";
   if (t === "days") return "a list of day numbers, 0 is Sunday";
-  if (t === "img") return "one photograph id, no extension";
-  if (t === "imgs") return "a list of photograph ids";
+  if (t === "photos") return "photograph ids, no extension";
   if (t === "pts") return "a list of { “lat”, “lng” }";
   if (t === "obj") return "an object with the keys below";
   if (t === "list") return "a list of objects with the keys below";
@@ -2180,8 +2255,18 @@ function checksHtml(doc) {
   };
   walk(spec, doc, "");
 
-  if (spec.some(f => f.t === "img") && !doc.img)
+  if (spec.some(f => f.t === "photos") && !doc.img)
     out.push([0, "No photograph — the app will draw an empty frame here"]);
+  /* A photograph with no line describing it is not broken, so this is a note
+     and not a failure — but it is invisible until somebody is using a screen
+     reader or looking for this place on Google, and neither of them is in the
+     room when it is being saved. */
+  const noAlt = [doc.img, ...(doc.gallery || [])]
+    .filter(k => k && !((doc.alt || {})[k]));
+  if (noAlt.length)
+    out.push([0, noAlt.length === 1
+      ? "One photograph has no description — say what is in it, on the Photographs step"
+      : noAlt.length + " photographs have no description — say what is in them, on the Photographs step"]);
   if (hasGeo && doc.lat == null) out.push([1, "No location pinned"]);
   else if (hasGeo && !inBox({ lat: doc.lat, lng: doc.lng }))
     out.push([1, "The pin is outside Kurukshetra district — check the two numbers are not the wrong way round"]);
@@ -2313,7 +2398,7 @@ function checkAspect(img) {
   if (!want || !got) return;
   // A tenth off is a crop nobody will notice. This is for the wrong SHAPE.
   if (Math.abs(got - want) / want < 0.1) return;
-  const th = img.closest(".th");
+  const th = img.closest(".pc");
   if (!th) return;
   th.classList.add("wrongar");
   th.setAttribute("data-armsg", img.naturalWidth + "×" + img.naturalHeight + " — " +
@@ -2321,61 +2406,172 @@ function checkAspect(img) {
                 : "wider than the frame, so the sides will be cut off"));
 }
 
-/** Little previews under an image field, so a wrong id is visible immediately. */
+/** Does this field hold a gallery, or the one picture a banner is? */
+const manyOf = (fld) => fld.getAttribute("data-max") !== "1";
+
+/** The ids on this field, in order. The one input that is the value. */
+const idsOf = (fld) =>
+  fld.querySelector("[data-i]").value.split(",").map(s => s.trim()).filter(Boolean);
+
+/**
+ * The alt line for every photograph on this field.
+ *
+ * Two places hold it and this is what reconciles them: the hidden input carries
+ * what the record was loaded with, and the card inputs carry what is being
+ * typed right now. The cards win, and they only exist for photographs currently
+ * on the record — so a line typed against a picture, taken off and put back
+ * again, comes back with it.
+ */
+function altsOf(fld) {
+  const store = fld.querySelector("[data-alts]");
+  let out = {};
+  try { out = JSON.parse(store.value) || {}; } catch (e) { out = {}; }
+  fld.querySelectorAll("[data-alt]").forEach(inp => {
+    const v = inp.value.trim();
+    if (v) out[inp.getAttribute("data-alt")] = v;
+    else delete out[inp.getAttribute("data-alt")];
+  });
+  return out;
+}
+
 /**
  * The photographs on this record, in the order the app will show them.
  *
- * ORDER IS THE POINT, and it was the half that was missing. A place carries up
- * to three and the first one is its face — on the home rail, in every list, at
- * the top of its own page — so "which one is first" is an editorial decision
- * somebody has to be able to make. Until now the only way to make it was to
- * take all three off and re-attach them in the right sequence, which is why
- * the field's own drawer of comma-separated ids was still being used as the
- * real control.
+ * ORDER IS THE POINT. A place carries up to three and the first one is its face
+ * — on the home rail, in every list, at the top of its own page — so "which one
+ * is first" is an editorial decision somebody has to be able to make, and it is
+ * made here rather than by moving a picture between two fields.
+ *
+ * Each card carries everything there is to say about one photograph: what it
+ * looks like, what it is called, what it is a picture of, and where it sits.
+ * Two of those are new, and both are things that could previously only be
+ * fixed by uploading the file again under a better name:
+ *
+ *  - THE NAME is editable in place. A bucket full of img-4821 is a library
+ *    nobody can search, and the name is also the id every document points at,
+ *    so renaming is a real move of the object and a rewrite of this field.
+ *  - THE ALT LINE is what a screen reader reads out and what a search engine
+ *    indexes. Nothing in the app could say it before, so every photograph the
+ *    app shows is currently announced as the place's name or as nothing at all.
  *
  * Move and Make main are buttons rather than a drag: the Board uses this on a
  * laptop trackpad and a tablet, a drag needs a target the size of a thumbnail
  * to be dropped on, and the whole list is three items long.
  */
-function paintThumbs(box) {
+function paintPhotos(box) {
   const fld = box.closest(".fld");
-  const input = fld.querySelector("[data-i]");
-  const many = fld.getAttribute("data-t") === "imgs";
-  const ids = input.value.split(",").map(s => s.trim()).filter(Boolean);
-  // An empty field has to say it is empty. A blank strip where the pictures go
-  // looks identical to a strip that has not loaded yet.
+  const many = manyOf(fld);
+  const ids = idsOf(fld);
+  const alts = altsOf(fld);
+  // Read back out of the cards before they are thrown away, so a line being
+  // typed survives the repaint that a rename or a reorder causes.
+  fld.querySelector("[data-alts]").value = JSON.stringify(alts);
+
+  // An empty field has to say it is empty. A blank grid where the pictures go
+  // looks identical to a grid that has not loaded yet.
   box.innerHTML = ids.length ? ids.map((id, i) =>
-    '<span class="th' + (many && !i ? " main" : "") + '">' +
-    '<img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" decoding="async" data-ar="' + wantAR() + '" ' +
-    'onload="checkAspect(this)" onerror="this.parentNode.classList.add(\'miss\')">' +
-    (many && !i ? '<span class="mainbadge">Main</span>' : "") +
-    '<button type="button" class="rm" data-rm="' + ek(id) + '" title="Take this one off" ' +
-    'aria-label="Take ' + ek(id) + ' off this record">×</button>' +
-    (many && ids.length > 1
-      ? '<span class="thmove">' +
-          '<button type="button" data-mv="' + i + ':-1"' + (i ? "" : " disabled") +
-            ' title="Move earlier" aria-label="Move ' + ek(id) + ' earlier">&#8592;</button>' +
-          (i ? '<button type="button" data-mv="' + i + ':top" title="Make this the main one" ' +
-               'aria-label="Make ' + ek(id) + ' the main photograph">Main</button>' : "") +
-          '<button type="button" data-mv="' + i + ':1"' + (i === ids.length - 1 ? " disabled" : "") +
-            ' title="Move later" aria-label="Move ' + ek(id) + ' later">&#8594;</button>' +
-        "</span>"
-      : "") +
-    "<small>" + ek(id) + "</small></span>").join("")
+    '<figure class="pc' + (many && !i ? " main" : "") + '">' +
+    '<span class="pcshot">' +
+      '<img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" decoding="async" data-ar="' + wantAR() + '" ' +
+      'onload="checkAspect(this)" onerror="this.closest(\'.pc\').classList.add(\'miss\')">' +
+      (many && !i ? '<span class="mainbadge">Main</span>' : "") +
+      '<button type="button" class="rm" data-rm="' + ek(id) + '" title="Take this one off" ' +
+      'aria-label="Take ' + ek(id) + ' off this record">×</button>' +
+    "</span>" +
+    '<figcaption class="pcb">' +
+      /* The file name, edited where it is read. It is submitted on Enter or on
+         leaving the box — never on every keystroke, which would rename the
+         object once per letter typed. */
+      '<input class="pcname" data-ren="' + ek(id) + '" value="' + ek(id) + '" spellcheck="false" ' +
+        'aria-label="The name of this photograph" title="Rename this photograph">' +
+      '<input class="pcalt" data-alt="' + ek(id) + '" value="' + ek(alts[id] || "") + '" ' +
+        'placeholder="Describe it — “the ghats at sunset”" ' +
+        'aria-label="What this photograph shows">' +
+      (many && ids.length > 1
+        ? '<span class="thmove">' +
+            '<button type="button" data-mv="' + i + ':-1"' + (i ? "" : " disabled") +
+              ' title="Move earlier" aria-label="Move ' + ek(id) + ' earlier">&#8592;</button>' +
+            (i ? '<button type="button" data-mv="' + i + ':top" title="Make this the main one" ' +
+                 'aria-label="Make ' + ek(id) + ' the main photograph">Make main</button>' : "") +
+            '<button type="button" data-mv="' + i + ':1"' + (i === ids.length - 1 ? " disabled" : "") +
+              ' title="Move later" aria-label="Move ' + ek(id) + ' later">&#8594;</button>' +
+          "</span>"
+        : "") +
+    "</figcaption></figure>").join("")
     : '<span class="nothumbs">No photograph on this one yet.</span>';
 }
 
 /** Move the photograph at index i — one step either way, or to the front. */
 function moveThumb(fld, i, where) {
   const input = fld.querySelector("[data-i]");
-  const ids = input.value.split(",").map(s => s.trim()).filter(Boolean);
+  const ids = idsOf(fld);
   if (i < 0 || i >= ids.length) return;
   const j = where === "top" ? 0 : i + where;
   if (j < 0 || j >= ids.length) return;
   const [moved] = ids.splice(i, 1);
   ids.splice(j, 0, moved);
   input.value = ids.join(", ");
-  paintThumbs(fld.querySelector("[data-thumbs]"));
+  paintPhotos(fld.querySelector("[data-thumbs]"));
+}
+
+/**
+ * Rename the FILE, and everything on this record that points at it.
+ *
+ * A rename is not an edit to this document: the object moves in the bucket the
+ * moment it is committed, and every other record pointing at the old name would
+ * be left showing an empty frame. Nothing here can fix those — they are other
+ * documents, not on screen, and saving them behind the editor's back is worse
+ * than refusing — so a photograph another record uses is not renamed at all,
+ * and the message says which record to go and look at.
+ *
+ * The alt line moves with it, because it is keyed by the name.
+ */
+async function renamePhoto(fld, from, to) {
+  const box = fld.querySelector("[data-thumbs]");
+  const note = fld.querySelector("[data-upnote]");
+  const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
+  to = slug(to);
+  if (!to || to === from) return paintPhotos(box);
+
+  if (idsOf(fld).indexOf(to) >= 0) {
+    say("This record already has a photograph called " + to + ".", 1);
+    return paintPhotos(box);
+  }
+  // Every record that points at the old name, minus this one — which is about
+  // to be rewritten in the lines below.
+  const mine = slug(currentDoc().id);
+  const others = ((await usage())[from] || []).filter(u => u.label && u.id !== mine);
+  if (others.length) {
+    say("Cannot rename " + from + ": it is also on " + others.map(u => u.label).join(", ") +
+      ". Take it off those first, or upload a copy under the new name.", 1);
+    return paintPhotos(box);
+  }
+
+  // The extension is part of the object name and no part of the id, so it is
+  // carried over from whatever is actually in the bucket.
+  const cur = (await mediaList()).find(o => stemOf(o.key) === from);
+  const ext = cur ? cur.key.slice(from.length) : ".webp";
+  say("Renaming…");
+  const r = await api("/admin/media/rename?key=" + encodeURIComponent(from + ext) +
+    "&to=" + encodeURIComponent(to + ext), { method: "POST" });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    say(j.error || "Rename failed.", 1);
+    return paintPhotos(box);
+  }
+
+  const input = fld.querySelector("[data-i]");
+  input.value = idsOf(fld).map(x => x === from ? to : x).join(", ");
+  const alts = altsOf(fld);
+  if (alts[from]) { alts[to] = alts[from]; delete alts[from]; }
+  fld.querySelector("[data-alts]").value = JSON.stringify(alts);
+  MEDIA = null;                 // the bucket moved; the library must not cache past it
+  USES = null;
+  paintPhotos(box);
+  /* The file has already moved and the DATABASE still says the old name, so
+     this is not a "done" — it is a job half finished, and leaving now is what
+     breaks the picture. Said plainly for that reason. */
+  say("Renamed to " + to + ". Save this record now — until you do, the database still points at " + from + ".");
 }
 
 /* ---- uploading from the record itself --------------------------------------
@@ -2467,12 +2663,12 @@ async function putImage(file, key) {
  */
 async function uploadInto(fld, files) {
   if (!files || !files.length) return;
-  const many = fld.getAttribute("data-t") === "imgs";
+  const many = manyOf(fld);
   const input = fld.querySelector("[data-i]");
   const note = fld.querySelector("[data-upnote]");
   const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
 
-  const have = input.value.split(",").map(s => s.trim()).filter(Boolean);
+  const have = idsOf(fld);
   const base = slug(currentDoc().id);
   let n = 0;
 
@@ -2505,7 +2701,7 @@ async function uploadInto(fld, files) {
   }
 
   if (many) input.value = have.join(", ");
-  paintThumbs(fld.querySelector("[data-thumbs]"));
+  paintPhotos(fld.querySelector("[data-thumbs]"));
   // What every photograph is FOR is derived by reading the catalogues, and this
   // record has not been saved yet — but the bucket has changed, so the library
   // must not go on showing a list that predates these files.
@@ -2738,7 +2934,7 @@ function pickChoose(id) {
     input.value = id;
     $("#picker").hidden = true;
   }
-  paintThumbs(PICK_FOR.querySelector("[data-thumbs]"));
+  paintPhotos(PICK_FOR.querySelector("[data-thumbs]"));
 }
 
 /**
@@ -2771,7 +2967,9 @@ async function usage(force) {
   OWNER = {};
   const add = (key, group, label, id) => {
     if (!key) return;
-    (map[key] = map[key] || []).push({ group: group, label: label });
+    // The id as well as the label: renaming asks "is anything OTHER than the
+    // record on screen using this", and that is a question about ids.
+    (map[key] = map[key] || []).push({ group: group, label: label, id: id });
     // The first record to claim a photograph owns it. See folderOf.
     if (id && !OWNER[key]) OWNER[key] = id;
   };
@@ -2894,7 +3092,7 @@ function wireForms() {
     const del = e.target.closest("[data-del]");
     if (del) return del.closest(".lrow").remove();
     const pick = e.target.closest("[data-pick]");
-    if (pick) return pickImage(pick.closest(".fld"), pick.getAttribute("data-pick") === "imgs");
+    if (pick) return pickImage(pick.closest(".fld"), pick.getAttribute("data-pick") === "many");
 
     // The styled button in front of the real file input.
     const up = e.target.closest("[data-up]");
@@ -2928,7 +3126,7 @@ function wireForms() {
       const gone = rm.getAttribute("data-rm");
       input.value = input.value.split(",").map(s => s.trim())
         .filter(x => x && x !== gone).join(", ");
-      return paintThumbs(fld.querySelector("[data-thumbs]"));
+      return paintPhotos(fld.querySelector("[data-thumbs]"));
     }
 
     // Reordering a gallery. The first photograph is the record's face, so this
@@ -2941,6 +3139,12 @@ function wireForms() {
   });
 
   $("#editor").addEventListener("change", (e) => {
+    /* A committed rename — change fires when the box is left or Enter is
+       pressed, and never per keystroke, which is the whole reason this is not
+       on "input": a rename moves the object in the bucket. */
+    const ren = e.target.closest("[data-ren]");
+    if (ren) return void renamePhoto(ren.closest(".fld"), ren.getAttribute("data-ren"), ren.value);
+
     const file = e.target.closest("[data-file]");
     if (!file) return;
     const fld = file.closest(".fld");
@@ -2949,10 +3153,19 @@ function wireForms() {
     file.value = "";
   });
 
-  // Typing an id by hand should preview too, not only picking one.
+  // Enter in the name box means "do it now" rather than "submit the form".
+  $("#editor").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const ren = e.target.closest("[data-ren]");
+    if (ren) { e.preventDefault(); ren.blur(); }
+  });
+
+  // Typing an id by hand should preview too, not only picking one. ONLY that
+  // box: repainting the grid on every keystroke in a description or a name
+  // would rebuild the card being typed into and throw the caret away.
   $("#editor").addEventListener("input", (e) => {
-    const fld = e.target.closest('.fld[data-t="img"], .fld[data-t="imgs"]');
-    if (fld) paintThumbs(fld.querySelector("[data-thumbs]"));
+    const idbox = e.target.closest('.fld[data-t="photos"] [data-i]');
+    if (idbox) paintPhotos(idbox.closest(".fld").querySelector("[data-thumbs]"));
     // Touched by hand: it is theirs now, and autoId leaves it alone.
     if (e.target.closest('.fld[data-k="id"]')) e.target.setAttribute("data-auto", "");
     if (e.target.closest('.fld[data-k="name"], .fld[data-k="city"]')) autoId();
@@ -3322,8 +3535,11 @@ export const FORMS_CSS = String.raw`
     it cannot answer "is this the right photograph", which is the only question
     anybody is asking here. */
  .imgf{display:block}
- .imgbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
- .thumbs{display:flex;gap:10px;flex-wrap:wrap}
+ .imgbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+ /* Cards, not a strip of stamps. Each one now carries a name and a description
+    as well as the picture, so it needs width — and a grid that fills the row
+    puts three on a laptop and one on a tablet without a media query. */
+ .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
  .nothumbs{display:block;width:100%;text-align:center;font-size:12.5px;color:var(--muted);
    border:1px dashed var(--line);border-radius:9px;padding:16px 12px}
  .upnote{font-size:12.5px;color:var(--muted);margin-top:8px}
@@ -3393,46 +3609,63 @@ export const FORMS_CSS = String.raw`
  .foldnote code{background:var(--bg);border-radius:5px;padding:2px 7px;font-size:11.5px;color:var(--ink)}
  .idraw{margin-top:10px}
  .idraw summary{font-size:12px;color:var(--muted);cursor:pointer}
- .th{position:relative;width:96px;text-align:center}
- /* Off this record, not out of the bucket — so it does not ask, and the
-    library's Delete is still the one that warns. */
- .th .rm{position:absolute;top:-7px;right:-7px;width:21px;height:21px;padding:0;border-radius:99px;
-   background:var(--paper);border:1px solid var(--line);color:var(--bad);font-size:14px;
-   font-weight:700;line-height:1;box-shadow:0 1px 3px rgba(28,24,21,.22)}
- .th .rm:hover{background:var(--bad);border-color:var(--bad);color:#fff}
- .th img{width:96px;height:72px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block}
+ /* ---- one photograph ----
+    A card: the picture, then the two things about it a person can correct.
+    Everything is visible without hovering — the Board works on a tablet, and a
+    control that appears on hover is not a control there. */
+ .pc{position:relative;margin:0;background:var(--paper);border:1px solid var(--line);
+   border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
+ .pc:hover{border-color:var(--accent-line,#EFC08A)}
+ .pcshot{position:relative;display:block;aspect-ratio:4/3;background:var(--bg)}
+ .pcshot img{width:100%;height:100%;object-fit:cover;display:block}
  /* An event's picture is a banner across the top of the home screen, so it is
     previewed in the shape it will actually be seen in. A 4:3 thumbnail of a
     16:9 crop tells the editor nothing about what will be cut off. */
- .wide169 .th img,.wide169 .tpic img{width:112px;height:63px}
- .wide169 .th{width:112px}
+ .wide169 .pcshot{aspect-ratio:16/9}
+ .wide169 .tpic img{width:112px;height:63px}
  .wide169 .tpic{width:120px}
- .th small{display:block;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ /* Off this record, not out of the bucket — so it does not ask, and the
+    library's Delete is still the one that warns. */
+ .pc .rm{position:absolute;top:6px;right:6px;width:23px;height:23px;padding:0;border-radius:99px;
+   background:var(--paper);border:1px solid var(--line);color:var(--bad);font-size:15px;
+   font-weight:700;line-height:1;box-shadow:0 1px 4px rgba(28,24,21,.28)}
+ .pc .rm:hover{background:var(--bad);border-color:var(--bad);color:#fff}
  /* Which one is the face of this record, said on the picture rather than left
     to be inferred from its position in a row. */
- .th.main img{border-color:var(--accent);box-shadow:0 0 0 2px rgba(210,96,10,.28)}
- .mainbadge{position:absolute;left:5px;top:5px;background:var(--accent);color:#fff;font-size:9.5px;
-   font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:99px;
+ .pc.main{border-color:var(--accent);box-shadow:0 0 0 2px rgba(210,96,10,.2)}
+ .mainbadge{position:absolute;left:6px;top:6px;background:var(--accent);color:#fff;font-size:9.5px;
+   font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:99px;
    box-shadow:0 1px 3px rgba(28,24,21,.3)}
- /* The order controls. Under the picture, always visible — a hover-only
-    control is not a control on a tablet. */
- .thmove{display:flex;gap:3px;justify-content:center;margin-top:4px}
- .thmove button{padding:2px 7px;min-height:24px;font-size:11px;line-height:1;margin:0;
-   background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:6px}
+ .pcb{padding:7px 8px 8px;display:flex;flex-direction:column;gap:5px}
+ /* The name and the description are edited where they are read, so they are
+    drawn as text until they are touched. A card of three boxed inputs reads as
+    a form about a picture; this reads as the picture's own caption. */
+ .pcb input{margin:0;padding:4px 6px;border-color:transparent;background:transparent;
+   border-radius:6px;width:100%}
+ .pcb input:hover{border-color:var(--line);background:#fff}
+ .pcb input:focus{border-color:var(--accent);background:#fff;outline:none}
+ .pcname{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--muted)}
+ .pcalt{font-size:12.5px;color:var(--ink)}
+ .pcalt::placeholder{color:#B4A894;font-style:italic}
+ /* The order controls. The first photograph is the record's face, so this is an
+    editorial decision and its buttons say so in words. */
+ .thmove{display:flex;gap:4px;margin-top:1px}
+ .thmove button{flex:1;padding:3px 6px;min-height:26px;font-size:11px;line-height:1;margin:0;
+   background:#fff;border:1px solid var(--line);color:var(--ink);border-radius:6px}
  .thmove button:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#fff}
  .thmove button:disabled{opacity:.35;cursor:default}
  /* An id pointing at nothing has to look wrong, not just render an empty box —
     a broken image and a photograph that has not loaded yet are the same picture. */
- .th.miss img{display:none}
- .th.miss{border:1px dashed var(--bad);border-radius:6px;color:var(--bad);padding:4px 2px}
- .th.miss:after{content:"not found";font-size:10px;display:block}
+ .pc.miss{border-color:var(--bad);border-style:dashed}
+ .pc.miss img{display:none}
+ .pc.miss .pcshot:after{content:"not found";position:absolute;inset:0;display:grid;place-items:center;
+   font-size:11px;color:var(--bad)}
  /* The right picture in the wrong shape. Not an error — the app will render it
     — so it is stated rather than flagged red, and it is stated in terms of what
     the visitor will actually lose. */
- .thumbs .th.wrongar{width:auto;max-width:280px}
- .th.wrongar img{outline:2px solid #C98A2E;outline-offset:1px}
- .th.wrongar:after{content:attr(data-armsg);display:block;font-size:10.5px;line-height:1.35;
-   color:#8A5D12;margin-top:3px;white-space:normal;text-align:left}
+ .pc.wrongar .pcshot{outline:2px solid #C98A2E;outline-offset:-2px}
+ .pc.wrongar:after{content:attr(data-armsg);display:block;padding:0 9px 9px;
+   font-size:10.5px;line-height:1.35;color:#8A5D12}
 
  /* ---- maps ----
     A slippy map inside a form field. Deliberately not tall: it is one control
@@ -3597,7 +3830,7 @@ export const FORMS_CSS = String.raw`
  .sfields > .fld[data-t="loc"],.sfields > .fld[data-t="locarea"],
  .sfields > .fld[data-t="list"],.sfields > .fld[data-t="obj"],
  .sfields > .fld[data-t="geo"],.sfields > .fld[data-t="pts"],
- .sfields > .fld[data-t="days"],.sfields > .fld[data-t="imgs"],
+ .sfields > .fld[data-t="days"],.sfields > .fld[data-t="photos"],
  .sfields > .fld[data-t="csv"],
  /* "places" holds chips, a search box AND a map. In half a row the map was
     340px wide and five tagged temples wrapped to three lines of chips beside

@@ -1,4 +1,4 @@
-import { imgUrl } from "@/data/images";
+import { imgUrl, photoAlt } from "@/data/images";
 import { theme } from "@/data/config";
 import { nm } from "@/shared/i18n/i18n";
 import { Icon } from "@/shared/icons/Icon";
@@ -12,7 +12,7 @@ export function Photo({ d, cls }: { d: Destination; cls?: string }) {
       <span className={"ph " + (cls || "")}>
         <img
           src={src}
-          alt={nm(d.name)}
+          alt={photoAlt(d, d.img, nm(d.name))}
           loading="lazy"
           decoding="async"
           onLoad={(e) => e.currentTarget.classList.add("in")}

@@ -29,6 +29,15 @@ export interface Destination {
   city?: string;
   img?: string;
   gallery?: string[];
+  /**
+   * Photograph id → the line describing what is in it.
+   *
+   * Keyed by id rather than held beside each picture so that it follows the
+   * photograph through a reorder, and so that `img` and `gallery` keep the
+   * shape every document already has. Absent for most records: `photoAlt`
+   * falls back to the place's name, which is what was announced before.
+   */
+  alt?: Record<string, string>;
   name: Loc;
   themes: string[];
   lat: number;
@@ -93,6 +102,8 @@ export interface Stay {
   note?: Loc;
   img?: string;
   gallery?: string[];
+  /** photograph id → what is in it. See Destination.alt. */
+  alt?: Record<string, string>;
   /** a handful of facts worth filtering on, from the same vocabulary places use */
   facilities?: string[];
   /** hidden from the app without being deleted — for a stay that has closed */

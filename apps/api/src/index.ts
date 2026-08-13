@@ -186,6 +186,12 @@ const UPLOAD_TYPES = new Set(["image/webp", "image/jpeg", "image/png", "image/av
 const MAX_UPLOAD = 6 * 1024 * 1024;
 const IMG_EXT = ["webp", "jpg", "jpeg", "png", "avif"];
 
+/* A key becomes a public URL and an R2 object name. Anything outside this
+   alphabet is refused rather than sanitised: silently renaming an editor's file
+   is how an `img` value and its object stop matching. Shared by upload and
+   rename, which must agree on what a legal name is. */
+const MEDIA_KEY = /^[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png|avif)$/;
+
 /**
  * The same photograph under a different extension.
  *
@@ -503,10 +509,7 @@ export default {
         if (req.method === "PUT") {
           const type = req.headers.get("content-type") || "";
           const key = (url.searchParams.get("key") || "").trim();
-          // The key becomes a public URL and an R2 object name. Anything outside
-          // this alphabet is refused rather than sanitised: silently renaming an
-          // editor's file is how an `img` value and its object stop matching.
-          if (!/^[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png|avif)$/.test(key))
+          if (!MEDIA_KEY.test(key))
             return json({ error: "key must be lower-case letters, digits and hyphens, with an image extension" }, 400);
           if (!UPLOAD_TYPES.has(type)) return json({ error: "unsupported image type: " + type }, 415);
 
@@ -532,6 +535,44 @@ export default {
           purge(ctx, "img:" + key);
           return json({ ok: true });
         }
+      }
+
+      /* ---- renaming a photograph ----
+       *
+       * The name of a file is the only link between a picture and the record it
+       * belongs to, so it is also the only thing that describes it: IMG_4821 in
+       * the library tells nobody what it is a photograph of, and until now the
+       * only way to correct that was to upload the same picture again under a
+       * better name and delete the old one by hand.
+       *
+       * R2 has no rename, so this is a read, a write and a delete. Both keys are
+       * purged: the new one may have been fetched and 404'd a moment ago, and the
+       * old one is what the edge is still holding a picture under.
+       *
+       * It does NOT rewrite the documents pointing at the old name — the caller
+       * does that, because the caller is a form that is about to save the record
+       * anyway. The dashboard refuses the rename when anything else points at it.
+       */
+      if (url.pathname === "/admin/media/rename" && req.method === "POST") {
+        const from = (url.searchParams.get("key") || "").trim();
+        const to = (url.searchParams.get("to") || "").trim();
+        if (!MEDIA_KEY.test(to))
+          return json({ error: "the new name must be lower-case letters, digits and hyphens, with an image extension" }, 400);
+        if (!from) return json({ error: "no key" }, 400);
+        if (from === to) return json({ ok: true, key: to });
+        // Overwriting another photograph is not a rename, it is losing one.
+        if (await env.MEDIA.head(to)) return json({ error: "there is already a photograph called " + to }, 409);
+
+        const obj = await env.MEDIA.get(from);
+        if (!obj) return json({ error: "no such image" }, 404);
+        await env.MEDIA.put(to, obj.body, { httpMetadata: obj.httpMetadata });
+        await env.MEDIA.delete(from);
+        // Two rows rather than one "rename": the audit's vocabulary is what the
+        // rest of the dashboard reads, and both halves of this did happen.
+        await store.noteMedia(email, "update", to);
+        await store.noteMedia(email, "delete", from);
+        purge(ctx, "img:" + from, "img:" + to);
+        return json({ ok: true, key: to });
       }
 
       if (url.pathname === "/admin/audit" && req.method === "GET")

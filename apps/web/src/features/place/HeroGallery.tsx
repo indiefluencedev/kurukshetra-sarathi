@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { imgUrl } from "@/data/images";
+import { imgUrl, photoAlt } from "@/data/images";
 import { nm } from "@/shared/i18n/i18n";
 import { useRail } from "@/features/home/useRail";
 import { Photo } from "@/shared/ui/Photo";
@@ -47,7 +47,10 @@ export function HeroGallery({ d }: { d: Destination }) {
           <span className="hg-shot" key={k}>
             <img
               src={imgUrl(k)}
-              alt={i === 0 ? nm(d.name) : ""}
+              /* Described if the Board has described it, and only the first
+                 one falls back to the place's name — three slides all
+                 announced "Brahma Sarovar" is noise, not a description. */
+              alt={photoAlt(d, k, i === 0 ? nm(d.name) : "")}
               /* The first one is what the page opens on, so it is not lazy —
                  a lazy hero is a grey rectangle for the first moment of every
                  visit. The rest are, because most are never swiped to. */
