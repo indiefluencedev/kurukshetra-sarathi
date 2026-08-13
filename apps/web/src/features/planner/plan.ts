@@ -5,9 +5,9 @@ import { fromISO, isoToday, isoDate, isToday, nowM, addDays } from "@/shared/lib
 import { toast } from "@/shared/ui/overlays";
 import { Engine } from "@/features/planner/engine";
 import { askLoc, FIX, MY_LOCATION } from "@/features/location/location";
-import { savePlan, rememberAnswers } from "./persist";
+import { savePlan, rememberAnswers, draftHadRoute } from "./persist";
 import type { EventDef } from "@/data/events";
-import type { Loc, GeoPoint } from "@/shared/types";
+import type { Loc, GeoPoint, Plan } from "@/shared/types";
 
 /** One active day of sightseeing. A multi-day stay is this × the number of days. */
 export const DAY_MINS = 480;
@@ -331,8 +331,20 @@ export function applyFix(fix: { key: string; patch: Record<string, number | stri
   buildRoute();
 }
 
-export function buildRoute() {
-  const p = S.plan!;
+/**
+ * Run the engine over one plan's answers and hang the result on it.
+ *
+ * Split out of buildRoute because the RESULT is not stored anywhere — only the
+ * answers are, deliberately, since the engine is deterministic given the same
+ * inputs and the same day, and a stored route would be a second copy that goes
+ * stale against the place data. Restoring a session therefore means running it
+ * again, and that must happen without the four things buildRoute does around
+ * it: no analytics event (nobody built anything), no save (it is already in
+ * Saved, and re-saving would push it to the top of the list on every reload),
+ * no carried answers, and above all no navigation — a visitor who reloads on
+ * the Plan tab stays on the Plan tab.
+ */
+function runEngine(p: Plan) {
   const sc = p.startClock != null ? p.startClock : nowM() < 9 * 60 ? 9 * 60 : nowM();
   p.startClock = sc;
   const opts = {
@@ -361,6 +373,12 @@ export function buildRoute() {
     p.res = r.primary;
     p.alts = r.alts;
   }
+  return multi;
+}
+
+export function buildRoute() {
+  const p = S.plan!;
+  const multi = runEngine(p);
   track("route_built", { n: p.res!.stops.length, days: multi ? multi.days.length : 1 });
   // A built plan is kept without being asked for. Answering four steps is the
   // expensive part of this app, and losing that to a closed tab — or to tapping
@@ -373,4 +391,37 @@ export function buildRoute() {
   // and remember how it was answered, so the next plan starts four taps in
   rememberAnswers(p);
   go("/route");
+}
+
+/**
+ * Put the route back after a reload.
+ *
+ * The draft restored the ANSWERS and stopped there, so a visitor who reloaded
+ * came back to step 4 of the wizard with every answer filled in and the route
+ * they had just built gone — and on /route, to "no route yet". Nothing was
+ * lost, but the app plainly looked as though it had lost it, and the way out
+ * was to press Build the route again and be handed the same day back.
+ *
+ * Rebuilt, not restored: the engine is deterministic on the same answers and
+ * the same day, and it is the reason the result was never stored. A rebuild
+ * that throws — a place withdrawn from the catalogue since, a day that has
+ * turned stale — leaves res null, which is exactly where this started, so the
+ * failure is the old behaviour rather than a broken screen.
+ */
+export function restoreRoute() {
+  const p = S.plan;
+  if (!p || p.res || !draftHadRoute) return;
+  // Which day of a multi-day stay was on screen. runEngine always comes back on
+  // day one, and a three-day yatra reloading to day one is the same complaint
+  // one level down.
+  const day = p.day;
+  try {
+    runEngine(p);
+    if (day && p.multi && p.multi.days[day]) {
+      p.day = day;
+      p.res = p.multi.days[day];
+    }
+  } catch {
+    /* the answers survive; the wizard is the fallback, as it was before */
+  }
 }

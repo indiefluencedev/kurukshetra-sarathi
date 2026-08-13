@@ -102,13 +102,26 @@ async function loadCarried(): Promise<void> {
 
 let pending: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * Was the draft we just restored showing a built route, rather than a
+ * half-answered wizard?
+ *
+ * The route itself is not stored — see the note at the top of this file — so
+ * this is the one bit that says whether to run the engine again on boot.
+ * Recorded rather than guessed: "it has a savedId" would also be true of a plan
+ * reopened from Saved for EDITING, which deliberately clears the result and
+ * goes back to step one, and rebuilding that one would throw the visitor out of
+ * the wizard they had just opened. `restoreRoute` in plan.ts is the only reader.
+ */
+export let draftHadRoute = false;
+
 /** Remember the in-progress plan. Debounced — bump() fires on every keystroke. */
 export function saveDraft() {
   if (pending) clearTimeout(pending);
   pending = setTimeout(() => {
     pending = null;
     if (!S.plan) return;
-    put({ id: DRAFT, at: Date.now(), plan: inputs(S.plan) }).catch(() => {
+    put({ id: DRAFT, at: Date.now(), plan: inputs(S.plan), built: !!S.plan.res }).catch(() => {
       /* private mode / no quota — the app still works, it just forgets */
     });
   }, 400);
@@ -117,9 +130,10 @@ export function saveDraft() {
 /** Restore the in-progress plan, if there is one. Call once, before first paint. */
 export async function loadDraft(): Promise<void> {
   try {
-    const rec = await get<{ plan: PlanInputs }>(DRAFT);
+    const rec = await get<{ plan: PlanInputs; built?: boolean }>(DRAFT);
     if (!rec?.plan || S.plan) return;
     S.plan = rehydrate(rec.plan);
+    draftHadRoute = !!rec.built;
   } catch {
     /* no draft, or no IndexedDB */
   }

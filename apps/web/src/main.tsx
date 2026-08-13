@@ -4,6 +4,7 @@ import { HashRouter } from "react-router-dom";
 import { App } from "./App";
 import { onBump } from "./app/state";
 import { bootPersistence, saveDraft } from "./features/planner/persist";
+import { restoreRoute } from "./features/planner/plan";
 import { refreshContent } from "./content/live";
 import { loadSession, loadConfig } from "./features/account/auth";
 import "./styles/global.css";
@@ -19,6 +20,11 @@ if (import.meta.env.DEV) {
 // The draft has to be back in S.plan *before* the first render, or the planner
 // mounts with a fresh plan and immediately saves that over the stored one.
 bootPersistence().finally(() => {
+  // The answers are back; the route they produced is not, because it was never
+  // stored. Run the engine over them before the first paint rather than after,
+  // so the Plan tab opens on the plan instead of flashing the wizard and then
+  // replacing it. Only when the last session actually had a route on screen.
+  restoreRoute();
   onBump(saveDraft);
   // Deliberately NOT awaited. The bundled calendar is already correct enough to
   // render; a fresher one arrives when it arrives, and on a rural signal it may
