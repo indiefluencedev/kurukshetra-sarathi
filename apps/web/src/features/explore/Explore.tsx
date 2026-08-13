@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { S, allTowns, city } from "@/app/state";
-import { t, nm, nPlaces } from "@/shared/i18n/i18n";
+import { go } from "@/app/nav";
+import { t, nm, nPlaces, nStops } from "@/shared/i18n/i18n";
 import { DC, themesHere } from "@/data/destinations";
 import { isOpen } from "@/shared/lib/geo";
 import { savedCount } from "@/features/place/place-actions";
@@ -139,14 +140,26 @@ export function Explore({ theme: fixedTheme }: { theme?: string } = {}) {
       </div>
 
       {/* What the plus on every card is for. Said once, at the top, rather than
-          repeated as a label on thirty-six buttons. */}
-      <div className="note exnote">
-        <Icon name="plus" />
-        <span lang={S.lang}>
-          {t("exHint")}
-          {inIt ? " " + t("itHas").replace("{n}", String(inIt)) : ""}
-        </span>
-      </div>
+          repeated as a label on thirty-six buttons.
+
+          When a day is already open it says so INSTEAD, and says it as a fact
+          about the day rather than about this visit to the screen. It used to
+          append "5 added so far" to the hint — but that count is the whole
+          plan, including the four stops a day restored from yesterday came
+          with, so one tap on one temple read as the app having added five
+          places on its own. The number was never wrong; the sentence was. */}
+      {inIt ? (
+        <button className="note exnote" onClick={() => go("/route")} lang={S.lang}>
+          <Icon name="route" />
+          <span>{t("itHas").replace("{n}", nStops(inIt))}</span>
+          <Icon name="chev" />
+        </button>
+      ) : (
+        <div className="note exnote">
+          <Icon name="plus" />
+          <span lang={S.lang}>{t("exHint")}</span>
+        </div>
+      )}
 
       <p className="srescount" role="status" aria-live="polite" lang={S.lang}>
         {list.length !== here.length ? nPlaces(list.length) : ""}

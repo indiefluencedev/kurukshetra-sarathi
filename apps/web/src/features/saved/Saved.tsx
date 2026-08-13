@@ -173,6 +173,8 @@ export function Saved() {
       </>
     );
 
+  const both = rs.length > 0 && favs.length > 0;
+
   return (
     <>
       <div className="phead">
@@ -180,11 +182,17 @@ export function Saved() {
           {t("saved")}
         </h1>
       </div>
+      {/* A heading only when there is something to tell apart.
+          "Saved" over "Routes" over a list of routes is the same word twice in
+          two sizes; the section title earns its line only when days and places
+          are both on the screen and the reader has to know where one ends. */}
       {rs.length > 0 && (
         <div className="sec" style={{ marginTop: 2 }}>
-          <div className="sec-head">
-            <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedRoutes")}</h2>
-          </div>
+          {both && (
+            <div className="sec-head">
+              <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedRoutes")}</h2>
+            </div>
+          )}
           <div className="plist stagger">
             {rs.map((r) => (
               <PlanRow key={r.id} r={r} onGone={() => { toast(t("removedT")); refresh(); }} />
@@ -194,9 +202,11 @@ export function Saved() {
       )}
       {favs.length > 0 && (
         <div className="sec">
-          <div className="sec-head">
-            <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedPlaces")}</h2>
-          </div>
+          {both && (
+            <div className="sec-head">
+              <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedPlaces")}</h2>
+            </div>
+          )}
           <div className="plist stagger">
             {favs.map((d) => (
               <Pcard key={d.id} d={d} />

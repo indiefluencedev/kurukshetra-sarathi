@@ -2386,6 +2386,12 @@ a.btn:hover{text-decoration:none}
 
 .exnote{margin:12px 0 2px;align-items:center}
 .exnote svg{margin-top:0}
+/* the same note, when it is the way into the day it is describing */
+button.exnote{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit;
+  border-color:var(--accent-soft,var(--stone-2));background:var(--accent-wash)}
+button.exnote span{flex:1;min-width:0}
+button.exnote svg:last-child{color:var(--muted);width:16px;height:16px}
+button.exnote:active{transform:scale(.995)}
 
 /* The plus on a card. Its own tap target, top-right, clear of the two lines of
    text it sits beside — and 44px square, because the people this is built for

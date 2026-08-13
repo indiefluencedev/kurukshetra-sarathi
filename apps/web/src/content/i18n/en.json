@@ -273,7 +273,7 @@
  "savedElsewhere": "{n} saved in other towns",
  "heroKick": "{city} today",
  "exHint": "Tap the plus on any card to add it to your day.",
- "itHas": "{n} added so far.",
+ "itHas": "Your day already has {n} — tap to see it.",
  "addToIt": "Add to my day",
  "itRemove": "Remove from my day"
 }
