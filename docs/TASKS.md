@@ -4,7 +4,7 @@ Living document. Every other file in `docs/` describes how something *works*;
 this one is the only place that says what is **finished**. If they disagree,
 this file is wrong — fix it here.
 
-Last updated: **11 August 2026** (cleared; scope reopened)
+Last updated: **13 August 2026**
 
 ---
 
@@ -22,8 +22,8 @@ Last updated: **11 August 2026** (cleared; scope reopened)
 
 | | |
 |---|---|
-| Worker | `kuk-saarthi-api` — **STAGE**, deployed 11 Aug **on Neon** |
-| App | `kuk-saarthi.pages.dev` — **STAGE**, rebuilt 11 Aug with the code screen |
+| Worker | `kuk-saarthi-api` — **STAGE**, deployed 13 Aug **on Neon**, with Workers Cache in front of it |
+| App | `kuk-saarthi.pages.dev` — **STAGE**, deployed 13 Aug with the stays catalogue |
 | Database | **Neon Postgres** (`neondb`, ap-southeast-1) — live, serving production |
 | Auth | Better Auth, email + password, **verified by email**. Google configured, no credentials yet |
 | Email | **Resend**, as `noreply@kkr.indietribe.space` — code done, domain pending DNS |
@@ -35,7 +35,72 @@ Last updated: **11 August 2026** (cleared; scope reopened)
 Day-by-day work lives in **[`docs/tasks/`](tasks/)**, a checklist per date —
 two lines an item, issues logged under the task they happened in. That is where
 a change is explained; this file only says what is true.
-Today: [2026-08-11](tasks/2026-08-11.md).
+Today: [2026-08-13](tasks/2026-08-13.md).
+
+## Pending — everything open, in one list
+
+Nothing here is scheduled and nothing here is forgotten. Each line says where
+it is explained; the sections below say why it matters. An item leaves this
+list by being done or by being moved to "Deliberately not doing" — not by
+being quietly dropped.
+
+**Blocking a real launch**
+
+- [ ] **Resend DNS** — 3 records at Hostinger. No mail leaves the building
+      until they land · [§3](#3--email-verification-and-password-reset)
+- [ ] **`storeOTP: "hashed"`** — the same hour the DNS lands.
+      `apps/api/src/auth.ts:266` is `"plain"`, which is a live credential
+      sitting in a readable row
+- [ ] **`RESEND_API_KEY`** — in `.env`, never `wrangler secret put` for
+      production
+- [ ] **`VAPID_SUBJECT`** — still `mailto:REPLACE@example.org` in
+      `wrangler.toml`, so push is untested as well as unset
+
+**Correctness, found and not yet fixed**
+
+- [ ] **The walk order zig-zags.** `npm run check-planner` is red: a six-stop
+      pocket walks 1148 m where 843 m was available. Production has been
+      building that day for weeks. Needs a 2-opt pass over the pocket's walking
+      legs with opening hours re-checked, which changes every itinerary the app
+      builds — its own session, with the whole suite as the judge ·
+      [tasks/2026-08-13 §4](tasks/2026-08-13.md)
+- [ ] **Confirm a cache tag purge actually fires.** Replace a photograph in the
+      dashboard, then `curl -I .../img/<id>.webp`: `cf-cache-status: MISS` means
+      it works. `HIT` with the old picture means `ctx.cache` is absent and the
+      hour in `s-maxage` is the only thing holding it · [§4](#4--speed-and-the-load-the-api-carries)
+
+**Data the Board owns**
+
+- [ ] **68 stays have no pin** — every one is in the dashboard with its phone
+      number, hidden from the app until somebody places it on the map. Re-run
+      `npm run build-matrix` after pinning any, or its travel times stay
+      estimated
+- [ ] **E-rickshaw is still empty** — OSM has no usable source, so this needs a
+      hand-made list of stands and fares from the Board
+- [ ] **`npm run build-matrix`** after any new place, for the same reason
+
+**Next pieces of work**
+
+- [ ] **Split the bundle.** 825 KB, 270 KB gzipped, and Leaflet is in it on
+      every screen including the ones with no map. The next real speed win, and
+      a bigger change than anything done on 13 August ·
+      [tasks/2026-08-13 §5](tasks/2026-08-13.md)
+- [ ] **Admin gallery** — a place carries up to three photographs and the
+      dashboard manages them one at a time: ordering, replacing and removing
+      within a record, not just adding
+- [ ] **UI restructuring** — the dashboard as a whole rather than one form at a
+      time, and a second pass over the app screens shipped on 11 August
+- [ ] **How values are stored** across the forms, reviewed as a whole — the
+      last open half of task 2
+- [~] **Delete D1** — held on purpose; it is the rollback that does not live on
+      one laptop · [§1](#1--d1--neon-postgres-then-d1-off)
+
+Carried from the 4 August list and still wanted, but not scoped: saved plans do
+not sync between devices, there is no custom domain, Google sign-in has no
+credentials, nothing has ever been pushed to a real phone, and promoting an
+admin is a raw SQL statement. See [Deprecated](#deprecated--carried-over-from-the-4-august-2026-list).
+
+---
 
 ### 1 — D1 → Neon Postgres, then D1 off
 
@@ -67,12 +132,26 @@ that came out of checking them is shipped: the event form was rebuilt around
 one map, the app gained an event detail page, and place photographs are visible
 for the first time.
 
-**Four kinds left** — places, stays, start points, e-rickshaw — plus a review of
-how values are stored across the forms as a whole.
+**Places, stays and start points are done** — 13 August. Editing a place works
+and always did; what it did *not* do was keep a field no form owned, so
+`hoursEst` and `approx` are now editable and a check refuses to let another one
+appear. Stays went from 2 records to **80**, off the district's own dharamshala
+chart and hotel list, of which 12 have a pin and 68 wait for one. Start points
+are terminals only: a hotel is a stay, and the planner's "start from my hotel"
+step reads the stays catalogue.
 
-**Next session (12 August):** the admin gallery (a place has up to three
-photographs and the dashboard manages them one at a time), the same form pass
-for places that events got, and a UI restructure of the dashboard as a whole.
+**Left in task 2:** e-rickshaw (no data source yet — the Board has to supply
+one), and the review of how values are stored across the forms as a whole.
+
+**One red check.** `check-planner` fails on a walking pocket that is 36% longer
+than it needs to be. Production has been building that day for weeks; syncing
+the bundled copy to the database is what made it visible. The fix is a 2-opt
+pass over the pocket's walking legs and it changes every itinerary, so it wants
+its own session. See [tasks/2026-08-13 §4](tasks/2026-08-13.md).
+
+**Still wanted:** the admin gallery (a place has up to three photographs and the
+dashboard manages them one at a time) and a UI restructure of the dashboard as
+a whole.
 
 Note that `npm run dev` now points the app at the local Worker, so an admin
 edit and its effect on the app can be seen in one place — which this task
@@ -133,6 +212,21 @@ meanwhile.
 Also outstanding: `RESEND_API_KEY` is in `.env` but **not yet
 `wrangler secret put`** for production.
 
+### 4 — Speed, and the load the API carries
+
+**Done 13 August.** Workers Cache sits in front of the Worker, so a repeat
+request for a photograph or a feed is answered at the edge without the Worker
+running at all — no CPU, no Neon query, no R2 read. It works on workers.dev and
+costs nothing beyond the request. Feeds are a minute at the edge with a purge on
+every dashboard write; photographs are an hour, tagged per key. The app stopped
+forcing a revalidation of six feeds on every launch, preconnects to the media
+origin, decodes every image off the main thread, and marks its two hero images
+as the priority fetch they are. Details and the one thing still unverified:
+[tasks/2026-08-13 §5](tasks/2026-08-13.md).
+
+**Next lever, not pulled:** the bundle is 825 KB (270 KB gzipped) and carries
+Leaflet on every screen, including the ones with no map.
+
 ### Done today, alongside 1
 
 - **`npm run dev` runs everything.** One command from the repo root: Worker and
@@ -172,8 +266,9 @@ Several were already overtaken by the admin work of 5–11 August.
 
 ### Was "not blocking, but promised"
 
-- Hotels — schema, endpoint and admin routes exist and serve empty. Data to
-  come from an OSM harvest (`tools/harvest-places.mjs` extension).
+- ~~Hotels — schema, endpoint and admin routes exist and serve empty.~~
+  **Done 13 Aug** — 80 stays off the district's own lists. OSM was not the
+  source in the end: it had two of them.
 - E-rickshaw — same, but OSM has no usable source. Needs a hand-made list of
   stands and fares from the Board.
 - Admin dashboard cannot edit places. *(Overtaken — `admin-forms.ts` now edits

@@ -77,8 +77,15 @@ export interface Stay {
   kind: "hotel" | "dharamshala" | "guesthouse" | "homestay";
   /** locality in words, because a coordinate does not tell you "near the bus stand" */
   area?: Loc;
-  lat: number;
-  lng: number;
+  /**
+   * Optional, and only because of where this data comes from. The district
+   * names 80 places to stay; open data could pin twelve of them, and a guessed
+   * coordinate sends a pilgrim to the wrong gate. The rest are `pending` until
+   * someone puts them on the map in the dashboard, so nothing the app offers
+   * is ever missing a pin — see `openStays`.
+   */
+  lat?: number;
+  lng?: number;
   /** indicative rupees per night. A range, because a tariff card is never one number. */
   price?: { min: number; max: number };
   phone?: string;

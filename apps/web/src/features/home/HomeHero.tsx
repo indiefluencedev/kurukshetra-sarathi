@@ -82,6 +82,14 @@ export function HomeHero() {
                   src={imgUrl(h.img || d.img)}
                   alt=""
                   loading={i === 0 ? undefined : "lazy"}
+                  decoding="async"
+                  /* The first slide IS the largest thing on the home screen,
+                     which makes it the measurement everyone else calls LCP and
+                     the visitor calls "how long before I see anything". It
+                     otherwise queues behind the theme tiles and the rails,
+                     because the browser cannot know which of thirty images is
+                     the one on screen. */
+                  fetchPriority={i === 0 ? "high" : "auto"}
                   onLoad={(e) => e.currentTarget.classList.add("in")}
                 />
               </span>

@@ -57,7 +57,7 @@ export function Shell() {
         <div className="hbar">
           <button className="brand" onClick={() => go("/home")}>
             <span className="seal">
-              <img src={LOGO_SM} alt="" />
+              <img src={LOGO_SM} alt="" decoding="async" />
             </span>
             <span className="wordmark">
               <b lang={S.lang}>{S.lang === "hi" ? CONFIG.brand.hi : CONFIG.brand.en}</b>

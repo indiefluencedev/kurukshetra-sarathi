@@ -52,6 +52,8 @@ export function HeroGallery({ d }: { d: Destination }) {
                  a lazy hero is a grey rectangle for the first moment of every
                  visit. The rest are, because most are never swiped to. */
               loading={i === 0 ? "eager" : "lazy"}
+              decoding="async"
+              fetchPriority={i === 0 ? "high" : "auto"}
               onLoad={(e) => e.currentTarget.classList.add("in")}
             />
           </span>

@@ -80,7 +80,7 @@ export function EventRail() {
                   nm(e.name) + " — " + kicker(e, today) + ". " + nm({ en: "See the details", hi: "विवरण देखें" })
                 }
               >
-                <span className="ev-img">{img && <img src={img} alt="" loading="lazy" />}</span>
+                <span className="ev-img">{img && <img src={img} alt="" loading="lazy" decoding="async" />}</span>
                 <span className="ev-scrim" />
                 <span className="ev-body">
                   <span className="ev-kick">

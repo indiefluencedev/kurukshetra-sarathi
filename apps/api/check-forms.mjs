@@ -14,7 +14,7 @@
 //
 //   node check-forms.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -477,6 +477,43 @@ assert.equal(pt("Sector 13"), null, "a sector number must not parse as a coordin
 // point to begin with.
 assert.equal(pt("129.5, 76.8"), null, "a latitude past the pole must be refused");
 assert.equal(pt("29.9, 276.8"), null, "a longitude past the antimeridian must be refused");
+
+/* 8f. Every field the DATA carries, the form can edit.
+ *
+ * This is the one that had already gone wrong, and it goes wrong silently in
+ * the worst direction: a saved document is built by readGroup from SPEC alone,
+ * so a key no field owns is not preserved, it is DROPPED. Nineteen places
+ * carried "the opening hours are an estimate" and eleven carried "the pin is
+ * approximate"; one edit each in the dashboard would have deleted the caveat
+ * and left the guess reading as a fact. Nothing would have said so — the form
+ * saves happily, the app renders happily, and the record is quietly poorer.
+ *
+ * Checked against the bundled catalogues, which are the same documents the
+ * database holds (import-content.mjs writes one from the other). Direction
+ * matters: a key in the data with no field is a fault, a field no record
+ * happens to use yet is just an empty column.
+ */
+const FEEDS = {
+  places: "destinations.json",
+  startpoints: "places-index.json",
+  hotels: "hotels.json",
+  erickshaw: "erickshaw.json",
+  hero: "hero.json",
+};
+for (const [kind, file] of Object.entries(FEEDS)) {
+  const path = join(HERE, "..", "web", "src", "content", "data", file);
+  if (!existsSync(path)) continue; // a catalogue that does not exist yet
+  const items = JSON.parse(readFileSync(path, "utf8"));
+  // "lng" is the one key with no field of its own: the map writes the pair.
+  const editable = new Set([...SPEC[kind].map((f) => f.k), "lng"]);
+  const orphans = new Map();
+  for (const it of items)
+    for (const k of Object.keys(it))
+      if (!editable.has(k)) orphans.set(k, (orphans.get(k) || 0) + 1);
+  assert.deepEqual([...orphans], [],
+    kind + ": the data carries key(s) no field owns, so an edit in the dashboard would drop them: " +
+    [...orphans].map(([k, n]) => k + " (on " + n + ")").join(", "));
+}
 
 /* 9. Save goes through the preview. The extra click IS the feature — it is the
       only moment anybody sees the record drawn before it is live. */

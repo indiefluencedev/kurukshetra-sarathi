@@ -49,11 +49,27 @@ export interface Env {
   GOOGLE_CLIENT_SECRET?: string;
 }
 
+/**
+ * A JSON response, and by default one that is never stored anywhere.
+ *
+ * `no-store` is the default because of what sits in front of this Worker now:
+ * Workers Cache treats a 200 with NO cache-control as cacheable for two hours
+ * (RFC 9111 heuristic freshness), so silence is not opting out — it is opting
+ * in, for longer than anything here would choose. Every response that may be
+ * cached says so, in one place, on purpose: `/content`, `/img`, `/config` and
+ * `/vapid`. Everything else — the dashboard's own reads, the audit log, an
+ * error — is a private answer to one person and stays that way.
+ *
+ * Requests carrying an Authorization header bypass the cache anyway, which
+ * covers every admin route twice over. Twice is the right number here: the
+ * first is a rule in someone else's product, and the second is in this file.
+ */
 const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
       // Same-origin is the intended deployment (app on Pages, this Worker on a
       // route of the same domain) and then this header is redundant. It is here
       // for the case it is not, because the failure without it is silent: the
@@ -62,6 +78,25 @@ const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =
       ...extra,
     },
   });
+
+/**
+ * Throw away what the edge is holding for these tags.
+ *
+ * Workers Cache answers a hit without running this Worker at all, which is the
+ * whole point of it and also the whole risk: an edit in the dashboard would
+ * otherwise be invisible for as long as the entry lives. Every write purges the
+ * tag it touched, so the Board sees its own edit immediately rather than at the
+ * end of a TTL.
+ *
+ * `ctx.cache` is newer than the types in this repo and newer than some
+ * runtimes, so it is reached for defensively: where it is absent, the TTLs on
+ * the responses themselves are still short, and nothing breaks.
+ */
+type PurgeCtx = ExecutionContext & { cache?: { purge(o: { tags: string[] }): Promise<void> } };
+const purge = (ctx: ExecutionContext, ...tags: string[]) => {
+  const c = (ctx as PurgeCtx).cache;
+  if (c) ctx.waitUntil(c.purge({ tags }));
+};
 
 /**
  * Who is making this request, and may they edit?
@@ -122,15 +157,22 @@ function istNow(now = Date.now()) {
 const hm = (s: string) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
 
 /**
- * A day, and revalidate in the background after that.
+ * A day in the browser, an hour at the edge, revalidate in the background.
  *
  * Deliberately not `immutable`. The keys are stable ids rather than content
  * hashes — which is what let the whole catalogue move to R2 without rewriting a
  * single `img` value — so replacing a photograph reuses its key. Immutable
  * caching would mean the new picture never arriving on a device that had seen
  * the old one. A day, plus an ETag so the revalidation is free, is the trade.
+ *
+ * `s-maxage` is an hour rather than a day for one reason: a replaced
+ * photograph is purged by tag on upload, and the hour is what happens if that
+ * purge ever does not (an older runtime, another data centre than the one the
+ * upload landed in). A ceiling of an hour on a wrong picture is a bad hour; a
+ * ceiling of a day is a support call. The cost of it is one R2 read per
+ * photograph per data centre per hour.
  */
-const IMG_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
+const IMG_CACHE = "public, max-age=86400, s-maxage=3600, stale-while-revalidate=604800";
 
 const TYPES: Record<string, string> = {
   webp: "image/webp", jpg: "image/jpeg", jpeg: "image/jpeg",
@@ -172,7 +214,7 @@ async function sameStem(media: R2Bucket, key: string): Promise<R2ObjectBody | nu
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
     const store: Store = new NeonStore(env.NEON_DB_URL);
 
@@ -197,6 +239,10 @@ export default {
       // Better Auth builds its own responses, so the CORS headers the `json`
       // helper adds never touch them.
       const h = new Headers(res.headers);
+      // A session, a sign-in, a verification redirect: none of it may be held
+      // by anything in front of this Worker, and Better Auth does not say so
+      // itself. See the note on `json`.
+      h.set("cache-control", "no-store");
       h.set("access-control-allow-origin", "*");
       h.set("access-control-expose-headers", "set-auth-token");
       return new Response(res.body, { status: res.status, headers: h });
@@ -261,6 +307,10 @@ export default {
       const headers = {
         "content-type": obj.httpMetadata?.contentType || guessType(key),
         "cache-control": IMG_CACHE,
+        // What a replacement of this photograph has to throw away. Per key, not
+        // per bucket: swapping the picture of Jyotisar must not evict the other
+        // ninety-eight and make the next visitor fetch the lot again.
+        "cache-tag": "img,img:" + key,
         etag: obj.httpEtag,
         "access-control-allow-origin": "*",
       };
@@ -303,7 +353,25 @@ export default {
 
       const rev = await revP;
       const etag = `"${kind}-${rev}"`;
-      const headers = { "cache-control": "public, max-age=300", etag };
+      /*
+       * A minute at the edge, ten more while it refreshes behind the visitor.
+       *
+       * Was `max-age=300` and nothing else, which asked the browser to hold it
+       * for five minutes and told the edge nothing. Now the edge holds it too —
+       * and an edge hit does not run this Worker at all, so it costs no CPU and,
+       * far more to the point, no Neon query. Every launch of the app used to be
+       * five revision reads against the database however little had changed.
+       *
+       * A minute rather than five because a purge only reaches the data centre
+       * that served the write: `s-maxage` is the ceiling on how stale another
+       * one can be, and a minute is short enough that nobody in the office
+       * doubts whether their edit saved.
+       */
+      const headers = {
+        "cache-control": "public, max-age=60, s-maxage=60, stale-while-revalidate=600",
+        "cache-tag": "content," + kind,
+        etag,
+      };
       if (cond === etag)
         return new Response(null, { status: 304, headers: { ...headers, "access-control-allow-origin": "*" } });
 
@@ -370,6 +438,7 @@ export default {
         problems.push(...validateEventSet([...others, e]).filter((p) => p.startsWith(e.id + ":")));
         if (problems.length) return json({ error: "invalid", problems }, 422);
         await store.upsertEvent(e, email);
+        purge(ctx, "events");
         return json({ ok: true });
       }
 
@@ -377,6 +446,7 @@ export default {
         const b = (await req.json().catch(() => null)) as { id?: string } | null;
         if (!b?.id) return json({ error: "no id" }, 400);
         await store.deleteEvent(b.id, email);
+        purge(ctx, "events");
         return json({ ok: true });
       }
 
@@ -397,6 +467,7 @@ export default {
           const doc = (await req.json().catch(() => null)) as { id?: string } | null;
           if (!doc?.id) return json({ error: "no id" }, 400);
           await store.upsertContent(kind, doc.id, doc, email);
+          purge(ctx, kind);
           return json({ ok: true });
         }
 
@@ -404,6 +475,7 @@ export default {
           const b = (await req.json().catch(() => null)) as { id?: string } | null;
           if (!b?.id) return json({ error: "no id" }, 400);
           await store.deleteContent(kind, b.id, email);
+          purge(ctx, kind);
           return json({ ok: true });
         }
       }
@@ -445,6 +517,10 @@ export default {
 
           await env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
           await store.noteMedia(email, "update", key);
+          // The key is reused when a photograph is replaced — that is what let
+          // the catalogue move to R2 untouched — so the old picture is what the
+          // edge is holding under this exact URL.
+          purge(ctx, "img:" + key);
           return json({ ok: true, key, size: body.byteLength });
         }
 
@@ -453,6 +529,7 @@ export default {
           if (!key) return json({ error: "no key" }, 400);
           await env.MEDIA.delete(key);
           await store.noteMedia(email, "delete", key);
+          purge(ctx, "img:" + key);
           return json({ ok: true });
         }
       }

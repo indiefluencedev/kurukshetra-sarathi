@@ -14,6 +14,7 @@ export function Photo({ d, cls }: { d: Destination; cls?: string }) {
           src={src}
           alt={nm(d.name)}
           loading="lazy"
+          decoding="async"
           onLoad={(e) => e.currentTarget.classList.add("in")}
         />
       </span>

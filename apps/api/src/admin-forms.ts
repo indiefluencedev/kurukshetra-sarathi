@@ -68,6 +68,14 @@ const SPEC = {
       { k:"c", t:"time", lb:"Closes", ph:"21:00" },
     ] },
     { k:"closed", t:"days", lb:"Closed on", hint:"Most museums here close on Monday. Leave all unticked if it never closes." },
+    /* Two flags that say how good the data ITSELF is, and they are here because
+       leaving them out was losing them. A document is saved as whatever the
+       form reads back, so a key no field owns is dropped the first time anybody
+       edits that place — nineteen places carried "the hours are a guess" and
+       eleven carried "the pin is a guess", and one save each would have quietly
+       turned every one of them into a stated fact. */
+    { k:"hoursEst", t:"bool", lb:"Opening hours are an estimate", hint:"Nobody has read them off a board at the gate." },
+    { k:"approx", t:"bool", lb:"The pin is approximate", hint:"Somewhere in the right lane, not on the right gate. Correct the map above and untick this." },
     { k:"free", t:"bool", lb:"Free to enter", sec:"Cost, and what is there" },
     { k:"fee", t:"loc", lb:"What it costs", hint:"Only if not free. Plain words: \"₹20, camera ₹50\".", ph:"20 rupees, camera 50", phHi:"₹20, कैमरा ₹50" },
     { k:"best", t:"loc", lb:"Best time to come", ph:"Sunset, when the ghats are lit", phHi:"सूर्यास्त, जब घाट जगमगाते हैं" },
@@ -121,7 +129,13 @@ const SPEC = {
 
   startpoints: [
     { k:"id", t:"text", lb:"Id", req:1, sec:"What it is", hint:"Lower-case with hyphens, e.g. kurukshetra-junction.", ph:"kurukshetra-junction" },
-    { k:"kind", t:"sel", lb:"Kind", req:1, opts:["station","busstand","hotel","dharamshala"] },
+    /* Terminals only. A hotel is not a start point — it is a STAY, and it
+       belongs in the Stays list where it has a tariff, a phone number and a
+       kind. It was in both, so the same building existed twice and the copy
+       the planner offered was the one with nothing on it. The app still lets a
+       visitor start from their hotel: that step searches Stays. */
+    { k:"kind", t:"sel", lb:"Kind", req:1, opts:["station","busstand"],
+      hint:"Only somewhere a visitor ARRIVES at. A hotel or a dharamshala goes in Stays, and the app offers it as a starting point from there." },
     { k:"city", t:"sel", lb:"Town", opts:["kurukshetra","pehowa"] },
     { k:"name", t:"loc", lb:"Name", req:1, ph:"Kurukshetra Junction", phHi:"कुरुक्षेत्र जंक्शन" },
     { k:"area", t:"loc", lb:"Locality", ph:"Railway Road", phHi:"रेलवे रोड" },
@@ -1414,7 +1428,7 @@ function paintTable() {
      * So the thumbnail opens the picker and writes the one key. Same picker,
      * same upload, same folder-first behaviour as the form's own field. */
     const pic = it.img
-      ? '<img src="' + ek(imgSrc(it.img)) + '" alt="" loading="lazy" onerror="this.classList.add(\'bad\')">' +
+      ? '<img src="' + ek(imgSrc(it.img)) + '" alt="" loading="lazy" decoding="async" onerror="this.classList.add(\'bad\')">' +
         '<span class="nopic missing">missing</span>'
       : '<span class="nopic">none</span>';
     const thumb = '<button type="button" class="picbtn" data-pic="' + i + '" ' +
@@ -2141,7 +2155,7 @@ function paintThumbs(box) {
   // An empty field has to say it is empty. A blank strip where the pictures go
   // looks identical to a strip that has not loaded yet.
   box.innerHTML = ids.length ? ids.map(id =>
-    '<span class="th"><img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" data-ar="' + wantAR() + '" ' +
+    '<span class="th"><img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" decoding="async" data-ar="' + wantAR() + '" ' +
     'onload="checkAspect(this)" onerror="this.parentNode.classList.add(\'miss\')">' +
     '<button type="button" class="rm" data-rm="' + ek(id) + '" title="Take this one off" ' +
     'aria-label="Take ' + ek(id) + ' off this record">×</button>' +
@@ -2393,7 +2407,7 @@ async function paintPicker() {
   $("#pickgrid").innerHTML = list.map(o => {
     const id = stemOf(o.key);
     return '<button type="button" class="pk" data-key="' + ek(id) + '">' +
-      '<img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
+      '<img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy" decoding="async">' +
       "<small>" + ek(id) + "</small></button>";
   }).join("") || (scoped
     /* The empty state is a BLOCK, not two grid cells.
@@ -2605,14 +2619,14 @@ async function rebuildBins(force) {
 let MFOLDER = null;      // null = the wall; an id = inside it; "" = the loose ones
 
 const photoTile = (o) =>
-  '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy">' +
+  '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy" decoding="async">' +
   "<small>" + ek(stemOf(o.key)) + "</small>" +
   '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>';
 
 function folderCard(r) {
   const objs = BINS[r.id] || [];
   const cover = objs.length
-    ? '<img src="' + ek("/img/" + encodeURIComponent(objs[0].key)) + '" alt="" loading="lazy">'
+    ? '<img src="' + ek("/img/" + encodeURIComponent(objs[0].key)) + '" alt="" loading="lazy" decoding="async">'
     : '<span class="fempty">no photograph yet</span>';
   return '<button type="button" class="fcard' + (objs.length ? "" : " isempty") + '" data-open="' + ek(r.id) + '">' +
     '<span class="fcover">' + cover +
@@ -3443,7 +3457,15 @@ export const FORMS_CSS = String.raw`
  .pkempty p{margin:0;font-size:14px;max-width:46ch;line-height:1.6}
  .pkempty .pkalt{font-size:12.5px}
  .pkempty code{background:var(--paper);padding:2px 6px;border-radius:5px;font-size:12.5px}
- .pk{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;text-align:center}
+ /* content-visibility skips layout, paint and image DECODE for a tile that is
+    not on screen. loading="lazy" already stops the fetch, which is the
+    expensive half on a phone; this is the other half, and it is the half that
+    matters on the library screen, where a hundred full-size photographs are
+    being drawn into 76-pixel boxes on a desktop that decodes all of them.
+    contain-intrinsic-size is what stops the scrollbar jumping: it is the size
+    to assume for a tile that has not been rendered yet. */
+ .pk{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;text-align:center;
+   content-visibility:auto;contain-intrinsic-size:auto 120px}
  .pk img{width:100%;height:76px;object-fit:cover;border-radius:5px;display:block}
  .pk small{display:block;font-size:10px;color:var(--muted);margin-top:4px;overflow:hidden;
    text-overflow:ellipsis;white-space:nowrap}

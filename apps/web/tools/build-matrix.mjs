@@ -28,14 +28,18 @@ const BASE = "https://router.project-osrm.org/table/v1/driving/";
 
 const dests = read("destinations.json");
 const places = read("places-index.json");
+/* Stays are start points too — the planner asks this matrix by `ref`, so a day
+   that begins at a dharamshala gets the measured road time rather than the
+   great-circle guess. Only the ones with a pin: most of the catalogue is
+   waiting for someone to place it (see the stays block in check-content), and
+   a point with no coordinate has nothing to ask OSRM about. Re-run this after
+   pinning one, or its travel times stay estimated. */
+const stays = read("hotels.json").filter((s) => s.lat != null && s.lng != null);
 
 /* Pending places are in the matrix even though the planner will not route to
    them: the row costs 300 bytes, and leaving a hole means renumbering every
    index the day someone verifies the pin. */
-const points = [
-  ...dests.map((d) => ({ id: d.id, lat: d.lat, lng: d.lng })),
-  ...places.map((p) => ({ id: p.id, lat: p.lat, lng: p.lng })),
-];
+const points = [...dests, ...places, ...stays].map((p) => ({ id: p.id, lat: p.lat, lng: p.lng }));
 
 const dupe = points.map((p) => p.id).filter((id, i, a) => a.indexOf(id) !== i);
 if (dupe.length) {

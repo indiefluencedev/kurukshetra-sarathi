@@ -14,6 +14,29 @@ compatibility_flags = ["nodejs_compat"]
 # warn "Unexpected fields found in triggers field: account_id" and ignore it.
 account_id = "4768790aa47814f60dd70c187c7a7bd9"
 
+# A cache in front of this Worker, and the reason it is safe to turn on.
+#
+# A hit is answered at the edge WITHOUT running this Worker at all: no CPU, no
+# Neon query, no R2 read. That is the whole point — the photographs and the six
+# content feeds are the same bytes for every visitor in the district, and they
+# were being rebuilt from the database and the bucket on every launch of every
+# copy of the app.
+#
+# It works on workers.dev, which the Cache API does not, and it is free: hits
+# bill as a request and nothing else. No custom domain needed to get the win.
+#
+# THE DANGEROUS DEFAULT, and what was done about it: a 200 with no
+# cache-control is cached for two hours by heuristic freshness, so silence is
+# opting IN. `json()` in src/index.ts therefore answers `no-store` unless the
+# route says otherwise, and only four routes say otherwise. Anything carrying
+# an Authorization header bypasses the cache in any case.
+#
+# Cache keys carry the Worker version, so a deploy invalidates everything —
+# which is exactly right for /config and /vapid, whose answers only change when
+# this file or a secret does.
+[cache]
+enabled = true
+
 # The database is Neon Postgres, reached over a URL rather than a binding —
 # so there is no [[d1_databases]] section here any more, and NEON_DB_URL is a
 # SECRET (`wrangler secret put NEON_DB_URL`), listed at the bottom with the

@@ -21,6 +21,11 @@
 //
 // There is one database now. This writes to the real one; there is no local
 // copy to practise on. Use a Neon branch if you want somewhere to practise.
+//
+// It goes ROUND the Worker, so it cannot purge what the edge is holding — the
+// dashboard's own writes do that, this cannot. The feeds carry `s-maxage=60`,
+// so give it a minute before deciding an import did not land. See the [cache]
+// block in wrangler.toml.
 import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";

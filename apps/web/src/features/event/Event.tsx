@@ -83,7 +83,7 @@ export function Event() {
         <button className="back fbtn" onClick={() => history.back()} aria-label={t("back")}>
           <Icon name="back" />
         </button>
-        {img && <img src={img} alt="" />}
+        {img && <img src={img} alt="" decoding="async" fetchPriority="high" />}
         <span className="grad" />
         <div className="hero-cap">
           <span className="ev-kick">
