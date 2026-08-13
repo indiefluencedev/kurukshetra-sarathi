@@ -2322,19 +2322,60 @@ function checkAspect(img) {
 }
 
 /** Little previews under an image field, so a wrong id is visible immediately. */
+/**
+ * The photographs on this record, in the order the app will show them.
+ *
+ * ORDER IS THE POINT, and it was the half that was missing. A place carries up
+ * to three and the first one is its face — on the home rail, in every list, at
+ * the top of its own page — so "which one is first" is an editorial decision
+ * somebody has to be able to make. Until now the only way to make it was to
+ * take all three off and re-attach them in the right sequence, which is why
+ * the field's own drawer of comma-separated ids was still being used as the
+ * real control.
+ *
+ * Move and Make main are buttons rather than a drag: the Board uses this on a
+ * laptop trackpad and a tablet, a drag needs a target the size of a thumbnail
+ * to be dropped on, and the whole list is three items long.
+ */
 function paintThumbs(box) {
   const fld = box.closest(".fld");
   const input = fld.querySelector("[data-i]");
+  const many = fld.getAttribute("data-t") === "imgs";
   const ids = input.value.split(",").map(s => s.trim()).filter(Boolean);
   // An empty field has to say it is empty. A blank strip where the pictures go
   // looks identical to a strip that has not loaded yet.
-  box.innerHTML = ids.length ? ids.map(id =>
-    '<span class="th"><img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" decoding="async" data-ar="' + wantAR() + '" ' +
+  box.innerHTML = ids.length ? ids.map((id, i) =>
+    '<span class="th' + (many && !i ? " main" : "") + '">' +
+    '<img src="' + ek(imgSrc(id)) + '" alt="" loading="lazy" decoding="async" data-ar="' + wantAR() + '" ' +
     'onload="checkAspect(this)" onerror="this.parentNode.classList.add(\'miss\')">' +
+    (many && !i ? '<span class="mainbadge">Main</span>' : "") +
     '<button type="button" class="rm" data-rm="' + ek(id) + '" title="Take this one off" ' +
     'aria-label="Take ' + ek(id) + ' off this record">×</button>' +
+    (many && ids.length > 1
+      ? '<span class="thmove">' +
+          '<button type="button" data-mv="' + i + ':-1"' + (i ? "" : " disabled") +
+            ' title="Move earlier" aria-label="Move ' + ek(id) + ' earlier">&#8592;</button>' +
+          (i ? '<button type="button" data-mv="' + i + ':top" title="Make this the main one" ' +
+               'aria-label="Make ' + ek(id) + ' the main photograph">Main</button>' : "") +
+          '<button type="button" data-mv="' + i + ':1"' + (i === ids.length - 1 ? " disabled" : "") +
+            ' title="Move later" aria-label="Move ' + ek(id) + ' later">&#8594;</button>' +
+        "</span>"
+      : "") +
     "<small>" + ek(id) + "</small></span>").join("")
     : '<span class="nothumbs">No photograph on this one yet.</span>';
+}
+
+/** Move the photograph at index i — one step either way, or to the front. */
+function moveThumb(fld, i, where) {
+  const input = fld.querySelector("[data-i]");
+  const ids = input.value.split(",").map(s => s.trim()).filter(Boolean);
+  if (i < 0 || i >= ids.length) return;
+  const j = where === "top" ? 0 : i + where;
+  if (j < 0 || j >= ids.length) return;
+  const [moved] = ids.splice(i, 1);
+  ids.splice(j, 0, moved);
+  input.value = ids.join(", ");
+  paintThumbs(fld.querySelector("[data-thumbs]"));
 }
 
 /* ---- uploading from the record itself --------------------------------------
@@ -2357,8 +2398,55 @@ async function nextKey(base) {
   return k;
 }
 
+/**
+ * The longest edge anything in the bucket needs to be.
+ *
+ * The app's biggest use of a photograph is a full-width hero on a phone, and
+ * 1600 covers that on a 3x screen with room to spare. Anything above it is
+ * bytes every visitor downloads and nobody sees.
+ */
+const MAXPX = 1600;
+
+/**
+ * Downscale and re-encode before it ever leaves the laptop.
+ *
+ * A photograph off a phone is eight to twelve megabytes of JPEG, and it was
+ * being stored, served and thumbnailed at that size: the dashboard drew it into
+ * a 96-pixel box, the app drew it into a 76-pixel tile, and both downloaded all
+ * twelve megabytes to do it. The 6 MB limit below was the only defence, and it
+ * is a refusal rather than a fix — it sent the editor away to find image
+ * software.
+ *
+ * Canvas and webp are in every browser this dashboard supports, so the resize
+ * belongs here, where the file is picked. If anything about it fails — an
+ * unreadable file, no canvas, a bigger result than we started with — the
+ * original goes up untouched, because uploading something is the job and
+ * shrinking it is only the improvement.
+ */
+async function shrink(file) {
+  try {
+    if (!/^image\/(jpeg|png|webp|avif)$/.test(file.type)) return file;
+    const bmp = await createImageBitmap(file);
+    const big = Math.max(bmp.width, bmp.height);
+    const scale = Math.min(1, MAXPX / big);
+    // Already small and already webp: re-encoding would only lose a generation.
+    if (scale === 1 && file.type === "image/webp") { bmp.close && bmp.close(); return file; }
+    const w = Math.round(bmp.width * scale), h = Math.round(bmp.height * scale);
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(bmp, 0, 0, w, h);
+    bmp.close && bmp.close();
+    const blob = await new Promise(res => c.toBlob(res, "image/webp", 0.82));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
+  } catch (e) {
+    return file;
+  }
+}
+
 /** One file into the bucket. Returns the id a record should point at. */
 async function putImage(file, key) {
+  file = await shrink(file);
   const ext = (file.type.split("/")[1] || "webp").replace("jpeg", "jpg");
   const r = await api("/admin/media?key=" + encodeURIComponent(key + "." + ext), {
     method: "PUT", headers: { "content-type": file.type }, body: file,
@@ -2388,16 +2476,18 @@ async function uploadInto(fld, files) {
   const base = slug(currentDoc().id);
   let n = 0;
 
-  for (const f of files) {
+  for (let f of files) {
     // The record's id if it has one yet, otherwise the file's own name — a new
     // place whose id has not been typed still has to be able to take a picture.
     const stem = base || slug(f.name.replace(/\.[^.]+$/, "")) || "photo";
-    // Asked here as well as on the server: a 9 MB photograph straight off a
-    // phone is the common case, and finding out after pushing all 9 MB up an
-    // office connection is a minute of nothing followed by a refusal.
+    // Resized FIRST, so the limit below is about what will actually be stored.
+    // A 9 MB photograph straight off a phone is the common case, and it used to
+    // be refused here with a note about finding image software.
+    say("Preparing " + (n + 1) + " of " + files.length + "…");
+    f = await shrink(f);
     if (f.size > 6 * 1024 * 1024) {
-      say(f.name + " is " + (f.size / 1024 / 1024).toFixed(1) + " MB. The limit is 6 MB — " +
-        "save it smaller, or export it as webp.", 1);
+      say(f.name + " is still " + (f.size / 1024 / 1024).toFixed(1) + " MB after resizing. " +
+        "The limit is 6 MB — save it smaller and try again.", 1);
       break;
     }
     say("Uploading " + (n + 1) + " of " + files.length + "…");
@@ -2501,9 +2591,10 @@ async function pickForRow(i) {
 async function uploadForRow(file) {
   const it = PICK_ROW;
   if (!it || !file) return;
+  file = await shrink(file);
   if (file.size > 6 * 1024 * 1024) {
-    alert(file.name + " is " + (file.size / 1024 / 1024).toFixed(1) + " MB. The limit is 6 MB — " +
-      "save it smaller, or export it as webp.");
+    alert(file.name + " is still " + (file.size / 1024 / 1024).toFixed(1) + " MB after resizing. " +
+      "The limit is 6 MB — save it smaller and try again.");
     return;
   }
   const where = $("#pickwhere");
@@ -2984,9 +3075,11 @@ async function uploadToFolder(files) {
   if (!base) return say("Give it a name first — lower-case, with hyphens. For example: logo.", 1);
 
   let n = 0;
-  for (const f of files) {
+  for (let f of files) {
+    f = await shrink(f);
     if (f.size > 6 * 1024 * 1024) {
-      say(f.name + " is " + (f.size / 1024 / 1024).toFixed(1) + " MB. The limit is 6 MB.", 1);
+      say(f.name + " is still " + (f.size / 1024 / 1024).toFixed(1) + " MB after resizing. " +
+        "The limit is 6 MB.", 1);
       break;
     }
     say("Uploading " + (n + 1) + " of " + files.length + "…");
@@ -3077,6 +3170,14 @@ function wireForms() {
       input.value = input.value.split(",").map(s => s.trim())
         .filter(x => x && x !== gone).join(", ");
       return paintThumbs(fld.querySelector("[data-thumbs]"));
+    }
+
+    // Reordering a gallery. The first photograph is the record's face, so this
+    // is an editorial control, not a convenience.
+    const mv = e.target.closest("[data-mv]");
+    if (mv) {
+      const [i, where] = mv.getAttribute("data-mv").split(":");
+      return moveThumb(mv.closest(".fld"), Number(i), where === "top" ? "top" : Number(where));
     }
   });
 
@@ -3565,6 +3666,19 @@ export const FORMS_CSS = String.raw`
  .wide169 .th{width:112px}
  .wide169 .tpic{width:120px}
  .th small{display:block;font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ /* Which one is the face of this record, said on the picture rather than left
+    to be inferred from its position in a row. */
+ .th.main img{border-color:var(--accent);box-shadow:0 0 0 2px rgba(210,96,10,.28)}
+ .mainbadge{position:absolute;left:5px;top:5px;background:var(--accent);color:#fff;font-size:9.5px;
+   font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:99px;
+   box-shadow:0 1px 3px rgba(28,24,21,.3)}
+ /* The order controls. Under the picture, always visible — a hover-only
+    control is not a control on a tablet. */
+ .thmove{display:flex;gap:3px;justify-content:center;margin-top:4px}
+ .thmove button{padding:2px 7px;min-height:24px;font-size:11px;line-height:1;margin:0;
+   background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:6px}
+ .thmove button:hover:not(:disabled){background:var(--accent);border-color:var(--accent);color:#fff}
+ .thmove button:disabled{opacity:.35;cursor:default}
  /* An id pointing at nothing has to look wrong, not just render an empty box —
     a broken image and a photograph that has not loaded yet are the same picture. */
  .th.miss img{display:none}
