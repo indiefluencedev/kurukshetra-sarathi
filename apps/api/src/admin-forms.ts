@@ -2541,7 +2541,11 @@ async function mediaList(force) {
  * picture is the normal case of it.
  */
 let PICK_FOR = null;
-let PICK_ALL = false;    // false = this record's folder; true = the bucket
+/* "mine" = this record's folder · "all" = the whole bucket · "loose" = the
+   photographs no record points at. The third one is what the Photographs
+   screen was for: housekeeping, which is two dozen files once a month and
+   never wanted a section of its own in the sidebar. */
+let PICK_VIEW = "mine";
 /* Set when the picker was opened from a LIST ROW rather than from a field.
    Holds the record, so choosing can write one key and save it without a form
    ever being built. Cleared on every open, because a stale one would write the
@@ -2551,7 +2555,7 @@ let PICK_ROW = null;
 async function pickImage(fld, multi) {
   PICK_FOR = fld;
   PICK_ROW = null;
-  PICK_ALL = false;      // every opening starts in the folder it belongs to
+  PICK_VIEW = "mine";    // every opening starts in the folder it belongs to
   $("#picker").hidden = false;
   $("#picker").setAttribute("data-multi", multi ? "1" : "");
   // Row-mode controls, hidden again — this opening has a field behind it.
@@ -2572,7 +2576,7 @@ async function pickForRow(i) {
   if (!it) return;
   PICK_FOR = null;
   PICK_ROW = it;
-  PICK_ALL = false;
+  PICK_VIEW = "mine";
   $("#picker").hidden = false;
   $("#picker").setAttribute("data-multi", "");
   // Nothing to remove when there is nothing on it yet.
@@ -2659,22 +2663,48 @@ async function paintPicker() {
    * And the banner is usually a picture of the PLACE it happens at, which
    * lives in that place's folder and never in the event's. Scoping hid the
    * only photographs the editor actually wanted. */
-  const scoped = !!mine && !PICK_ALL && CKIND !== "events";
-  const list = scoped ? items.filter(o => own(o.key)) : items.slice();
-  if (!scoped && mine) list.sort((a, b) => (own(b.key) ? 1 : 0) - (own(a.key) ? 1 : 0));
+  const scoped = !!mine && PICK_VIEW === "mine" && CKIND !== "events";
+  // Events are never scoped (see above), so an opening that asked for "mine"
+  // and cannot have it is showing everything — say so on the tabs as well.
+  if (PICK_VIEW === "mine" && !scoped) PICK_VIEW = "all";
+  const list = PICK_VIEW === "loose"
+    ? items.filter(o => !folderOf(stemOf(o.key)))
+    : scoped ? items.filter(o => own(o.key)) : items.slice();
+  if (!scoped && mine && PICK_VIEW === "all") list.sort((a, b) => (own(b.key) ? 1 : 0) - (own(a.key) ? 1 : 0));
 
-  $("#picktitle").textContent = scoped ? "In this folder" : "Everything in the library";
+  $("#picktitle").textContent =
+    PICK_VIEW === "loose" ? "In no folder" : scoped ? "In this folder" : "Everything in the library";
   $("#pickwhere").textContent = scoped ? mine : "";
-  const all = $("#picker").querySelector("[data-pall]");
-  all.hidden = !mine;
-  all.textContent = scoped ? "Everything in the library" : "Back to " + mine;
 
+  /* Three views, as three tabs, because they are three questions: the pictures
+     of THIS record, every picture there is, and the ones belonging to nothing.
+     The third is the library's housekeeping — it used to be a screen of its
+     own, and it is two dozen files that want looking at once a month, not a
+     section in the sidebar. */
+  const loose = items.filter(o => !folderOf(stemOf(o.key)));
+  const tab = (v, lb, n) => '<button type="button" class="pkv' + (PICK_VIEW === v ? " on" : "") +
+    '" data-pv="' + v + '">' + ek(lb) + (n == null ? "" : " <small>" + n + "</small>") + "</button>";
+  $("#pickviews").innerHTML =
+    (mine ? tab("mine", "This folder", items.filter(o => own(o.key)).length) : "") +
+    tab("all", "Everything", items.length) +
+    tab("loose", "In no folder", loose.length);
+
+  /* The one upload anywhere that has to ask for a name: nothing owns these, so
+     nothing can name them. It is how the app's own seal got into the bucket. */
+  $("#pickloose").hidden = PICK_VIEW !== "loose";
   $("#pickgrid").innerHTML = list.map(o => {
     const id = stemOf(o.key);
-    return '<button type="button" class="pk" data-key="' + ek(id) + '">' +
+    return '<div class="pk">' +
+      '<button type="button" class="pkface" data-key="' + ek(id) + '">' +
       '<img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy" decoding="async">' +
-      "<small>" + ek(id) + "</small></button>";
-  }).join("") || (scoped
+      "<small>" + ek(id) + "</small></button>" +
+      // Deleting the FILE, as opposed to taking it off a record, which is the
+      // × on the thumbnail in the form. Small, cornered, and it asks first.
+      '<button type="button" class="pkdel" data-pdel="' + ek(o.key) + '" title="Delete this file" ' +
+      'aria-label="Delete the file ' + ek(o.key) + '">&#215;</button></div>';
+  }).join("") || (PICK_VIEW === "loose"
+    ? '<div class="pkempty"><p>Nothing is loose. Every photograph in the bucket belongs to a record.</p></div>'
+    : scoped
     /* The empty state is a BLOCK, not two grid cells.
      *
      * It was a paragraph and a button dropped straight into the picture grid,
@@ -2773,8 +2803,7 @@ async function usage(force) {
          is also the label a person would rather read. */
       if (!seen[it.id]) {
         seen[it.id] = 1;
-        const sp = SPLIT[s.group];
-        recs.push({ id: it.id, label: label, group: s.group, sub: (sp && it[sp.f]) || "" });
+        recs.push({ id: it.id, label: label, group: s.group });
       }
       add(it.img, s.group, label, it.id);
       (it.gallery || []).forEach(g => add(g, s.group, label, it.id));
@@ -2816,296 +2845,26 @@ function folderOf(stem) {
   return null;
 }
 
-const GROUPS = [
-  { g:"places", lb:"Places" },
-  { g:"stays", lb:"Stays" },
-  { g:"events", lb:"Events" },
-  { g:"startpoints", lb:"Start points" },
-  { g:"home", lb:"Home screen" },
-  { g:"loose", lb:"In no folder" },
-];
-
-/* The wall is sorted into named sections rather than one alphabetical run of
-   seventy-six, and each section splits again along the line that section is
-   actually worked in:
-
-     Places        Kurukshetra | Pehowa      two towns, two bodies of work
-     Stays         Dharamshalas | Hotels     a dharamshala is not a hotel
-     Start points  Railway stations | Bus stands
-     Events        —                         one pile, and a small one
-
-   The value comes off the record itself ("f" names the field), so a place that
-   moves town, or a stay recorded as a dharamshala, moves tab with nothing else
-   touched. A group with no entry here has no second row at all. */
-const SPLIT = {
-  places:      { f:"city", none:"No town set" },
-  home:        { f:"city", none:"No town set" },
-  stays:       { f:"kind", none:"No kind set",
-                 lb:{ dharamshala:"Dharamshalas", hotel:"Hotels", guesthouse:"Guesthouses", homestay:"Homestays" } },
-  startpoints: { f:"kind", none:"No kind set",
-                 lb:{ station:"Railway stations", busstand:"Bus stands", hotel:"Hotels", dharamshala:"Dharamshalas" } },
-};
-const subLb = (g, v) => ((SPLIT[g] && SPLIT[g].lb && SPLIT[g].lb[v]) ||
-  (v ? v.charAt(0).toUpperCase() + v.slice(1) : ""));
-let MGROUP = "places";   // which kind of thing the folders are for
-let MSUB = "";           // which slice within it, when the kind is split
-let BINS = {};        // folder id -> the objects in it
-let LOOSE = [];       // photographs whose name matches no record
-
 const stemOf = (key) => key.replace(/\.[a-z]+$/, "");
 
-/** Sort every object in the bucket into its folder. */
-async function rebuildBins(force) {
-  const items = await mediaList(force);
-  await usage(force);                       // fills RECS, which folderOf needs
-  BINS = {};
-  LOOSE = [];
-  for (const o of items) {
-    const r = folderOf(stemOf(o.key));
-    if (r) (BINS[r.id] = BINS[r.id] || []).push(o);
-    else LOOSE.push(o);
-  }
-  for (const k of Object.keys(BINS)) BINS[k].sort((a, b) => a.key.localeCompare(b.key));
-  return items;
-}
-
 /**
- * The library, as folders you can actually see into.
+ * Delete the FILE, not the reference to it.
  *
- * A wall of album cards — a cover photograph, a count, the name and the id —
- * and clicking one goes INTO it. That is what a folder is; a row with a
- * triangle on it is a list pretending.
- *
- * Still lazy, and more so than before. A cover is one small picture per folder
- * and carries loading="lazy", so the browser fetches only the ones actually
- * scrolled to; opening a folder shows that folder's photographs and no others.
- * Ninety-nine at once, which is what this replaced, never happens at any point.
+ * The warning names what will break, because "any place still pointing at it"
+ * is a category and this is a decision about one photograph: usage() already
+ * knows which records claim the key, so the question can be asked properly.
  */
-let MFOLDER = null;      // null = the wall; an id = inside it; "" = the loose ones
-
-const photoTile = (o) =>
-  '<div class="pk"><img src="' + ek("/img/" + encodeURIComponent(o.key)) + '" alt="" loading="lazy" decoding="async">' +
-  "<small>" + ek(stemOf(o.key)) + "</small>" +
-  '<button type="button" class="danger sm" data-mdel="' + ek(o.key) + '">Delete</button></div>';
-
-function folderCard(r) {
-  const objs = BINS[r.id] || [];
-  const cover = objs.length
-    ? '<img src="' + ek("/img/" + encodeURIComponent(objs[0].key)) + '" alt="" loading="lazy" decoding="async">'
-    : '<span class="fempty">no photograph yet</span>';
-  return '<button type="button" class="fcard' + (objs.length ? "" : " isempty") + '" data-open="' + ek(r.id) + '">' +
-    '<span class="fcover">' + cover +
-    (objs.length > 1 ? '<span class="fbadge">' + objs.length + "</span>" : "") + "</span>" +
-    '<span class="fmeta"><b>' + ek(r.label) + "</b><code>" + ek(r.id) + "</code></span></button>";
-}
-
-/**
- * Making a new folder.
- *
- * A folder is not a thing that can be created here, because a folder IS a
- * record — the folder p-avakirna exists because a place called Avakirna Tirth
- * does, and photographs find it by name. So "new folder" asks what the folder
- * is going to be ABOUT and opens a blank one of those, with its Photographs
- * step waiting. Save the record and the folder is there.
- *
- * The alternative was a folder that belongs to nothing, which is the pile
- * called "In no folder" and is the thing we have been digging out of.
- */
-const FOLDKINDS = [
-  { nav:"places", lb:"A place" },
-  { nav:"hotels", lb:"A stay" },
-  { nav:"events", lb:"An event" },
-  { nav:"startpoints", lb:"A start point" },
-  { nav:"hero", lb:"A home-screen photograph" },
-  // No e-rickshaw stand: nothing here would make a folder for it. See usage().
-];
-
-async function newFolder(nav) {
-  $("#nfold").hidden = true;
-  show(nav);                 // the sidebar, the title and the table all follow
-  await cLoad(nav);
-  cBlank();
-  openEditor();
-  // Straight to the step they came here for. Steps are 0-based; Photographs is
-  // found by name rather than by number, since the specs differ per kind.
-  const i = stepsOf(cSpec()).findIndex(s => s.lb === "Photographs");
-  if (i >= 0) showStep(i);
-}
-
-async function paintLibrary(force) {
-  const items = await rebuildBins(force);
-
-  /* ---- inside one folder ---- */
-  if (MFOLDER !== null) {
-    const rec = RECS.filter(r => r.id === MFOLDER)[0];
-    const objs = MFOLDER === "" ? LOOSE : (BINS[MFOLDER] || []);
-    $("#mgroups").hidden = true;
-    $("#msubs").hidden = true;
-    $("#msearch").hidden = true;
-    $("#libcount").textContent = objs.length + " photograph" + (objs.length === 1 ? "" : "s") + " in here";
-    $("#libgrid").className = "inside";
-    $("#libgrid").innerHTML =
-      '<div class="fhead">' +
-        '<button type="button" class="ghost sm" data-back>&#8592; All folders</button>' +
-        '<b class="fname">' + ek(rec ? rec.label : "In no folder") + "</b>" +
-        (MFOLDER ? "<code>" + ek(MFOLDER) + "</code>" : "") +
-        '<span style="flex:1"></span>' +
-        // Upload at the TOP of the folder it goes into, which is where the eye
-        // already is on the way in. It was under the pictures, read last.
-        (MFOLDER
-          ? '<button type="button" class="primary sm" data-fup>Upload into this folder</button>' +
-            '<input type="file" data-ffile hidden multiple accept="image/webp,image/jpeg,image/png,image/avif">'
-          // Nothing names these, because nothing owns them — so this is the one
-          // upload anywhere that still asks for a name. It is what the app's own
-          // seal is, and it is why the standalone form does not need to exist.
-          : '<input type="text" id="loosekey" placeholder="logo" style="max-width:170px;margin:0">' +
-            '<button type="button" class="primary sm" data-fup>Upload</button>' +
-            '<input type="file" data-ffile hidden accept="image/webp,image/jpeg,image/png,image/avif">') +
-      "</div>" +
-      '<div class="upnote" data-fnote></div>' +
-      (MFOLDER ? "" : '<p class="muted" style="margin-top:0">These belong to no record: nothing in the catalogue ' +
-        "points at them and their name matches no id. Either the name is wrong, or they are things the app " +
-        "uses directly, like its seal.</p>") +
-      (objs.length
-        ? '<div class="grid">' + objs.map(photoTile).join("") + "</div>"
-        : '<p class="muted">Nothing in here yet. Anything uploaded from this folder, or from the record itself, lands in it.</p>');
-    return;
-  }
-
-  /* ---- the wall of folders ----
-     Two rows of tabs: what KIND of thing, then which slice of it (see SPLIT).
-     Places under Kurukshetra and Places under Pehowa are two bodies of work and
-     only one of them is ever the one being worked on, so only one of them is
-     ever drawn. The second row appears only for kinds that split — events are
-     one pile, and a row with one tab in it is not a choice. */
-  $("#mgroups").hidden = false;
-  $("#msearch").hidden = false;
-  const q = (($("#msearch") || {}).value || "").trim().toLowerCase();
-
-  const shotsOf = (rs) => rs.reduce((n, r) => n + (BINS[r.id] || []).length, 0);
-
-  /* The number on a kind tab counts FOLDERS, not photographs. It counted
-     photographs, and every tab but Places therefore read zero — which says
-     "there is nothing here" about thirteen start points that are all waiting to
-     be photographed. Folders is the count of work; the photograph totals are on
-     the line above, where the size of the bucket belongs. */
-  const kindTab = (x) => {
-    const n = x.g === "loose" ? LOOSE.length : RECS.filter(r => r.group === x.g).length;
-    return '<button data-mg="' + x.g + '"' + (MGROUP === x.g ? ' class="on"' : "") + ">" +
-      ek(x.lb) + " <small>" + n + "</small></button>";
-  };
-  $("#mgroups").innerHTML = GROUPS.map(kindTab).join("");
-
-  // The slices this kind actually has, in the order SPLIT names them so
-  // Dharamshalas sits before Hotels rather than wherever the alphabet puts it.
-  // "-" is the tab for records with the field unset, and only exists when there
-  // are some.
-  const inKind = RECS.filter(r => r.group === MGROUP);
-  const sp = SPLIT[MGROUP];
-  const order = (sp && sp.lb) ? Object.keys(sp.lb) : [];
-  const vals = [];
-  for (const r of inKind) if (r.sub && vals.indexOf(r.sub) < 0) vals.push(r.sub);
-  vals.sort((a, b) => {
-    const ia = order.indexOf(a), ib = order.indexOf(b);
-    return (ia < 0) === (ib < 0) ? (ia < 0 ? a.localeCompare(b) : ia - ib) : (ia < 0 ? 1 : -1);
-  });
-  const unset = sp && inKind.some(r => !r.sub);
-  const tabs = vals.concat(unset && vals.length ? ["-"] : []);
-  if (tabs.indexOf(MSUB) < 0) MSUB = tabs[0] || "";
-
-  $("#msubs").hidden = !(tabs.length > 1 || (tabs.length === 1 && vals.length === 1));
-  $("#msubs").innerHTML = tabs.map(c => {
-    const rs = inKind.filter(r => (c === "-" ? !r.sub : r.sub === c));
-    return '<button data-mt="' + ek(c) + '"' + (MSUB === c ? ' class="on"' : "") + ">" +
-      ek(c === "-" ? sp.none : subLb(MGROUP, c)) +
-      " <small>" + rs.length + "</small></button>";
-  }).join("");
-
-  /* ---- the loose pile is its own tab, and it is a pile, not a folder ---- */
-  if (MGROUP === "loose") {
-    $("#msubs").hidden = true;
-    $("#libcount").textContent = LOOSE.length + " photograph" + (LOOSE.length === 1 ? "" : "s");
-    $("#libgrid").className = "inside";
-    $("#libgrid").innerHTML =
-      '<div class="fhead"><b class="fname">In no folder</b>' +
-        '<span style="flex:1"></span>' +
-        '<input type="text" id="loosekey" placeholder="logo" style="max-width:170px;margin:0">' +
-        '<button type="button" class="primary sm" data-fup>Upload</button>' +
-        '<input type="file" data-ffile hidden accept="image/webp,image/jpeg,image/png,image/avif"></div>' +
-      '<div class="upnote" data-fnote></div>' +
-      '<p class="muted" style="margin-top:0">These belong to no record: nothing in the catalogue points at ' +
-      "them and their name matches no id. Either the name is wrong, or they are things the app uses directly, " +
-      "like its seal.</p>" +
-      (LOOSE.length ? '<div class="grid">' + LOOSE.map(photoTile).join("") + "</div>" : "");
-    MFOLDER = null;
-    return;
-  }
-
-  /* A search looks everywhere. Being told "nothing matches" because the folder
-     is filed under the other town is worse than no search at all. */
-  const recs = (q ? RECS.slice() : inKind.filter(r => (MSUB === "-" ? !r.sub : r.sub === MSUB || !vals.length)))
-    .filter(r => !q || (r.label + " " + r.id).toLowerCase().indexOf(q) >= 0)
-    .sort((a, b) => a.label.localeCompare(b.label));
-
-  $("#libcount").textContent = q
-    ? recs.length + " folder" + (recs.length === 1 ? "" : "s") + " matching, everywhere"
-    : recs.length + " folder" + (recs.length === 1 ? "" : "s") + " · " +
-      shotsOf(recs) + " photograph" + (shotsOf(recs) === 1 ? "" : "s") + " · " +
-      items.length + " in all, " + (items.reduce((n, o) => n + o.size, 0) / 1024 / 1024).toFixed(2) + " MB";
-
-  const newCard = q ? ""
-    : '<button type="button" class="fcard newf" data-newfold>' +
-      '<span class="fcover"><span class="fplus">+</span></span>' +
-      '<span class="fmeta"><b>New folder</b><code>a place, a stay, an event…</code></span></button>';
-
-  $("#libgrid").className = "wall";
-  $("#libgrid").innerHTML = '<div class="wgrid">' + newCard + recs.map(folderCard).join("") + "</div>" +
-    (recs.length || newCard ? "" : '<p class="muted">Nothing here yet.</p>');
-}
-
-/** Upload into the folder that is open. Its id is the name, so nothing is typed. */
-async function uploadToFolder(files) {
-  if (!files || !files.length || MFOLDER === null) return;
-  const note = $("#libgrid").querySelector("[data-fnote]");
-  const say = (t, bad) => { note.textContent = t || ""; note.className = "upnote" + (bad ? " bad" : ""); };
-
-  // Inside a real folder the id IS the name. The loose pile has no id, so it is
-  // the only place left that asks for one.
-  const base = MFOLDER || slug((($("#loosekey") || {}).value) || "");
-  if (!base) return say("Give it a name first — lower-case, with hyphens. For example: logo.", 1);
-
-  let n = 0;
-  for (let f of files) {
-    f = await shrink(f);
-    if (f.size > 6 * 1024 * 1024) {
-      say(f.name + " is still " + (f.size / 1024 / 1024).toFixed(1) + " MB after resizing. " +
-        "The limit is 6 MB.", 1);
-      break;
-    }
-    say("Uploading " + (n + 1) + " of " + files.length + "…");
-    try {
-      await putImage(f, await nextKey(base));
-    } catch (e) {
-      say((e && e.message) || "Upload failed.", 1);
-      break;
-    }
-    await mediaList(true);
-    n++;
-  }
-  USES = null;
-  await paintLibrary(true);
-  if (n) {
-    const m = $("#libgrid").querySelector("[data-fnote]");
-    if (m) m.textContent = n === 1 ? "Uploaded." : n + " uploaded.";
-  }
-}
-
-
 async function mediaDelete(key) {
-  if (!confirm("Delete " + key + "?\n\nAny place still pointing at it will show an empty frame.")) return;
+  const map = await usage();
+  const used = map[stemOf(key)] || [];
+  const who = used.map(u => u.label).join(", ");
+  if (!confirm("Delete " + key + "?" +
+    (who ? "\n\nIt is on: " + who + ". Each of those will show an empty frame." : "\n\nNothing points at it.")))
+    return;
   await api("/admin/media?key=" + encodeURIComponent(key), { method: "DELETE" });
-  await mediaList(true);
-  paintLibrary(true);
+  MEDIA = null;
+  USES = null;
+  await paintPicker();
 }
 
 /* ---- wiring --------------------------------------------------------------
@@ -3262,7 +3021,17 @@ function wireForms() {
 
   $("#picker").addEventListener("click", (e) => {
     if (e.target.id === "picker" || e.target.closest("[data-pclose]")) return void ($("#picker").hidden = true);
-    if (e.target.closest("[data-pall]")) { PICK_ALL = !PICK_ALL; return void paintPicker(); }
+    const pv = e.target.closest("[data-pv]");
+    if (pv) { PICK_VIEW = pv.getAttribute("data-pv"); return void paintPicker(); }
+    const pd = e.target.closest("[data-pdel]");
+    if (pd) return void mediaDelete(pd.getAttribute("data-pdel"));
+    if (e.target.closest("[data-looseup]")) {
+      const name = slug(($("#loosekey").value || "").trim());
+      const note = $("#picker").querySelector("[data-loosenote]");
+      if (!name) { note.textContent = "Give it a name first — lower-case, with hyphens. For example: logo."; return; }
+      note.textContent = "";
+      return void $("#picker").querySelector("[data-loosefile]").click();
+    }
 
     // Row mode: upload straight onto the record, or take its picture off.
     if (e.target.closest("[data-rowup]")) return void $("#picker").querySelector("[data-rowfile]").click();
@@ -3288,7 +3057,25 @@ function wireForms() {
     if (b) pickChoose(b.getAttribute("data-key"));
   });
 
-  $("#picker").addEventListener("change", (e) => {
+  $("#picker").addEventListener("change", async (e) => {
+    const lf = e.target.closest("[data-loosefile]");
+    if (lf) {
+      const file = lf.files && lf.files[0];
+      lf.value = "";
+      const note = $("#picker").querySelector("[data-loosenote]");
+      if (!file) return;
+      note.textContent = "Uploading…";
+      try {
+        await putImage(file, await nextKey(slug($("#loosekey").value || "")));
+        MEDIA = null;
+        USES = null;
+        note.textContent = "Uploaded.";
+        await paintPicker();
+      } catch (err) {
+        note.textContent = (err && err.message) || "Upload failed.";
+      }
+      return;
+    }
     const f = e.target.closest("[data-rowfile]");
     if (!f) return;
     const file = f.files && f.files[0];
@@ -3297,51 +3084,6 @@ function wireForms() {
     uploadForRow(file);
   });
 
-  $("#mgroups").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-mg]");
-    if (!b) return;
-    MGROUP = b.getAttribute("data-mg");
-    MSUB = "";        // resolved to this kind's first slice on the way through
-    MFOLDER = null;
-    paintLibrary();
-  });
-  $("#msubs").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-mt]");
-    if (!b) return;
-    MSUB = b.getAttribute("data-mt");
-    MFOLDER = null;
-    paintLibrary();
-  });
-  $("#libgrid").addEventListener("click", (e) => {
-    const d = e.target.closest("[data-mdel]");
-    if (d) return mediaDelete(d.getAttribute("data-mdel"));
-    const up = e.target.closest("[data-fup]");
-    if (up) return void up.parentNode.querySelector("[data-ffile]").click();
-    if (e.target.closest("[data-back]")) { MFOLDER = null; return void paintLibrary(); }
-    if (e.target.closest("[data-newfold]")) {
-      $("#nfkinds").innerHTML = FOLDKINDS.map(k =>
-        '<button type="button" class="ghost" data-nf="' + k.nav + '">' + ek(k.lb) + "</button>").join("");
-      return void ($("#nfold").hidden = false);
-    }
-    /* Going INTO a folder rather than unfolding it in place. Only this folder's
-       photographs are ever on screen, which is the lazy loading and the mental
-       model at the same time. "" is the loose pile, so the attribute is read
-       rather than tested for truth. */
-    const open = e.target.closest("[data-open]");
-    if (open) { MFOLDER = open.getAttribute("data-open"); paintLibrary(); }
-  });
-  $("#libgrid").addEventListener("change", (e) => {
-    const f = e.target.closest("[data-ffile]");
-    if (!f) return;
-    uploadToFolder(Array.prototype.slice.call(f.files));
-    f.value = "";
-  });
-  $("#msearch").addEventListener("input", () => paintLibrary());
-  $("#nfold").addEventListener("click", (e) => {
-    if (e.target.id === "nfold" || e.target.closest("[data-nfcancel]")) return void ($("#nfold").hidden = true);
-    const k = e.target.closest("[data-nf]");
-    if (k) newFolder(k.getAttribute("data-nf"));
-  });
   wireDial();
 }
 
@@ -3752,7 +3494,7 @@ export const FORMS_CSS = String.raw`
     being drawn into 76-pixel boxes on a desktop that decodes all of them.
     contain-intrinsic-size is what stops the scrollbar jumping: it is the size
     to assume for a tile that has not been rendered yet. */
- .pk{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;text-align:center;
+ .pk{position:relative;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center;
    content-visibility:auto;contain-intrinsic-size:auto 120px}
  .pk img{width:100%;height:76px;object-fit:cover;border-radius:5px;display:block}
  .pk small{display:block;font-size:10px;color:var(--muted);margin-top:4px;overflow:hidden;
@@ -3765,81 +3507,30 @@ export const FORMS_CSS = String.raw`
     instead of the drawer. */
  #picker{position:fixed;inset:0;background:rgba(28,24,21,.55);z-index:50;padding:24px;overflow:auto}
  #picker .box{background:var(--paper);border-radius:14px;padding:18px;max-width:820px;margin:0 auto}
+ /* This folder · everything · in no folder. The third is what the Photographs
+    section was: housekeeping, which is a view of the library and not a place. */
+ .pkviews{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:0 0 14px}
+ .pkviews button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+   padding:8px 13px;font-size:13px;font-weight:600;border-radius:8px 8px 0 0;margin-bottom:-1px;cursor:pointer}
+ .pkviews button:hover{color:var(--ink);background:var(--bg)}
+ .pkviews button.on{color:var(--accent-d);border-bottom-color:var(--accent);background:var(--bg)}
+ .pkviews button small{opacity:.65;font-weight:700;margin-left:4px}
+ /* The one upload that has to be told a name, because no record owns the file. */
+ .pkloose{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 14px;
+   background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+ .pkloose input[type=text]{max-width:190px;margin:0}
+ .pkloose .upnote{font-size:12.5px;color:var(--muted)}
+ /* The tile is a wrapper now: choosing is the face, deleting is the corner. */
+ .pkface{display:block;width:100%;background:none;border:0;padding:0;cursor:pointer;text-align:center;color:inherit}
+ .pkdel{position:absolute;top:-6px;right:-6px;width:22px;height:22px;padding:0;border-radius:99px;
+   background:var(--paper);border:1px solid var(--line);color:var(--bad);font-size:14px;font-weight:700;
+   line-height:1;box-shadow:0 1px 3px rgba(28,24,21,.22);cursor:pointer}
+ .pkdel:hover{background:var(--bad);border-color:var(--bad);color:#fff}
  .muted{color:var(--muted);font-size:14px}
- .mgroups{display:flex;gap:5px;flex-wrap:wrap}
- .mgroups button{background:#fff;border:1px solid var(--line);color:var(--muted);
-   border-radius:99px;padding:6px 12px;font-size:12.5px}
- .mgroups button small{opacity:.65;font-weight:700;margin-left:3px}
- .mgroups button.on{background:var(--accent);border-color:var(--accent-d);color:#fff}
  .pk .use{display:block;font-size:10px;color:var(--muted);margin-top:2px;line-height:1.3;
    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
  .pk .use.none{color:var(--bad);font-weight:700}
 
- /* ---- the library, as folders ----
-    A wall of album cards with a cover on each, and clicking one goes into it.
-    A row with a triangle on it was a list pretending to be a folder — and it
-    showed nothing of what was inside, which is the only thing anybody is
-    looking for. The cover is one lazy-loaded picture per card, so the browser
-    fetches the ones scrolled to and no others. */
- #libgrid.wall{display:block}
- .wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
-
- /* ---- two rows of tabs ----
-    What kind of thing, then which town. Only one town's folders are ever
-    drawn, because only one of them is ever the one being worked on. The
-    second row is absent for kinds that have no towns. */
- .mtabs{display:flex;gap:2px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:16px}
- .mtabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
-   padding:9px 13px;font-size:13.5px;font-weight:600;border-radius:8px 8px 0 0;margin-bottom:-1px}
- .mtabs button:hover{color:var(--ink);background:var(--bg)}
- .mtabs button.on{color:var(--accent-d);border-bottom-color:var(--accent);background:var(--bg)}
- .mtabs button small{opacity:.65;font-weight:700;margin-left:4px}
- .msubs{display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 16px}
- .msubs button{background:#fff;border:1px solid var(--line);color:var(--muted);border-radius:99px;
-   padding:5px 13px;font-size:12.5px;font-weight:600}
- .msubs button.on{background:#5E3B22;border-color:#5E3B22;color:#fff}
- .msubs button small{opacity:.7;margin-left:4px}
- .fcard{display:block;width:100%;text-align:left;background:none;border:0;padding:0;cursor:pointer;
-   font:inherit;font-weight:400}
- /* the sheet behind the cover — what makes a folder read as a stack */
- .fcover{position:relative;display:block;aspect-ratio:4/3;border-radius:10px;background:var(--bg);
-   border:1px solid var(--line);overflow:visible}
- .fcover:before{content:"";position:absolute;left:6px;right:6px;top:-5px;height:10px;
-   background:var(--paper);border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;z-index:0}
- .fcover img{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;
-   border-radius:9px;display:block}
- .fcard:hover .fcover{border-color:var(--accent)}
- .fcard:hover .fcover img{filter:brightness(1.04)}
- .fempty{position:relative;z-index:1;display:grid;place-items:center;height:100%;
-   font-size:11.5px;color:var(--muted);border-radius:9px;
-   background:repeating-linear-gradient(45deg,transparent,transparent 7px,rgba(0,0,0,.02) 7px,rgba(0,0,0,.02) 14px)}
- .fcard.isempty .fcover{border-style:dashed}
- .fbadge{position:absolute;z-index:2;right:7px;bottom:7px;background:rgba(28,24,21,.78);color:#fff;
-   font-size:11px;font-weight:700;border-radius:99px;padding:2px 8px;backdrop-filter:blur(3px)}
- .fmeta{display:block;padding:8px 2px 0}
- .fmeta b{display:block;font-size:13px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;
-   white-space:nowrap}
- .fmeta code{font-size:10.5px;color:var(--muted);background:none;padding:0}
- .fcard.loose .fcover{border-color:var(--bad)}
- /* Making a folder is adding the record it is named after — first card, so it
-    is where the eye lands rather than somewhere to be hunted for. */
- .fcard.newf .fcover{border-style:dashed;border-color:var(--accent);background:#FBEEDF}
- .fcard.newf .fcover:before{border-style:dashed;border-color:var(--accent);background:#FBEEDF}
- .fplus{position:relative;z-index:1;display:grid;place-items:center;height:100%;
-   font-size:34px;font-weight:300;color:var(--accent);line-height:1}
- .fcard.newf:hover .fcover{background:#F7E2C8}
- .nfkinds{display:grid;gap:7px}
- .nfkinds button{width:100%;text-align:left}
- #nfold{position:fixed;inset:0;z-index:60;background:rgba(28,24,21,.55);display:grid;
-   place-items:center;padding:20px;overflow:auto}
- #nfold .tbox{max-width:340px}
-
- /* inside one folder */
- .fhead{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:14px;
-   padding-bottom:12px;border-bottom:1px solid var(--line)}
- .fhead .fname{font-size:16px;font-weight:700}
- .fhead code{font-size:11.5px;color:var(--muted);background:var(--bg);padding:2px 7px;border-radius:5px}
- #msearch{max-width:280px;margin:0}
  .wide{grid-column:1/-1}
 
  /* The content screen is one column, not two. A table of fifty-seven places
@@ -3959,30 +3650,12 @@ export const FORMS_HTML = String.raw`
  </section>
 </div>
 
-<div id="pane-media" class="pane" hidden>
- <section>
-  <div class="toolbar">
-   <h2 style="margin:0">The library</h2>
-   <input type="search" id="msearch" placeholder="Find a folder…">
-   <span style="flex:1"></span>
-   <span class="you" id="libcount"></span>
-  </div>
-  <nav class="mtabs" id="mgroups"></nav>
-  <nav class="msubs" id="msubs" hidden></nav>
-  <!-- Folders, not photographs. Each one fetches its own pictures when it is
-       opened; nothing here loads an image until somebody asks for it. -->
-  <div id="libgrid"></div>
- </section>
-
-</div>
-
 <div id="picker" hidden>
  <div class="box">
   <div class="bar" style="margin:0 0 12px">
    <b id="picktitle">In this folder</b>
    <code id="pickwhere"></code>
    <span style="flex:1"></span>
-   <button class="ghost sm" type="button" data-pall hidden></button>
    <!-- These three appear only when the picker was opened from a table row.
         Uploading a new one and taking the old one off are both wanted at the
         same moment as changing it; inside the form they live on the field. -->
@@ -3991,19 +3664,19 @@ export const FORMS_HTML = String.raw`
    <button class="danger sm" type="button" data-prm hidden>Remove the photograph</button>
    <button class="ghost" type="button" data-pclose>Done</button>
   </div>
+  <!-- This record's folder · everything · the ones belonging to nothing. The
+       third replaced the Photographs section: housekeeping is a view of the
+       library, not a place of its own. -->
+  <nav class="pkviews" id="pickviews"></nav>
+  <!-- The only upload that has to ask for a name, because nothing owns these.
+       It is how the app's own seal is in the bucket at all. -->
+  <div class="pkloose" id="pickloose" hidden>
+   <input type="text" id="loosekey" placeholder="logo" autocomplete="off">
+   <button class="primary sm" type="button" data-looseup>Upload under this name</button>
+   <input type="file" data-loosefile hidden accept="image/webp,image/jpeg,image/png,image/avif">
+   <span class="upnote" data-loosenote></span>
+  </div>
   <div class="grid" id="pickgrid"></div>
- </div>
-</div>
-
-<!-- What the new folder is going to be about. A folder IS a record, so this
-     opens a blank one of whatever is chosen, on its Photographs step. -->
-<div id="nfold" hidden>
- <div class="tbox">
-  <h3 style="margin:0 0 4px;font-size:16px">What is the folder for?</h3>
-  <p class="muted" style="margin:0 0 14px;font-size:13px">A folder is named after the thing it holds
-   photographs of, so making one means adding that thing. It is saved when you save the record.</p>
-  <div class="nfkinds" id="nfkinds"></div>
-  <div class="tbar"><button type="button" class="ghost" data-nfcancel>Cancel</button></div>
  </div>
 </div>
 
