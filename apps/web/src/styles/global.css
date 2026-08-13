@@ -684,6 +684,8 @@ details.more[open] summary svg{transform:rotate(90deg)}
   border:2px solid #fff;box-shadow:0 2px 7px rgba(26,24,20,.32)}
 .rmk.start{background:var(--umber)}
 .rmk.end{background:var(--open)}
+/* the picker's pin is a glyph rather than a letter, and needs a size of its own */
+.rmk svg{width:15px;height:15px}
 
 /* ---- the plain-language walkthrough ---- */
 .walk{margin-top:22px}
@@ -1567,6 +1569,42 @@ nav.tab button:not(.on){text-shadow:0 1px 0 rgba(255,255,255,.6)}
 /* nested selection is a tick, not another slab of indigo — one level of
    emphasis per screen, or the step turns into a blue wall */
 .subpick .opt.on{box-shadow:none;background:#fff}
+
+/* ---- the field that opens the list, and the list's own sheet ----
+   One row where twelve used to be. It reads as a field rather than as a
+   thirteenth option: a chevron, not a tick, because tapping it asks a question
+   instead of answering one. */
+.pickfield{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+  background:#fff;border:1.5px solid var(--stone-2);border-radius:var(--r);padding:11px 12px;
+  min-height:var(--tap);box-shadow:var(--shadow-1);
+  transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),
+             transform var(--t-fast) var(--ease)}
+.pickfield:active{transform:scale(.99)}
+.pickfield.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow-1)}
+.pickfield .oi{width:36px;height:36px;border-radius:10px;background:var(--surface-2);
+  border:1px solid var(--stone);display:grid;place-items:center;color:var(--ink-2);flex:0 0 auto}
+.pickfield.on .oi{background:var(--accent);border-color:var(--accent);color:#fff}
+.pickfield .oi svg{width:18px;height:18px}
+.pickfield b{display:block;font-size:calc(14.5px*var(--ts));font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickfield.on b{color:var(--accent-deep)}
+.pickfield small{display:block;color:var(--muted);font-size:calc(12.5px*var(--ts));margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickfield .chev{margin-left:auto;flex:0 0 auto;color:var(--muted);display:grid;place-items:center}
+.pickfield .chev svg{width:18px;height:18px;transform:rotate(-90deg)}
+
+/* The sheet is tall on purpose: a list that opens at the size of its longest
+   answer makes the sheet jump every keystroke as results are filtered. */
+.picksheet{display:flex;flex-direction:column;min-height:min(66vh,520px)}
+/* the search box never leaves the screen, however far down the list goes */
+.picksheet-top{position:sticky;top:0;z-index:2;background:var(--bone);
+  padding-bottom:8px;margin:0 -18px;padding-left:18px;padding-right:18px;
+  box-shadow:0 6px 12px -10px rgba(20,18,14,.5)}
+.picksheet-top .search{background:var(--surface-2)}
+.picksheet-top .iconbtn{width:34px;height:34px;min-width:34px;margin-right:-6px}
+.picksheet-top .iconbtn svg{width:17px;height:17px;color:var(--muted)}
+.picksheet-list{gap:7px;padding-top:8px}
+.picksheet-list .opt{padding:12px 13px}
 
 /* ---- one question, one plate ---- */
 .qcard{background:var(--surface);border:1px solid var(--stone);border-radius:var(--r);

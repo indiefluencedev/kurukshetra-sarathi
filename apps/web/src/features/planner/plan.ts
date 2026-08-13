@@ -4,7 +4,7 @@ import { nm, t } from "@/shared/i18n/i18n";
 import { fromISO, isoToday, isoDate, isToday, nowM, addDays } from "@/shared/lib/datetime";
 import { toast } from "@/shared/ui/overlays";
 import { Engine } from "@/features/planner/engine";
-import { askLoc } from "@/features/location/location";
+import { askLoc, FIX, MY_LOCATION } from "@/features/location/location";
 import { savePlan, rememberAnswers } from "./persist";
 import type { EventDef } from "@/data/events";
 import type { Loc, GeoPoint } from "@/shared/types";
@@ -269,10 +269,12 @@ export function pickStart(ty: string) {
   if (ty === "useLoc") {
     askLoc(() => {
       // Say plainly what we ended up with: a real fix, or the town centre.
+      // Either way it is a point the APP placed — see FIX — so a sharper
+      // reading arriving later may still move it, and a tap on the map wins.
       setStartPoint(
         S.userLoc
-          ? { lat: S.userLoc.lat, lng: S.userLoc.lng, label: nm({ en: "My location", hi: "मेरा स्थान" }) }
-          : { lat: city().centre.lat, lng: city().centre.lng, label: nm({ en: "Town centre", hi: "नगर केंद्र" }) },
+          ? { lat: S.userLoc.lat, lng: S.userLoc.lng, label: nm(MY_LOCATION), ref: FIX }
+          : { lat: city().centre.lat, lng: city().centre.lng, label: nm({ en: "Town centre", hi: "नगर केंद्र" }), ref: FIX },
       );
     });
   } else if (ty === "other") {

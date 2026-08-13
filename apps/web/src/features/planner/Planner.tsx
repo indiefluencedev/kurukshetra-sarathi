@@ -10,7 +10,9 @@ import { THEMES } from "@/data/config";
 import { theme } from "@/data/config";
 import { WINDOWS, CUSTOM, DAYNAMES, dayLabel, longDate, shortDate, lastDay, valid, missing, pNext, pBack, setWin, pickStart, pickEnd, setStartPoint, setEndPoint, flipTheme, buildRoute } from "./plan";
 import { PlacePicker, PinMap, PickedLine } from "./LocationPicker";
+import { openPlaceSheet } from "./PlaceSheet";
 import { openDateSheet, openTimeSheet } from "./DateTimeSheets";
+import { refreshLoc } from "@/features/location/location";
 import type { PlaceKind } from "@/data/places-index";
 import type { GeoPoint, Loc } from "@/shared/types";
 
@@ -261,6 +263,12 @@ const KINDS: Record<string, PlaceKind[]> = {
   station: ["station"],
   bus: ["busstand"],
 };
+/** the sheet asks the question in full, because it covers the step that asked it */
+const SHEET_TITLE: Record<string, Loc> = {
+  hotel: { en: "Which stay?", hi: "कौन सा ठहराव?" },
+  station: { en: "Which station?", hi: "कौन सा स्टेशन?" },
+  bus: { en: "Which bus stand?", hi: "कौन सा बस अड्डा?" },
+};
 
 /**
  * The picker that belongs to whichever option is selected, rendered directly
@@ -271,7 +279,7 @@ function WhereBody({ type, point, onPick }: { type: string; point: GeoPoint; onP
   if (KINDS[type])
     return (
       <SubPick label={nm(WHICH_ONE)}>
-        <PlacePicker kinds={KINDS[type]} value={point} onPick={onPick} />
+        <PlacePicker kinds={KINDS[type]} value={point} onPick={onPick} title={nm(SHEET_TITLE[type])} />
       </SubPick>
     );
   // A pin is the answer for "somewhere else" and for a location fix alike — the
@@ -279,10 +287,13 @@ function WhereBody({ type, point, onPick }: { type: string; point: GeoPoint; onP
   if (type === "other" || type === "anywhere" || type === "useLoc")
     return (
       <SubPick label={nm(type === "useLoc" ? { en: "Where we think you are", hi: "हमारे अनुसार आप यहाँ हैं" } : DROP_PIN)}>
+        {type === "useLoc" && <LocStatus />}
         <PinMap
           value={point}
           onPin={onPick}
           height={type === "useLoc" ? 200 : 260}
+          search={type !== "useLoc"}
+          accuracy={type === "useLoc" && S.userLoc ? S.userLoc.acc : undefined}
           hint={
             type === "useLoc"
               ? nm({ en: "This is where we think you are. Tap the map if it's off.", hi: "हमारे अनुसार आप यहाँ हैं। गलत हो तो नक्शे पर दबाएँ।" })
@@ -294,7 +305,88 @@ function WhereBody({ type, point, onPick }: { type: string; point: GeoPoint; onP
   return null;
 }
 
+/**
+ * What the location attempt actually produced — and the way to ask again.
+ *
+ * "Using the town centre" was said in the same quiet grey whether the device
+ * had refused, timed out, or was never asked, and there was no way back from
+ * any of them: the only escape from a wrong pin was to tap the map. A failure
+ * that cannot be retried is a failure the visitor has to work around.
+ */
+function LocStatus() {
+  const { locBusy, locErr, userLoc } = S;
+  if (locBusy)
+    return (
+      <p className="pickhint" style={{ paddingTop: 0 }}>
+        {nm({ en: "Finding you…", hi: "आपको खोज रहे हैं…" })}
+      </p>
+    );
+  if (userLoc)
+    return (
+      <p className="pickhint" style={{ paddingTop: 0 }}>
+        {userLoc.acc
+          ? nm({
+              en: "Located to about " + Math.round(userLoc.acc) + " m.",
+              hi: "लगभग " + Math.round(userLoc.acc) + " मीटर तक सटीक।",
+            })
+          : nm({ en: "Located.", hi: "स्थान मिल गया।" })}
+        {userLoc.acc && userLoc.acc > 500 ? (
+          <>
+            {" "}
+            {nm({ en: "That is a wide guess — tap the map to place it exactly.", hi: "यह मोटा अनुमान है — सटीक स्थान हेतु नक्शे पर दबाएँ।" })}{" "}
+            <button className="linkish" onClick={() => refreshLoc()}>
+              {nm({ en: "Try again", hi: "फिर कोशिश करें" })}
+            </button>
+          </>
+        ) : null}
+      </p>
+    );
+  return (
+    <p className="pickhint" style={{ paddingTop: 0 }}>
+      {nm(LOC_TROUBLE[locErr] || LOC_TROUBLE.unavailable)}{" "}
+      {locErr !== "insecure" && (
+        <button className="linkish" onClick={() => refreshLoc()}>
+          {nm({ en: "Try again", hi: "फिर कोशिश करें" })}
+        </button>
+      )}
+    </p>
+  );
+}
+
+const LOC_TROUBLE: Record<string, Loc> = {
+  denied: {
+    en: "Your browser is not letting us see your location, so this is the town centre. Allow location for this site, or tap the map.",
+    hi: "आपका ब्राउज़र स्थान देखने नहीं दे रहा, इसलिए यह नगर केंद्र है। इस साइट को स्थान की अनुमति दें, या नक्शे पर दबाएँ।",
+  },
+  insecure: {
+    en: "Location needs a secure (https) connection, and this one is not. This is the town centre — tap the map to correct it.",
+    hi: "स्थान हेतु सुरक्षित (https) संबंध चाहिए, जो यहाँ नहीं है। यह नगर केंद्र है — सुधारने हेतु नक्शे पर दबाएँ।",
+  },
+  unavailable: {
+    en: "We could not get a fix, so this is the town centre. Tap the map to place it yourself.",
+    hi: "स्थान नहीं मिल सका, इसलिए यह नगर केंद्र है। स्वयं रखने हेतु नक्शे पर दबाएँ।",
+  },
+};
+
 type WhereOpt = { type: string; ic: string; lb: string; sub?: string };
+
+/**
+ * Choosing an option that has a list behind it opens that list at once.
+ *
+ * The alternative is a tap that answers nothing: the option ticks, a field
+ * appears under it, and the visitor has to find and tap that too before the
+ * question they came to answer is on screen. One tap, one list.
+ */
+const pickAnd = (pick: (t: string) => void, onPoint: (g: GeoPoint) => void) => (ty: string) => {
+  pick(ty);
+  if (KINDS[ty])
+    openPlaceSheet({
+      title: nm(SHEET_TITLE[ty]),
+      kinds: KINDS[ty],
+      chosen: undefined,
+      onPick: onPoint,
+    });
+};
 
 /**
  * "Where from" and "where to" are the same question asked twice, so they are
@@ -337,9 +429,11 @@ function StepStart() {
   const locSub =
     p.startType !== "useLoc"
       ? undefined
-      : S.userLoc
-        ? nm({ en: "Location allowed", hi: "स्थान अनुमत" })
-        : nm({ en: "Using the town centre", hi: "नगर केंद्र से" });
+      : S.locBusy
+        ? nm({ en: "Finding you…", hi: "आपको खोज रहे हैं…" })
+        : S.userLoc
+          ? nm({ en: "Using your location", hi: "आपके स्थान से" })
+          : nm({ en: "Not found — using the town centre", hi: "नहीं मिला — नगर केंद्र से" });
 
   return (
     <WhereStep
@@ -347,7 +441,7 @@ function StepStart() {
       qs={t("q_start_s")}
       sel={p.startType}
       point={p.start}
-      pick={pickStart}
+      pick={pickAnd(pickStart, setStartPoint)}
       setPoint={setStartPoint}
       opts={[
         { type: "useLoc", ic: "pin", lb: t("useLoc"), sub: locSub },
@@ -370,7 +464,7 @@ function StepEnd() {
       qs={t("q_end_s")}
       sel={p.endType}
       point={p.end}
-      pick={pickEnd}
+      pick={pickAnd(pickEnd, setEndPoint)}
       setPoint={setEndPoint}
       lead={
         p.start.label ? (
