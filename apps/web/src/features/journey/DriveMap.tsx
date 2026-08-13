@@ -16,7 +16,8 @@ import { addTo } from "@/features/place/AddSheet";
 import { Engine } from "@/features/planner/engine";
 import { haversine } from "@/features/planner/routing/estimate";
 import { roadGeometry } from "@/features/planner/routing/osrm";
-import { passingPlaces, progressAlong, type Passing } from "./corridor";
+import { CONFIG } from "@/data/config";
+import { passingPlaces, progressAlong, lineLength, locate, type Passing } from "./corridor";
 import { due, markSaid, speak, resetGuide, voiceOn, setVoiceOn, speechAvailable } from "./guide";
 import { openStopSheet } from "./StopSheet";
 import { watchPermission, LOC_HELP } from "@/features/location/location";
@@ -43,6 +44,14 @@ const ARRIVED_M = 130;
 /** Recompute "how far, how long" no more often than this. The fix arrives about
  *  once a second and the answer does not change that fast. */
 const ETA_MS = 4000;
+/** Further than this from the drawn road and you are not on it. A parallel
+ *  service road or a dual carriageway's other side is not a wrong turn. */
+const OFF_ROUTE_M = 90;
+/** The road is drawn by a community-run OSRM. Once every twenty seconds, at most. */
+const REROUTE_MS = 20_000;
+
+/** km/h for the mode being travelled — the same figures the planner budgets with. */
+const speedFor = (mode: string) => (CONFIG.speed as Record<string, number>)[mode] || CONFIG.speed.car;
 
 /**
  * Driving the day, in the app. The whole of it — this is the journey screen.
@@ -86,6 +95,11 @@ export function DriveMap() {
   const etaAtRef = useRef(0);
   const arrivedRef = useRef(false);
   const aimRef = useRef<number | null>(null);
+  const routeAtRef = useRef(0);
+  const routeAcRef = useRef<AbortController | null>(null);
+  const legLenRef = useRef(0);
+  /** did the road on screen start from a live fix, or from the planned point? */
+  const fromFixRef = useRef(false);
 
   const watchRef = useRef<number | null>(null);
 
@@ -155,42 +169,96 @@ export function DriveMap() {
     // visitor is looking at the road, not at this screen.
     if (j.i > 0) speak(nm({ en: `Next stop, ${target.d.name.en}.`, hi: `अगला पड़ाव, ${target.d.name.hi}।` }));
 
-    if (!prev || !target) return;
-    if (prev.lat === target.d.lat && prev.lng === target.d.lng) return;
-
-    let dead = false;
-    const ac = new AbortController();
-    roadGeometry(
-      [{ lat: prev.lat, lng: prev.lng }, { lat: target.d.lat, lng: target.d.lng }],
-      ac.signal,
-    ).then((geo) => {
-      if (dead) return;
-      const pts = geo.map(([lat, lng]) => ({ lat, lng }));
-      lineRef.current = pts;
-      const skip = new Set([(prev as any).id, target.d.id].filter(Boolean) as string[]);
-      aheadRef.current = passingPlaces(pts, D, skip);
-      const map = mapRef.current;
-      if (!map) return;
-      try {
-        legRef.current?.remove();
-        legRef.current = L.polyline(geo, {
-          color: navColour(),
-          weight: 6,
-          opacity: 0.9,
-          lineCap: "round",
-          lineJoin: "round",
-        }).addTo(map);
-        if (!followRef.current) map.fitBounds(geo, { padding: [50, 90], maxZoom: 16 });
-      } catch {
-        /* the screen moved on */
-      }
-    });
+    // From where you ARE, when the device knows — the planned start is only the
+    // fallback for the seconds before the first fix lands.
+    fromFixRef.current = false;
+    route(S.userLoc || prev, !!S.userLoc);
     return () => {
-      dead = true;
-      ac.abort();
+      routeAcRef.current?.abort();
+      routeAcRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [j.i, target?.d?.id]);
+
+  /**
+   * Draw the road from a point to the stop, and work out what sits beside it.
+   *
+   * The road used to be drawn from the point the DAY started at — the bus stand
+   * the visitor named in the planner an hour ago — which is a line they may be
+   * two kilometres from and not on. A route that does not begin where you are
+   * is not a route, it is a picture of somebody else's drive, and every "on
+   * your left" computed against it is about a road you are not on.
+   *
+   * `resetGuide` is deliberately NOT called here. A re-route is the same leg
+   * measured again, so what has already been announced stays announced —
+   * clearing it would have the guide work back through the same places every
+   * time the driver took a different turning.
+   */
+  function route(from: { lat: number; lng: number } | null | undefined, fromFix: boolean) {
+    // targetRef, not `target`: this is called from the geolocation watch, which
+    // is registered once and would otherwise keep drawing roads to whichever
+    // stop was current when the screen opened.
+    const to = targetRef.current;
+    if (!from || !to) return;
+    if (from.lat === to.d.lat && from.lng === to.d.lng) return;
+    routeAcRef.current?.abort();
+    const ac = new AbortController();
+    routeAcRef.current = ac;
+    routeAtRef.current = Date.now();
+    fromFixRef.current = fromFix;
+    roadGeometry([{ lat: from.lat, lng: from.lng }, { lat: to.d.lat, lng: to.d.lng }], ac.signal).then(
+      (geo) => {
+        if (ac.signal.aborted || geo.length < 2) return;
+        const pts = geo.map(([lat, lng]) => ({ lat, lng }));
+        lineRef.current = pts;
+        legLenRef.current = lineLength(pts);
+        const skip = new Set([(from as any).id, to.d.id].filter(Boolean) as string[]);
+        aheadRef.current = passingPlaces(pts, D, skip);
+        const map = mapRef.current;
+        if (!map) return;
+        try {
+          legRef.current?.remove();
+          legRef.current = L.polyline(geo, {
+            color: navColour(),
+            weight: 6,
+            opacity: 0.9,
+            lineCap: "round",
+            lineJoin: "round",
+          }).addTo(map);
+          if (!followRef.current) map.fitBounds(geo, { padding: [50, 90], maxZoom: 16 });
+        } catch {
+          /* the screen moved on */
+        }
+      },
+    );
+  }
+
+  /**
+   * Off the road we drew? Draw it again from here.
+   *
+   * Two guards, because the road comes from a community-run OSRM and a fix
+   * arrives every second: only when the driver is properly off the line — a
+   * parallel service road is not a wrong turn — and never twice inside twenty
+   * seconds.
+   */
+  function reroute(fix: LatLng) {
+    // The road on screen was drawn from the planned start — the bus stand named
+    // in the planner an hour ago. The first fix replaces it immediately and
+    // does not wait out the cooldown: that opening moment, with the line
+    // starting somewhere the visitor is not, is the whole complaint.
+    if (!fromFixRef.current) {
+      route(fix, true);
+      return;
+    }
+    const line = lineRef.current;
+    if (Date.now() - routeAtRef.current < REROUTE_MS) return;
+    if (!line.length) {
+      route(fix, true); // a road we never got
+      return;
+    }
+    const off = locate(fix, line)?.offset ?? 0;
+    if (off > OFF_ROUTE_M) route(fix, true);
+  }
 
   /**
    * The rest of the day, as pins.
@@ -272,6 +340,7 @@ export function DriveMap() {
         const fix = { lat: c.latitude, lng: c.longitude };
         S.userLoc = { ...fix, acc: c.accuracy };
         drawMe(fix, c.accuracy, c.heading);
+        reroute(fix);
         announce(fix, c.speed);
         eta(fix);
       },
@@ -371,9 +440,17 @@ export function DriveMap() {
     const to = targetRef.current?.d;
     if (!to) return;
     const metres = haversine(fix, to) * 1000;
+    /* What is left of the road on screen, not a straight line multiplied by
+       1.35. The drawn route already knows every bend; measuring against it is
+       both more honest and free. The estimate stays as the fallback for the
+       seconds before a road has been fetched. */
+    const line = lineRef.current;
+    const left = line.length ? legLenRef.current - progressAlong(fix, line) : 0;
+    const mode = (S.plan && S.plan.mode) || "car";
+    const km = left > 0 ? +(left / 1000).toFixed(1) : +(Engine.roadKm(fix, to) || 0).toFixed(1);
     setLive({
-      km: +(Engine.roadKm(fix, to) || 0).toFixed(1),
-      min: Engine.travelMin(fix, to, (S.plan && S.plan.mode) || "car"),
+      km,
+      min: left > 0 ? Math.max(1, Math.round((km / speedFor(mode)) * 60)) : Engine.travelMin(fix, to, mode),
     });
     if (metres > ARRIVED_M) {
       if (metres > ARRIVED_M * 2) arrivedRef.current = false; // left again, so it can fire next time
