@@ -547,10 +547,23 @@ assert.match(JS, /if \(CSTEP !== "pv"\) \{ showStep\("pv"\)/,
   for (const [what, s] of good)
     assert.ok(near(asPoint(s), KKR), what + " must parse to the Kurukshetra pin, got " + JSON.stringify(asPoint(s)));
 
-  // The pin wins over the view centre when a URL carries both — the @ is
-  // wherever the map happened to be scrolled to.
-  assert.ok(near(asPoint("https://www.google.com/maps/place/X/@29.5,76.1,17z/data=!8m2!3d29.9695!4d76.8390"), KKR),
-    "!3d/!4d must beat the @ view centre");
+  /* The pin beats the view centre when a URL carries both, and this is the
+     real link that proved why it matters. Aggarwal Dharamshala at Krishna
+     Gate, Thanesar: its pin is !3d29.9689273!4d76.8511361, and the @ in the
+     same URL is 29.7794362,75.8209365 — the centre of a zoom-10 window, sixty
+     kilometres west and outside the district. An editor reading the address
+     bar by hand takes the @, because it is the part that looks like a
+     coordinate. That pin was saved, and it is the whole reason this parser
+     grew. The base64 blob is kept: it is full of digits, and a lazier regex
+     finds a "coordinate" inside it. */
+  const REAL = "https://www.google.com/maps/place/Aggarwal+Dhramsala/@29.7794362,75.8209365,10z/data=" +
+    "!4m10!1m2!2m1!1saggarwal-dharamshala-krishna-gate+Krishna+Gate,+Thanesar!3m6" +
+    "!1s0x390e4738259efaa9:0x3be8f2e10b12bad!8m2!3d29.9689273!4d76.8511361" +
+    "!15sCjhhZ2dhcndhbC1kaGFyYW1zaGFsYS1rcmlzaG5hLWdhdGUgS3Jpc2huYSBHYXRlLCBUaGFuZXNhclo5" +
+    "!16s%2Fg%2F11f29ntwpg?entry=ttu&g_ep=EgoyMDI2MDgxMC4wIKXMDSoASAFQAw%3D%3D";
+  const real = asPoint(REAL);
+  assert.ok(real && Math.abs(real.lat - 29.9689273) < 1e-6 && Math.abs(real.lng - 76.8511361) < 1e-6,
+    "a real Google place URL must give its PIN, not its view centre — got " + JSON.stringify(real));
 
   for (const s of ["krishna ghaat", "", "Sector 2", "29.9695"])
     assert.equal(asPoint(s), null, JSON.stringify(s) + " is a name, not a coordinate");
