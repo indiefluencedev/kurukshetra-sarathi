@@ -537,6 +537,43 @@ export default {
       if (url.pathname === "/admin/audit" && req.method === "GET")
         return json({ items: await store.listAudit(100) });
 
+      /**
+       * Follow a shortened map link far enough to read the coordinates off it.
+       *
+       * The Share button on a phone gives `maps.app.goo.gl/xxxx`, which carries
+       * no numbers at all — and the dashboard's answer was to tell the editor to
+       * open it, wait, and copy the long address by hand. That is the exact
+       * moment a pin gets typed wrong.
+       *
+       * What comes back is the redirect TARGET and nothing else: no page body is
+       * read, nothing is stored, and the coordinates are parsed in the browser
+       * from a URL the editor already had. That is the same act the dashboard
+       * already documents — a person reading a map and writing down where a
+       * building is — with the tedious half automated.
+       *
+       * Admin-only (this block is past the auth check) and host-allowlisted,
+       * because a Worker that fetches any URL a caller names is an open proxy.
+       */
+      if (url.pathname === "/admin/unshorten" && req.method === "GET") {
+        const OK = ["maps.app.goo.gl", "goo.gl", "g.co", "maps.google.com", "www.google.com", "google.com"];
+        let target: URL;
+        try {
+          target = new URL(url.searchParams.get("u") || "");
+        } catch {
+          return json({ error: "not a link" }, 400);
+        }
+        if (target.protocol !== "https:" || !OK.includes(target.hostname))
+          return json({ error: "Only Google Maps links can be opened this way." }, 400);
+        const r = await fetch(target.toString(), {
+          redirect: "follow",
+          // A bare Worker request is answered with a different page than a
+          // browser gets, and the one without coordinates is the wrong one.
+          headers: { "user-agent": "Mozilla/5.0 (compatible; KurukshetraSaarthi/1.0; +https://kuk-saarthi.pages.dev)" },
+        }).catch(() => null);
+        if (!r) return json({ error: "could not open that link" }, 502);
+        return json({ url: r.url });
+      }
+
       if (url.pathname === "/admin/test-push" && req.method === "POST") {
         const n = await notify(env, store, "test");
         return json({ ok: true, sent: n });

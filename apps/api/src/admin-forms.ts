@@ -420,7 +420,7 @@ function fieldHtml(f, v) {
     // never load they are still a working form.
     const lat = v && v.lat, lng = v && v.lng;
     inner = '<div class="geo">' +
-      '<div class="gsearch"><input type="search" data-gq placeholder="Search a landmark, or paste a map link or 29.96, 76.82">' +
+      '<div class="gsearch"><input type="search" data-gq placeholder="Search a landmark, or paste any Google Maps link or 29.96, 76.82">' +
       '<button type="button" class="ghost sm" data-gfind>Search</button></div>' +
       '<div class="gres" data-gres hidden></div>' +
       '<div class="gmap" data-gmap></div>' +
@@ -924,18 +924,52 @@ function initGeo(fld) {
   const say = (p) => {
     const bad = p && !inBox(p);
     warn.hidden = !bad;
-    if (bad) warn.textContent =
-      "That pin is outside Kurukshetra district. If you typed the numbers, check they are not the wrong way round — latitude is the ~29 one.";
+    if (!bad) return;
+    // The commonest way to be outside the district is to be inside it with the
+    // two numbers the wrong way round. Saying so was already here; doing
+    // something about it is one button, and it is the difference between a
+    // warning and a fix.
+    const flip = { lat: p.lng, lng: p.lat };
+    warn.innerHTML = "That pin is outside Kurukshetra district. Latitude is the ~29 one, longitude the ~76 one." +
+      (inBox(flip) ? ' <button type="button" class="ghost sm" data-gswap>Swap them</button>' : "");
   };
+  warn.addEventListener("click", (e) => {
+    if (!e.target.closest("[data-gswap]")) return;
+    const p = at();
+    if (p) go({ lat: p.lng, lng: p.lat });
+  });
 
   const put = (ll) => {
-    laI.value = ll.lat.toFixed(6);
-    lnI.value = ll.lng.toFixed(6);
+    laI.value = (+ll.lat).toFixed(6);
+    lnI.value = (+ll.lng).toFixed(6);
     pin.setLatLng(ll).setOpacity(1);
-    say({ lat: ll.lat, lng: ll.lng });
+    say({ lat: +ll.lat, lng: +ll.lng });
   };
+  /** put the pin AND take the map there — what every way in wants. */
+  const go = (ll) => { put(ll); map.setView(ll, Math.max(map.getZoom(), 16)); };
   map.on("click", (e) => put(e.latlng));
   pin.on("dragend", () => put(pin.getLatLng()));
+
+  /*
+   * Paste a coordinate into ANY of the three boxes and it lands correctly.
+   *
+   * A number input silently discards "29.96, 76.83" — the browser will not hold
+   * a value it cannot parse — so pasting a pair from Google Maps into Latitude
+   * left the field empty or half-filled with no explanation. Reading the
+   * clipboard directly sidesteps that entirely, and a pair is unambiguous: it
+   * is both numbers, so it fills both boxes.
+   */
+  [laI, lnI, fld.querySelector("[data-gq]")].forEach((el) => {
+    el.addEventListener("paste", (e) => {
+      const txt = ((e.clipboardData || window.clipboardData) || { getData: () => "" }).getData("text");
+      const p = asPoint(txt);
+      if (!p) return;
+      e.preventDefault();
+      go(p);
+      const q = fld.querySelector("[data-gq]");
+      if (el === q) { q.value = ""; fld.querySelector("[data-gres]").hidden = true; }
+    });
+  });
 
   // Typed numbers move the pin, so the two halves can never disagree about
   // where the place is while both are on screen saying different things.
@@ -950,7 +984,7 @@ function initGeo(fld) {
   lnI.addEventListener("change", typed);
   say(start);
 
-  const find = () => geoSearch(fld, (p) => { put(p); map.setView(p, 17); });
+  const find = () => geoSearch(fld, (p) => go(p));
   fld.querySelector("[data-gfind]").addEventListener("click", find);
   fld.querySelector("[data-gq]").addEventListener("keydown", (e) => {
     // A search box inside a form: Enter must search, not submit or do nothing.
@@ -971,24 +1005,51 @@ function initGeo(fld) {
  * Google's Content, which is the thing their terms forbid and which would also
  * have obliged us to draw every visitor's map with Google tiles.
  *
- * Three shapes, tried in order:
- *   !3d29.9695!4d76.8390   a place's own pin, in a full Google Maps URL
- *   @29.9695,76.8390,17z   the map view centre, in the same URL
- *   29.9695, 76.8390       what a colleague sends over WhatsApp
+ * The shapes, tried in the order they deserve to be trusted:
+ *   !3d29.9695!4d76.8390        a place's own pin, in a full Google Maps URL
+ *   ?q= / ?ll= / &destination=  what a "share this place" link carries
+ *   @29.9695,76.8390,17z        the map view centre, in the same URL
+ *   29.9695, 76.8390            what a colleague sends over WhatsApp
+ *   29°58'10.2"N 76°52'41.9"E   what the place panel and Google Earth show
  *
  * The view centre is deliberately LAST: a URL carrying both has the real pin
  * in !3d/!4d, and the @ is wherever the map happened to be scrolled to.
  */
 function asPoint(q) {
-  const m = q.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
-    || q.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
-    || q.match(/^(-?\d+\.\d+)[ ,]+(-?\d+\.\d+)$/);
+  const s = String(q || "").trim();
+  const m = s.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
+    // ?q= / ?ll= / &destination= — what a "share this place" link carries
+    || s.match(/[?&](?:q|ll|daddr|destination|center)=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
+    // the map VIEW centre, last of the URL shapes: a link carrying both has
+    // the real pin in !3d/!4d and the @ is wherever the map was scrolled to
+    || s.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
+    || s.match(/^(-?\d+(?:\.\d+)?)[ ,]+(-?\d+(?:\.\d+)?)$/)
+    || dms(s);
   if (!m) return null;
   const p = { lat: +m[1], lng: +m[2] };
   // A real coordinate, before it reaches the district check — that one is
   // about the wrong town, this one is about the string not being a coordinate.
   if (isNaN(p.lat) || isNaN(p.lng) || Math.abs(p.lat) > 90 || Math.abs(p.lng) > 180) return null;
   return p;
+}
+
+/**
+ * 29°58'10.2"N 76°52'41.9"E — what Google shows in the place panel and what
+ * Google Earth copies. Returned in the same [_, lat, lng] shape as a regex
+ * match so asPoint can treat every shape alike.
+ */
+function dms(s) {
+  const D = "(\\d+)[°º]\\s*(\\d+)['′’]\\s*([\\d.]+)[\"″”]?\\s*([NSEW])";
+  const m = s.match(new RegExp(D + "[,\\s]+" + D, "i"));
+  if (!m) return null;
+  const one = (deg, min, sec, hemi) =>
+    (+deg + +min / 60 + +sec / 3600) * (/[SW]/i.test(hemi) ? -1 : 1);
+  const a = { v: one(m[1], m[2], m[3], m[4]), h: m[4].toUpperCase() };
+  const b = { v: one(m[5], m[6], m[7], m[8]), h: m[8].toUpperCase() };
+  // N/S is the latitude whichever order it was written in
+  const la = a.h === "N" || a.h === "S" ? a : b;
+  const ln = la === a ? b : a;
+  return [s, String(la.v), String(ln.v)];
 }
 
 /**
@@ -1007,9 +1068,19 @@ async function geoSearch(fld, pick) {
   // a number it will fail to find. See asPoint for why this box takes links.
   const point = asPoint(q);
   if (point) { box.hidden = true; pick(point); return; }
-  if (/goo\.gl|maps\.app/.test(q)) {
+  // A short link carries no numbers. The Worker follows it — see /admin/unshorten
+  // — so the editor does not have to open it, wait, and copy the long address by
+  // hand, which is the exact moment a pin gets typed wrong.
+  if (/^https:\/\/\S+/.test(q) && /goo\.gl|maps\.app|g\.co/.test(q)) {
     box.hidden = false;
-    box.innerHTML = '<div class="gr muted">That is a short Google link, which hides the coordinates. ' +
+    box.innerHTML = '<div class="gr muted">Opening that link…</div>';
+    let full = "";
+    try {
+      full = (await api("/admin/unshorten?u=" + encodeURIComponent(q)).then(r => r.json())).url || "";
+    } catch (e) { /* the message below covers it */ }
+    const p = asPoint(full);
+    if (p) { box.hidden = true; pick(p); return; }
+    box.innerHTML = '<div class="gr muted">That short link did not give up its coordinates. ' +
       "Open it, wait for the full maps.google.com address to appear, and paste that instead.</div>";
     return;
   }
@@ -1017,33 +1088,136 @@ async function geoSearch(fld, pick) {
   box.hidden = false;
   box.innerHTML = '<div class="gr muted">Searching…</div>';
 
-  // viewbox biases results to the district; NOT bounded, so a place whose OSM
-  // name differs from the local one is still found rather than silently absent.
-  const u = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=1" +
-    "&viewbox=76.5,30.3,77.2,29.7&q=" + encodeURIComponent(q);
-  let hits = [];
+  let hits;
   try {
-    hits = await fetch(u, { headers: { accept: "application/json" } }).then(r => r.json());
+    hits = await findPlaces(q);
   } catch (e) {
     box.innerHTML = '<div class="gr muted">Could not reach the map search. Click the map instead.</div>';
     return;
   }
   if (!hits.length) {
-    box.innerHTML = '<div class="gr muted">Nothing found. Try a nearby landmark, or click the map.</div>';
+    box.innerHTML = '<div class="gr muted">Nothing found — a dharamshala\'s own name is often in no public index. ' +
+      "Try the landmark it stands by (“Brahma Sarovar”, “Birla Mandir”), or find it in Google Maps, " +
+      "copy the address bar, and paste it above. Or just click the map.</div>";
     return;
   }
 
   box.innerHTML = hits.map((h, i) =>
-    '<button type="button" class="gr" data-gpick="' + i + '">' + ek(h.display_name) +
-    (inBox({ lat: +h.lat, lng: +h.lon }) ? "" : ' <em class="far">outside the district</em>') +
+    '<button type="button" class="gr" data-gpick="' + i + '">' + ek(h.label) +
+    ' <em class="rid">' + ek(h.src) + "</em>" +
+    (inBox(h) ? "" : ' <em class="far">outside the district</em>') +
     "</button>").join("");
   box.onclick = (e) => {
     const b = e.target.closest("[data-gpick]");
     if (!b) return;
     const h = hits[Number(b.getAttribute("data-gpick"))];
-    pick({ lat: +h.lat, lng: +h.lon });
+    pick({ lat: h.lat, lng: h.lng });
     box.hidden = true;
   };
+}
+
+/**
+ * Everywhere worth asking, in the order worth trusting.
+ *
+ * 1. **Our own catalogue.** Every pin in it has been checked by a person, and a
+ *    dharamshala is very often *inside* something we already know — the Birla
+ *    Mandir complex, the Gaudiya Math, a gate on Brahma Sarovar. Seven of the
+ *    twelve stays that have pins were placed exactly this way. It is instant,
+ *    it works offline, and it is the only source here that knows local names.
+ * 2. **Nominatim**, asked twice: as typed, and again with the district spelled
+ *    out. "Krishna Gate" alone is nothing to a global index; "Krishna Gate,
+ *    Kurukshetra, Haryana" is a question it can answer.
+ * 3. **Photon**, which is the same OSM data under a search engine that forgives
+ *    spelling — "krishna ghaat" finds Krishna Ghat, and Nominatim never will.
+ *
+ * All three are free and need no key. Failures are per-source and silent: two
+ * answers are better than an error, and the map click never stops working.
+ */
+async function findPlaces(q) {
+  const mine = await catalogueHits(q);
+  const web = await Promise.all([
+    nominatim(q),
+    nominatim(q + ", Kurukshetra, Haryana"),
+    photon(q),
+  ]).then(all => all.reduce((a, b) => a.concat(b), []));
+
+  // Same place from two indexes is one row. Rounding to ~11 m is what makes a
+  // Nominatim hit and a Photon hit of one building collapse into each other.
+  const seen = Object.create(null);
+  const out = [];
+  for (const h of mine.concat(web)) {
+    const k = h.lat.toFixed(4) + "," + h.lng.toFixed(4);
+    if (seen[k]) continue;
+    seen[k] = 1;
+    out.push(h);
+  }
+  // Inside the district first — the box is the whole point of the app.
+  return out.sort((a, b) => Number(inBox(b)) - Number(inBox(a))).slice(0, 8);
+}
+
+/** Our own pinned records — places, stays and terminals, whatever is loaded. */
+async function catalogueHits(q) {
+  const n = q.trim().toLowerCase();
+  if (n.length < 2) return [];
+  const all = await loadPins();
+  return all
+    .filter(p => p.hay.indexOf(n) >= 0)
+    .slice(0, 4)
+    .map(p => ({ label: p.label, lat: p.lat, lng: p.lng, src: "our catalogue" }));
+}
+
+/**
+ * Every pinned record the dashboard can reach, fetched once.
+ *
+ * Failure per kind, not for the lot: a stays list that 500s must not take the
+ * places with it, because places is the one that answers most of the time.
+ */
+let PINS = null;
+async function loadPins() {
+  if (PINS) return PINS;
+  const kinds = ["places", "hotels", "startpoints"];
+  const lists = await Promise.all(kinds.map(k =>
+    api("/admin/content/" + k).then(r => r.json()).then(r => r.items || []).catch(() => [])));
+  PINS = [];
+  lists.forEach((items) => items.forEach((p) => {
+    if (p.lat == null || p.lng == null) return;
+    const en = (p.name && p.name.en) || p.id || "";
+    const hi = (p.name && p.name.hi) || "";
+    const area = (p.area && (p.area.en + " " + p.area.hi)) || "";
+    PINS.push({
+      label: en + (area.trim() ? " — " + p.area.en : ""),
+      lat: +p.lat, lng: +p.lng,
+      hay: (en + " " + hi + " " + area + " " + (p.id || "")).toLowerCase(),
+    });
+  }));
+  return PINS;
+}
+
+async function nominatim(q) {
+  // viewbox biases results to the district; NOT bounded, so a place whose OSM
+  // name differs from the local one is still found rather than silently absent.
+  const u = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&addressdetails=1" +
+    "&viewbox=76.5,30.3,77.2,29.7&q=" + encodeURIComponent(q);
+  try {
+    const hits = await fetch(u, { headers: { accept: "application/json" } }).then(r => r.json());
+    return (hits || []).map(h => ({ label: h.display_name, lat: +h.lat, lng: +h.lon, src: "OpenStreetMap" }));
+  } catch (e) { return []; }
+}
+
+async function photon(q) {
+  const u = "https://photon.komoot.io/api/?limit=6&lat=29.9695&lon=76.839&bbox=76.4,29.6,77.2,30.35&q=" +
+    encodeURIComponent(q);
+  try {
+    const r = await fetch(u, { headers: { accept: "application/json" } }).then(r => r.json());
+    return ((r && r.features) || []).map(f => {
+      const p = f.properties || {};
+      const c = (f.geometry && f.geometry.coordinates) || [];
+      return {
+        label: [p.name, p.street, p.district, p.city || p.county, p.state].filter(Boolean).join(", "),
+        lat: +c[1], lng: +c[0], src: "Photon",
+      };
+    }).filter(h => !isNaN(h.lat) && !isNaN(h.lng));
+  } catch (e) { return []; }
 }
 
 /* ---- tagging places ------------------------------------------------------- */

@@ -520,6 +520,43 @@ for (const [kind, file] of Object.entries(FEEDS)) {
 assert.match(JS, /if \(CSTEP !== "pv"\) \{ showStep\("pv"\)/,
   "cSave no longer routes the first press to the preview");
 
+/* 10. asPoint actually parses what an editor pastes.
+ *
+ * The one piece of pure logic in the whole blob, and the one whose failure is
+ * silent in the worst way: a shape it does not recognise falls through to a
+ * name search, which finds nothing, and the editor concludes the box is broken
+ * and types six decimal places by hand. A pin in the wrong district is the
+ * output of that.
+ *
+ * `new Function` gives us the real function out of the shipped string — no
+ * second copy of the parser to drift from this one.
+ */
+{
+  const { asPoint } = new Function(JS + "\nreturn { asPoint: asPoint };")();
+  const KKR = { lat: 29.9695, lng: 76.839 };
+  const near = (p, w) => p && Math.abs(p.lat - w.lat) < 0.001 && Math.abs(p.lng - w.lng) < 0.001;
+
+  const good = [
+    ["a plain pair", "29.9695, 76.8390"],
+    ["no space", "29.9695,76.8390"],
+    ["the place's own pin", "https://www.google.com/maps/place/Birla+Mandir/@29.95,76.82,17z/data=!4m6!3m5!1s0x0:0x0!8m2!3d29.9695!4d76.8390"],
+    ["a share link's q=", "https://maps.google.com/?q=29.9695,76.8390"],
+    ["a view centre", "https://www.google.com/maps/@29.9695,76.8390,15z"],
+    ["degrees, minutes, seconds", "29°58'10.2\"N 76°50'20.4\"E"],
+  ];
+  for (const [what, s] of good)
+    assert.ok(near(asPoint(s), KKR), what + " must parse to the Kurukshetra pin, got " + JSON.stringify(asPoint(s)));
+
+  // The pin wins over the view centre when a URL carries both — the @ is
+  // wherever the map happened to be scrolled to.
+  assert.ok(near(asPoint("https://www.google.com/maps/place/X/@29.5,76.1,17z/data=!8m2!3d29.9695!4d76.8390"), KKR),
+    "!3d/!4d must beat the @ view centre");
+
+  for (const s of ["krishna ghaat", "", "Sector 2", "29.9695"])
+    assert.equal(asPoint(s), null, JSON.stringify(s) + " is a name, not a coordinate");
+  assert.equal(asPoint("999.5, 76.8"), null, "an impossible latitude is not a coordinate");
+}
+
 console.log("admin forms OK — " + Object.keys(SPEC).length + " kinds, " +
   Object.values(SPEC).reduce((n, f) => n + f.length, 0) + " top-level fields, " +
   Object.values(SPEC).reduce((n, f) => n + ENGINE.stepsOf(f).length, 0) + " steps");
