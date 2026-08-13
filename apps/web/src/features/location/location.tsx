@@ -137,6 +137,49 @@ export async function locate(): Promise<Fix | null> {
 /** Re-ask, having already been given permission once — the Try again button. */
 export const refreshLoc = () => locate();
 
+/**
+ * Watch the browser's own permission switch.
+ *
+ * Once a site has been refused, asking again changes nothing: the call fails
+ * immediately, with no prompt, until the visitor flips the switch themselves in
+ * the browser's site settings. The app cannot open that panel — but it can
+ * notice the moment it changes, which is the difference between a screen that
+ * comes back to life on its own and one that has to be reloaded by somebody who
+ * does not know that is what is needed.
+ *
+ * Firefox has no Permissions entry for geolocation; the callback simply never
+ * fires there and the Try again button is the fallback. Returns an unsubscribe.
+ */
+export function watchPermission(cb: (state: PermissionState) => void): () => void {
+  let stop = () => {};
+  navigator.permissions
+    ?.query({ name: "geolocation" as PermissionName })
+    .then((p) => {
+      cb(p.state);
+      const on = () => cb(p.state);
+      p.addEventListener("change", on);
+      stop = () => p.removeEventListener("change", on);
+    })
+    .catch(() => {});
+  return () => stop();
+}
+
+/** Why location is not working, in words a visitor can act on. */
+export const LOC_HELP = {
+  denied: {
+    en: "Location is blocked for this site. Tap the icon beside the web address, allow Location, then tap Try again.",
+    hi: "इस साइट के लिए स्थान अवरुद्ध है। पते के पास वाले चिह्न को दबाएँ, स्थान की अनुमति दें, फिर ‘फिर कोशिश करें’ दबाएँ।",
+  },
+  insecure: {
+    en: "Location needs a secure (https) address, and this one is not.",
+    hi: "स्थान हेतु सुरक्षित (https) पता चाहिए, जो यह नहीं है।",
+  },
+  unavailable: {
+    en: "The device cannot get a fix here. Open sky helps, and so does turning GPS on.",
+    hi: "यहाँ स्थान नहीं मिल पा रहा। खुला आसमान और GPS चालू होना मदद करता है।",
+  },
+};
+
 export function grantLoc(cb: () => void) {
   closeSheet();
   locate().then((fix) => {

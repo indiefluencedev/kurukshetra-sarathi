@@ -684,6 +684,10 @@ details.more[open] summary svg{transform:rotate(90deg)}
   border:2px solid #fff;box-shadow:0 2px 7px rgba(26,24,20,.32)}
 .rmk.start{background:var(--umber)}
 .rmk.end{background:var(--open)}
+/* a stop still to come, later today — present so the day has a shape, quiet so
+   it never competes with the one being driven to */
+.rmk.later{background:var(--surface);color:var(--ink-2);border-color:var(--stone-2);
+  font-size:calc(12px*var(--ts));opacity:.9;box-shadow:0 1px 4px rgba(26,24,20,.22)}
 /* the picker's pin is a glyph rather than a letter, and needs a size of its own */
 .rmk svg{width:15px;height:15px}
 
@@ -708,18 +712,6 @@ details.more[open] summary svg{transform:rotate(90deg)}
   border-radius:var(--r-sm);padding:12px 13px;line-height:1.75}
 
 /* ---------- journey ---------- */
-.jcard{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-2);border:1px solid var(--stone)}
-.jcard .ph{aspect-ratio:16/11;position:relative}
-.jcard .ov{position:absolute;inset:auto 0 0 0;z-index:2;padding:15px;color:#fff;
-  background:linear-gradient(180deg,rgba(20,26,30,0),rgba(20,26,30,.86))}
-.jcard .ov .st{font-size:calc(13px*var(--ts));letter-spacing:.16em;text-transform:uppercase;font-weight:700;
-  color:rgba(255,255,255,.72)}
-:lang(hi) .jcard .ov .st{letter-spacing:.04em;text-transform:none;font-size:calc(13px*var(--ts))}
-.jcard .ov h2{font-family:var(--serif);font-size:calc(22px*var(--ts));font-weight:600;margin-top:4px;line-height:1.15}
-:lang(hi) .jcard .ov h2{font-family:var(--deva);font-size:calc(20px*var(--ts))}
-.jmeta{padding:12px;display:flex;gap:7px;flex-wrap:wrap;background:var(--surface)}
-.jsub{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
-.jprog{font-size:calc(13px*var(--ts));color:var(--muted);text-align:center;margin:16px 0 0;font-weight:600}
 
 /* ---------- detail ---------- */
 .hero{position:relative;margin:0 calc(-1*var(--pad));aspect-ratio:4/3.4;background:var(--stone)}
@@ -816,10 +808,16 @@ details.more[open] summary svg{transform:rotate(90deg)}
   background:rgba(255,255,255,.8);padding:2px 6px;border-radius:4px}
 
 /* ---------- sheet, toast, misc ---------- */
-.scrim{position:fixed;inset:0;background:rgba(20,18,14,.42);z-index:70;opacity:0;
+/* Above .drive (80), not below it.
+   The sheet is the app's one modal and every screen reaches for it, including
+   the full-screen drive map — which sat on top of it at 80, so "Add this place
+   to my day" while driving opened a sheet nobody could see and a scrim nobody
+   could tap through. Ordered against the toast (90), which is allowed to sit
+   over everything because it takes no input. */
+.scrim{position:fixed;inset:0;background:rgba(20,18,14,.42);z-index:84;opacity:0;
   transition:opacity var(--t) var(--ease);pointer-events:none;backdrop-filter:blur(2px)}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:var(--maxw);margin:0 auto;
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:85;max-width:var(--maxw);margin:0 auto;
   background:var(--bone);border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:0 -8px 40px rgba(20,18,14,.28);
   transform:translateY(101%);transition:transform var(--t-slow) var(--ease);
   padding:8px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
@@ -1314,7 +1312,15 @@ body.bigger{--ts:1.36}
 .lnum{width:22px;height:22px;border-radius:50%;background:var(--clay);color:#fff;display:grid;
   place-items:center;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(26,24,20,.3)}
 .lme{display:block;width:18px;height:18px;border-radius:50%;background:var(--lapis);
-  border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(30,58,95,.22)}
+  border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(30,58,95,.22);margin:2px}
+/* Moving, and the device knows which way. The cone is what turns a dot on a map
+   into "this is me, facing that way" — the difference between reading the map
+   and orienting yourself on it. Rotation is set inline, from the fix. */
+.lme.aim::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0;
+  transform:translate(-50%,-15px);
+  border-left:7px solid transparent;border-right:7px solid transparent;
+  border-bottom:10px solid var(--lapis)}
+.lme.aim{position:relative;transform-origin:50% 50%}
 
 /* ---------------- reels ---------------- */
 .reels{padding-top:4px}
@@ -1510,7 +1516,7 @@ nav.tab button:not(.on){text-shadow:0 1px 0 rgba(255,255,255,.6)}
 .eyebrow:after{content:"";height:1px;width:26px;background:var(--brass);opacity:.8}
 
 /* ---- illuminated plates: an inner gold rule, held 4px off the edge ---- */
-.ev-slide,.tile,.jcard,.dl{outline:1px solid rgba(201,190,134,.55);outline-offset:-5px}
+.ev-slide,.tile,.dl{outline:1px solid rgba(201,190,134,.55);outline-offset:-5px}
 .summ{outline:1px solid rgba(201,190,134,.34);outline-offset:-6px}
 
 /* ---- type: Baskerville is high-contrast, so let it breathe ---- */
@@ -1712,7 +1718,7 @@ nav.tab.off:before{opacity:0}
    GEOMETRY THE BRIEF NAMES BY NAME
    hero 24 · card 22 · search 18 · button 16 · bottom nav 28 · chip pill
    ================================================================ */
-.ev-slide,.summ,.jcard,.dl,.tblock{border-radius:var(--r-hero)}
+.ev-slide,.summ,.dl,.tblock{border-radius:var(--r-hero)}
 .search{border-radius:18px}
 
 /* a placeholder that is plainly a placeholder: the shape of the thing that is
@@ -1810,43 +1816,6 @@ nav.tab.off:before{opacity:0}
    one above it rather than as another place you drove to */
 .tl-dot.walked{background:var(--accent-wash);color:var(--accent-deep);
   box-shadow:inset 0 0 0 2px var(--accent)}
-
-/* ================================================================
-   THE DRIVE GUIDE
-   A companion in the car, not a satnav. It never gives a direction —
-   the phone's own maps app does that — it names what is going past.
-   ================================================================ */
-.guidebar{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;
-  background:var(--nav-wash);border:1px solid var(--nav-line);border-radius:var(--r-lg)}
-.guidebar .gi{width:38px;height:38px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;
-  background:var(--nav);color:#fff}
-.guidebar .gi svg{width:19px;height:19px}
-.guidebar .gt{flex:1;min-width:0}
-.guidebar .gt b{display:block;font-size:calc(14px*var(--ts));font-weight:650;color:var(--nav-deep)}
-.guidebar .gt small{display:block;font-size:calc(13px*var(--ts));color:var(--muted);line-height:1.4}
-.guidebar .gv{flex:0 0 auto;width:var(--tap);height:var(--tap);border-radius:50%;cursor:pointer;
-  border:1px solid var(--stone-2);background:var(--surface);color:var(--muted);display:grid;place-items:center}
-.guidebar .gv.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.guidebar .gv svg{width:21px;height:21px}
-
-/* what you are passing, right now. Big, because it is read at a glance from
-   a moving car, and it never demands a tap — it waits. */
-.passcard{display:flex;gap:13px;margin-top:11px;padding:12px;background:var(--surface);
-  border:1.5px solid var(--accent);border-radius:var(--r-lg);box-shadow:var(--shadow-2);
-  animation:passIn var(--t-slow) var(--ease) both}
-@keyframes passIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.passcard{animation:none}}
-.passcard .ph{width:84px;height:84px;flex:0 0 auto;border-radius:var(--r)}
-.pc-body{min-width:0;flex:1}
-.pc-side{display:block;font-size:calc(13px*var(--ts));font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--accent-deep)}
-:lang(hi) .pc-side{letter-spacing:.02em;text-transform:none}
-.pc-body h3{font-family:var(--serif);font-size:calc(17px*var(--ts));font-weight:600;margin-top:2px}
-:lang(hi) .pc-body h3{font-family:var(--deva);font-size:calc(16px*var(--ts))}
-.pc-body p{margin-top:4px;font-size:calc(13px*var(--ts));color:var(--muted);line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.pc-btns{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.pc-btns .btn{width:auto}
 
 /* ================================================================
    THE ROUTE RESULT
@@ -2212,7 +2181,10 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .drive-x svg,.drive-v svg{width:19px;height:19px}
 .drive-v.on{background:var(--accent);}
-.drive-next{flex:1;min-width:0;text-align:left}
+/* a button, because it opens the stop's panel — but it must read as the title
+   of the screen, so it borrows nothing from .btn */
+.drive-next{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0;
+  color:inherit;font:inherit;cursor:pointer}
 .dn-k{display:block;font-size:calc(11px*var(--ts));letter-spacing:.14em;text-transform:uppercase;
   font-weight:700;color:var(--gold)}
 :lang(hi) .dn-k{letter-spacing:.03em;text-transform:none;font-size:calc(11.5px*var(--ts))}
@@ -2222,9 +2194,15 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
 :lang(hi) .drive-next b{font-family:var(--deva);font-size:calc(18px*var(--ts))}
 .dn-m{display:block;margin-top:2px;font-size:calc(12.5px*var(--ts));color:rgba(255,255,255,.82)}
 
+/* A card, not a line of red text. It has to say what is wrong, what to do
+   about it in the browser's own words, and carry the button that checks. */
 .drive-warn{position:absolute;top:calc(92px + env(safe-area-inset-top));left:12px;right:12px;z-index:3;
-  background:var(--shut-wash);border:1px solid var(--shut);color:var(--shut);
-  border-radius:var(--r);padding:9px 12px;font-size:calc(12.5px*var(--ts));line-height:1.45;font-weight:600}
+  max-width:var(--maxw);margin:0 auto;
+  background:var(--surface);border:1.5px solid var(--shut);
+  border-radius:var(--r);padding:11px 13px;box-shadow:var(--shadow-2)}
+.drive-warn b{display:block;font-size:calc(14px*var(--ts));font-weight:700;color:var(--shut)}
+.drive-warn p{margin:4px 0 0;font-size:calc(12.5px*var(--ts));line-height:1.5;color:var(--ink-2)}
+.drive-warn .btn{width:auto;margin-top:9px}
 
 .drive-recentre{position:absolute;right:12px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:3;
   display:inline-flex;align-items:center;gap:7px;border:1px solid var(--stone);cursor:pointer;
@@ -2254,6 +2232,28 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
   padding:12px 12px calc(12px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,var(--bone-0),var(--bone) 40%)}
 .drive-bar .btn{flex:1;min-height:52px}
+/* the way into everything that is not "where am I" — see StopSheet */
+.drive-more{flex:0 0 auto;width:52px;min-height:52px;border-radius:var(--r);cursor:pointer;
+  background:var(--surface);border:1px solid var(--stone-2);color:var(--ink-2);
+  display:grid;place-items:center;box-shadow:var(--shadow-1)}
+.drive-more svg{width:20px;height:20px}
+.drive-more:active{background:var(--surface-2)}
+/* Within the last 130 metres the tap you are about to make is this one, and a
+   driver looking up for half a second has to find it without reading. */
+.btn.primary.here{animation:hereGlow 1.6s var(--ease) infinite}
+@keyframes hereGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(224,109,13,.55)}
+  55%{box-shadow:0 0 0 9px rgba(224,109,13,0)}
+}
+@media (prefers-reduced-motion:reduce){.btn.primary.here{animation:none;outline:3px solid var(--gold);outline-offset:2px}}
+
+/* the stop's own panel, over the map */
+.stopsheet-head{display:flex;gap:12px;align-items:flex-start}
+.stopsheet-head .ph{width:84px;height:84px;flex:0 0 auto;border-radius:var(--r-sm)}
+.stopsheet-head .dn-k{color:var(--brass-deep)}
+.stopsheet-head h2{margin:2px 0 6px}
+.stopsheet-acts{display:flex;gap:9px;margin-top:14px}
+.stopsheet-acts .btn{flex:1}
 
 /* ---- what is happening RIGHT NOW, and whether it is in your way ----
    Deliberately louder than the rail beneath it: the rail is a season's

@@ -1,144 +1,19 @@
-import { useState } from "react";
-import { S, bump } from "@/app/state";
-import { go, track } from "@/app/nav";
+import { S } from "@/app/state";
+import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
-import { dur } from "@/shared/lib/format";
-import { clock } from "@/shared/lib/datetime";
-import { distTo, navTo } from "@/shared/lib/geo";
-import { openSheet, closeSheet, toast } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
-import { Photo } from "@/shared/ui/Photo";
-import { StatusPill } from "@/shared/ui/PlaceCard";
-import { modeWord, startGo } from "@/features/route/route-actions";
-import { Engine } from "@/features/planner/engine";
-import { DriveGuide } from "./DriveGuide";
+import { startGo } from "@/features/route/route-actions";
 import { DriveMap } from "./DriveMap";
 
-function here() {
-  const j = S.journey!;
-  const s = j.stops[j.i] as any;
-  const d = s.d;
-  const notices = d.notice || [];
-  openSheet(
-    <>
-      <h2 className="display" style={{ fontSize: "calc(20px*var(--ts))" }} lang={S.lang}>
-        {nm(d.name)}
-      </h2>
-      <p className="muted" style={{ margin: "6px 0 13px", fontSize: "calc(13.5px*var(--ts))" }}>
-        {nm(d.short)}
-      </p>
-      <div className="ncard">
-        <b>{t("howLong")}</b>
-        <p>
-          {dur(d.visit.rec)} · {t("leave")} {clock(s.depart)}
-        </p>
-      </div>
-      {notices.length > 0 && (
-        <>
-          <div style={{ margin: "13px 0 8px" }}>
-            <b className="display" style={{ fontSize: "calc(15px*var(--ts))" }}>
-              {t("worthKnowing")}
-            </b>
-          </div>
-          {notices.map((x: any, i: number) => (
-            <div className="ncard" key={i}>
-              <b>{nm(x.t)}</b>
-              <p>{nm(x.d)}</p>
-            </div>
-          ))}
-        </>
-      )}
-      <button
-        className="btn primary"
-        style={{ marginTop: 15 }}
-        onClick={() => {
-          closeSheet();
-          j.i++;
-          bump();
-          window.scrollTo(0, 0);
-        }}
-      >
-        <Icon name="fwd" />
-        {t("nextStop")}
-      </button>
-    </>,
-  );
-}
-
-function skipIt() {
-  const j = S.journey!;
-  const c = j.stops[j.i] as any;
-  const rem = j.stops.slice(j.i + 1).map((s) => s.d.id);
-  if (rem.length && S.plan && S.plan.res) {
-    const r = Engine.recalc(S.plan.res, S.userLoc || { lat: c.d.lat, lng: c.d.lng }, c.arrive, rem);
-    if (r.stops.length) j.stops = j.stops.slice(0, j.i).concat(r.stops.map((s: any) => Object.assign({}, s)));
-  }
-  j.i++;
-  track("skip");
-  bump();
-  toast(t("removedT"));
-}
-
-function late() {
-  const j = S.journey!;
-  const c = j.stops[j.i] as any;
-  const from = c.arrive + 20;
-  const rem = j.stops.slice(j.i).map((s) => s.d.id);
-  const r = Engine.recalc(S.plan!.res!, { lat: c.d.lat, lng: c.d.lng }, from, rem);
-  j._r = r;
-  track("recalc");
-  openSheet(
-    <>
-      <h2 className="display" style={{ fontSize: "calc(19px*var(--ts))" }} lang={S.lang}>
-        {t("recalc")}
-      </h2>
-      <p className="muted" style={{ margin: "6px 0 13px", fontSize: "calc(13.5px*var(--ts))" }}>
-        {t("recalcD")}
-      </p>
-      {r.stops.length ? (
-        r.stops.map((s: any, i: number) => (
-          <div className="ncard" key={i}>
-            <b>
-              {i + 1}. {nm(s.d.name)}
-            </b>
-            <p>
-              {t("arrive")} {clock(s.arrive)} · {t("leave")} {clock(s.depart)}
-            </p>
-          </div>
-        ))
-      ) : (
-        <p className="muted">{t("noFitD")}</p>
-      )}
-      {r.stops.length < rem.length && (
-        <div className="note" style={{ marginTop: 11 }}>
-          <Icon name="info" />
-          <span>{t("trimmed")}</span>
-        </div>
-      )}
-      <button className="btn primary" style={{ marginTop: 15 }} onClick={applyR}>
-        <Icon name="check" />
-        {t("apply")}
-      </button>
-    </>,
-  );
-}
-
-function applyR() {
-  const j = S.journey!;
-  if (j._r) {
-    j.stops = j.stops.slice(0, j.i).concat((j._r as any).stops.map((s: any) => Object.assign({}, s)));
-    j._r = null;
-  }
-  closeSheet();
-  bump();
-}
-
-/** Live, step-through tour with "arrived / skip / running late" controls. */
+/**
+ * The day, while it is happening.
+ *
+ * Three states and no choices: nothing to drive yet, the drive itself, and the
+ * day finished. The drive is the map — see DriveMap — and this file is only the
+ * two ends of it, because a journey that has not started and a journey that has
+ * ended are not places for a live map to be.
+ */
 export function Journey() {
-  // The map is the default once a trip is running: "start the trip" should put
-  // a moving map in front of the visitor, not a card they have to read. The
-  // list is still one tap away for the notices and the skip/late controls.
-  const [asMap, setAsMap] = useState(true);
   const j = S.journey;
   if (!j) {
     // A built-but-not-started route is not "no route". Tapping through to this
@@ -195,87 +70,5 @@ export function Journey() {
       </div>
     );
 
-  const s = j.stops[j.i] as any;
-  const d = s.d;
-
-  if (asMap) return <DriveMap onClose={() => setAsMap(false)} />;
-
-  return (
-    <>
-      <div className="phead">
-        <button className="back" onClick={() => go("/route")} aria-label={t("back")}>
-          <Icon name="back" />
-        </button>
-        <h1 className="display" style={{ fontSize: "calc(19px*var(--ts))" }} lang={S.lang}>
-          {t("startTour")}
-        </h1>
-        <button className="btn ghost sm" style={{ marginLeft: "auto" }} onClick={() => setAsMap(true)}>
-          <Icon name="mapi" />
-          {nm({ en: "Map", hi: "नक्शा" })}
-        </button>
-      </div>
-      <div className="jcard">
-        <Photo d={d} />
-        <div className="ov">
-          <div className="st">
-            {t("nextStop")} · {t("stopN")} {j.i + 1} {t("of")} {j.stops.length}
-          </div>
-          <h2 lang={S.lang}>{nm(d.name)}</h2>
-        </div>
-        <div className="jmeta">
-          <span className="tag">
-            <Icon name="clock" />
-            {t("arriveBy")} {clock(s.arrive)}
-          </span>
-          <span className="tag">
-            <Icon name="navigate" />
-            {dur(s.travel || 10)} {modeWord()}
-          </span>
-          <span className="tag">
-            <Icon name="pin" />
-            {s.km || distTo(d)} {t("km")}
-          </span>
-          <StatusPill d={d} />
-        </div>
-      </div>
-      {/* What you pass on the way to this stop, named as you pass it.
-          The first leg runs from where the DAY starts — the bus stand, the
-          station, the hotel — not from the first stop to itself, which is what
-          the previous wiring asked for and which announced nothing at all on
-          the one leg a visitor is most likely to be driving blind. */}
-      <DriveGuide
-        from={j.i === 0 ? S.plan?.start : (j.stops[j.i - 1] as any)?.d}
-        to={d}
-      />
-
-      <button
-        className="btn nav"
-        style={{ marginTop: 12, minHeight: 58, fontSize: "calc(16.5px*var(--ts))" }}
-        onClick={() => navTo(d.id)}
-      >
-        <Icon name="navigate" style={{ width: 21, height: 21 }} />
-        {t("navigate")}
-      </button>
-      <div className="jsub">
-        <button className="btn primary" onClick={here}>
-          <Icon name="check" />
-          {t("arrived")}
-        </button>
-        <button className="btn ghost" onClick={skipIt}>
-          <Icon name="fwd" />
-          {t("skipIt")}
-        </button>
-        <button className="btn ghost" onClick={late}>
-          <Icon name="clock" />
-          {t("late")}
-        </button>
-        <button className="btn ghost" onClick={() => go("/route")}>
-          {t("endTour")}
-        </button>
-      </div>
-      <div className="jprog">
-        {t("stopN")} {j.i + 1} / {j.stops.length}
-      </div>
-    </>
-  );
+  return <DriveMap />;
 }

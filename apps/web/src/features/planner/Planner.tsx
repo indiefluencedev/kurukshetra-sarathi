@@ -12,7 +12,7 @@ import { WINDOWS, CUSTOM, DAYNAMES, dayLabel, longDate, shortDate, lastDay, vali
 import { PlacePicker, PinMap, PickedLine } from "./LocationPicker";
 import { openPlaceSheet } from "./PlaceSheet";
 import { openDateSheet, openTimeSheet } from "./DateTimeSheets";
-import { refreshLoc } from "@/features/location/location";
+import { refreshLoc, LOC_HELP } from "@/features/location/location";
 import type { PlaceKind } from "@/data/places-index";
 import type { GeoPoint, Loc } from "@/shared/types";
 
@@ -341,9 +341,16 @@ function LocStatus() {
         ) : null}
       </p>
     );
+  // One wording for why location is not working, shared with the drive map —
+  // see LOC_HELP. What is added here is the way out this screen has and that
+  // one does not: the map underneath, which never stopped working.
   return (
     <p className="pickhint" style={{ paddingTop: 0 }}>
-      {nm(LOC_TROUBLE[locErr] || LOC_TROUBLE.unavailable)}{" "}
+      {nm(LOC_HELP[locErr || "unavailable"])}{" "}
+      {nm({
+        en: "Until then this is the town centre — tap the map to place it yourself.",
+        hi: "तब तक यह नगर केंद्र है — स्वयं रखने हेतु नक्शे पर दबाएँ।",
+      })}{" "}
       {locErr !== "insecure" && (
         <button className="linkish" onClick={() => refreshLoc()}>
           {nm({ en: "Try again", hi: "फिर कोशिश करें" })}
@@ -352,21 +359,6 @@ function LocStatus() {
     </p>
   );
 }
-
-const LOC_TROUBLE: Record<string, Loc> = {
-  denied: {
-    en: "Your browser is not letting us see your location, so this is the town centre. Allow location for this site, or tap the map.",
-    hi: "आपका ब्राउज़र स्थान देखने नहीं दे रहा, इसलिए यह नगर केंद्र है। इस साइट को स्थान की अनुमति दें, या नक्शे पर दबाएँ।",
-  },
-  insecure: {
-    en: "Location needs a secure (https) connection, and this one is not. This is the town centre — tap the map to correct it.",
-    hi: "स्थान हेतु सुरक्षित (https) संबंध चाहिए, जो यहाँ नहीं है। यह नगर केंद्र है — सुधारने हेतु नक्शे पर दबाएँ।",
-  },
-  unavailable: {
-    en: "We could not get a fix, so this is the town centre. Tap the map to place it yourself.",
-    hi: "स्थान नहीं मिल सका, इसलिए यह नगर केंद्र है। स्वयं रखने हेतु नक्शे पर दबाएँ।",
-  },
-};
 
 type WhereOpt = { type: string; ic: string; lb: string; sub?: string };
 
