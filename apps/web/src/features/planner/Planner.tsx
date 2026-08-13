@@ -845,7 +845,7 @@ export function Planner() {
           >
             {building ? (
               <>
-                <span className="spin" aria-hidden="true" />
+                <span className="btnspin" aria-hidden="true" />
                 {nm({ en: "Building your journey…", hi: "आपकी यात्रा बन रही है…" })}
               </>
             ) : last ? (

@@ -1040,13 +1040,22 @@ main.screen{animation:pageIn .3s var(--ease) both}
   background-size:200% 100%;animation:shim 1.3s linear infinite}
 @keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
 /* gentle life in the icon */
-.wx-ic .spin{transform-origin:12px 12px;animation:slowspin 26s linear infinite}
-.wx-ic .drift{animation:drift 5.5s ease-in-out infinite}
-.wx-ic .fall{animation:fall 1.5s linear infinite}
+/* The weather glyph's own motion, hung off the DRAWING (.wxg) and not off the
+   box that happens to hold it — the sheet renders the same glyph at 62px and
+   had none of this, which is how the sun's rays ended up borrowing the route
+   spinner's `.spin`. `transform-box` is stated rather than assumed: the origin
+   below is in viewBox units and only means 12,12 if the reference box is the
+   view box. */
+.wxg .wray,.wxg .wdrift,.wxg .wfall{transform-box:view-box}
+.wxg .wray{transform-origin:12px 12px;animation:slowspin 26s linear infinite}
+/* the little sun in "partly" is at 8.6,8.2 — it turns about itself */
+.wxg .wray.sm{transform-origin:8.6px 8.2px}
+.wxg .wdrift{animation:drift 5.5s ease-in-out infinite}
+.wxg .wfall{animation:fall 1.5s linear infinite}
 @keyframes slowspin{to{transform:rotate(360deg)}}
 @keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(1.4px)}}
 @keyframes fall{0%{opacity:0;transform:translateY(-2px)}40%{opacity:1}100%{opacity:0;transform:translateY(3.5px)}}
-@media (prefers-reduced-motion:reduce){.wx-ic .spin,.wx-ic .drift,.wx-ic .fall,.wx-skel{animation:none}}
+@media (prefers-reduced-motion:reduce){.wxg .wray,.wxg .wdrift,.wxg .wfall,.wx-skel{animation:none}}
 
 /* hourly strip inside the sheet */
 .hrs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -1223,7 +1232,6 @@ nav.tab button.on svg{transform:translateY(-1px) scale(1.09)}
 nav.tab button:active svg{transform:scale(.9)}
 @media (prefers-reduced-motion:reduce){
   nav.tab:before,nav.tab button svg{transition:none}
-  .wxchip .wxg svg{animation:none}
 }
 /* room for the bar to float over */
 main.screen{padding-bottom:96px}
@@ -1902,12 +1910,12 @@ nav.tab.off:before{opacity:0}
 /* Building the route. The only spinner in the app, and it appears only after
    a tap the visitor made — never on first paint, where a skeleton belongs. */
 .btn.busy{pointer-events:none}
-.spin{width:18px;height:18px;flex:0 0 auto;border-radius:50%;
+.btnspin{width:18px;height:18px;flex:0 0 auto;border-radius:50%;
   border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;
   animation:spin360 .7s linear infinite}
 @keyframes spin360{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){
-  .spin{animation:none;border-top-color:rgba(255,255,255,.75)}
+  .btnspin{animation:none;border-top-color:rgba(255,255,255,.75)}
 }
 
 /* ---- semantics without a visual change ----

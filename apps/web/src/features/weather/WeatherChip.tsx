@@ -6,10 +6,18 @@ import { openSheet, closeSheet } from "@/shared/ui/overlays";
 import { Icon } from "@/shared/icons/Icon";
 import { loadWeather, wcode, glyphBody, advice } from "./weather";
 
-/** Animated weather glyph (spins/drifts/falls per CSS). */
+/**
+ * Animated weather glyph — the rays turn, the cloud drifts, the rain falls.
+ *
+ * `wxg` is what the animations hang off. They used to hang off `.wx-ic`, the
+ * container on Home, so the same glyph at 62px in the weather sheet had no
+ * animation rules of its own — and picked up an unrelated global `.spin`
+ * instead. The class belongs to the drawing, not to whatever is holding it.
+ */
 export function WxGlyph({ kind, day }: { kind: string; day: number }) {
   return (
     <svg
+      className="wxg"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
