@@ -169,7 +169,7 @@
   --t-fast:140ms; --t:190ms; --t-slow:260ms;
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0}
+html,body{margin:0;padding:0;scroll-behavior:smooth}
 body{
   font-family:var(--sans); color:var(--ink); background:#DCD2B8;
   line-height:1.58; font-size:calc(16px*var(--ts)); -webkit-tap-highlight-color:transparent;

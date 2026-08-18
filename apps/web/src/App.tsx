@@ -4,6 +4,7 @@ import { S, store, useApp } from "./app/state";
 import { Shell } from "./shared/ui/Shell";
 import { Sheet } from "./shared/ui/Sheet";
 import { Toast } from "./shared/ui/Toast";
+import { ScrollToTop } from "./shared/ui/ScrollToTop";
 
 import { Start } from "./features/onboarding/Start";
 import { Begin } from "./features/onboarding/Begin";
@@ -34,6 +35,7 @@ export function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/start" element={<Start />} />
         <Route path="/begin" element={hasLang ? <Begin /> : <Navigate to="/start" replace />} />
