@@ -187,22 +187,10 @@ export const listPlans = async (): Promise<SavedPlan[]> => {
   return rows.sort((a, b) => b.at - a.at);
 };
 
-/**
- * Forget a saved plan.
- *
- * Also clears `savedId` on the plan currently open, when it is the same one.
- * Without that, deleting from Saved left the live plan still believing it was
- * saved: the Plan screen went on showing it under "Your plan" and telling the
- * visitor "it is in Saved" while Saved said "Nothing saved yet". Two screens
- * disagreeing about the same object, and the app was the one that was wrong.
- *
- * The plan itself is deliberately NOT cleared — it is still the plan you are
- * looking at, and deleting a bookmark should not close the page.
- */
 export async function deletePlan(id: string): Promise<void> {
   await del(id);
   if (S.plan?.savedId === id) {
-    delete S.plan.savedId;
+    S.plan = newPlan();
     bump();
   }
 }

@@ -8,7 +8,8 @@ import { bump } from "@/app/state";
 import { Icon } from "@/shared/icons/Icon";
 import { THEMES } from "@/data/config";
 import { theme } from "@/data/config";
-import { WINDOWS, CUSTOM, DAYNAMES, dayLabel, longDate, shortDate, lastDay, valid, missing, pNext, pBack, setWin, pickStart, pickEnd, setStartPoint, setEndPoint, flipTheme, buildRoute } from "./plan";
+import { WINDOWS, CUSTOM, DAYNAMES, dayLabel, longDate, shortDate, lastDay, valid, missing, pNext, pBack, setWin, pickStart, pickEnd, setStartPoint, setEndPoint, flipTheme, buildRoute, runEngine } from "./plan";
+import { openPlan } from "./persist";
 import { PlacePicker, PinMap, PickedLine } from "./LocationPicker";
 import { openPlaceSheet } from "./PlaceSheet";
 import { openDateSheet, openTimeSheet } from "./DateTimeSheets";
@@ -684,7 +685,7 @@ const STEP_NAMES: Loc[] = [
  * must never do — so the built plan is here, whole, and starting over is a
  * deliberate second choice rather than the default.
  */
-function ExistingPlan({ onNew }: { onNew: () => void }) {
+function ExistingPlan({ onNew, onEdit }: { onNew: () => void; onEdit: () => void }) {
   const p = S.plan!;
   const it = p.res!;
   const label = typeof p.label === "string" ? p.label : nm(p.label);
@@ -712,6 +713,14 @@ function ExistingPlan({ onNew }: { onNew: () => void }) {
             </b>
             <small>{longDate(p.date)}{days > 1 ? " → " + longDate(lastDay(p)) : ""}</small>
           </span>
+          <button
+            className="btn ghost sm"
+            style={{ flexShrink: 0, padding: "0 8px", minHeight: 32, fontSize: "12px", gap: 6, borderRadius: 8 }}
+            onClick={onEdit}
+          >
+            <Icon name="gear" style={{ width: 14, height: 14 }} />
+            {nm({ en: "Edit", hi: "बदलें" })}
+          </button>
         </div>
 
         <div className="ph-facts">
@@ -740,6 +749,7 @@ function ExistingPlan({ onNew }: { onNew: () => void }) {
           {nm({ en: "Open my plan", hi: "मेरी योजना खोलें" })}
         </button>
       </div>
+
 
       <button className="btn ghost" style={{ marginTop: 11 }} onClick={onNew}>
         <Icon name="route" />
@@ -783,6 +793,12 @@ export function Planner() {
           setFresh(true);
           bump();
         }}
+        onEdit={() => {
+          S.plan!.step = 0;
+          S.plan!.res = null;
+          setFresh(true);
+          bump();
+        }}
       />
     );
   const i = Math.min(p.step, LAST);
@@ -791,10 +807,25 @@ export function Planner() {
   const gap = missing(i);
   const CurrentStep = STEPS[i];
 
+  const handleBack = async () => {
+    if (i === 0 && p.savedId && fresh) {
+      try {
+        const opened = await openPlan(p.savedId);
+        if (opened) {
+          runEngine(S.plan!);
+          setFresh(false);
+          bump();
+          return;
+        }
+      } catch (e) {}
+    }
+    pBack();
+  };
+
   return (
     <>
       <div className="phead" style={{ paddingBottom: 6 }}>
-        <button className="back" onClick={pBack} aria-label={t("back")}>
+        <button className="back" onClick={handleBack} aria-label={t("back")}>
           <Icon name="back" />
         </button>
         <h1 className="display" style={{ fontSize: "calc(19px*var(--ts))" }} lang={S.lang}>
@@ -828,7 +859,7 @@ export function Planner() {
           </p>
         )}
         <div className="planbar-row">
-          <button className="btn ghost" onClick={pBack}>
+          <button className="btn ghost" onClick={handleBack}>
             {i === 0 ? t("home") : t("back")}
           </button>
           <button

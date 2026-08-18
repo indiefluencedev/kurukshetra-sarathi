@@ -40,7 +40,7 @@ async function editPlan(id: string) {
   go("/plan");
 }
 
-function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
+function PlanRow({ r, isLatest, onGone }: { r: SavedPlan; isLatest?: boolean; onGone: () => void }) {
   const ns = r.ids.map((i) => byId(i)).filter(Boolean).map((d) => nm(d!.name));
   const p = r.plan;
   const when = p.days > 1 ? longDate(p.date) + " → " + longDate(lastDay(p as any)) : longDate(p.date);
@@ -69,6 +69,11 @@ function PlanRow({ r, onGone }: { r: SavedPlan; onGone: () => void }) {
             {nStops(ns.length)}
           </div>
         </div>
+        {isLatest && (
+          <span className="tag brass" style={{ fontSize: "calc(11.5px*var(--ts))", padding: "2px 6px", fontWeight: 700 }}>
+            {nm({ en: "Latest", hi: "नवीनतम" })}
+          </span>
+        )}
         <button
           className="iconbtn"
           onClick={() => deletePlan(r.id).then(onGone)}
@@ -196,8 +201,8 @@ export function Saved() {
       {rs.length > 0 && (
         <section className="sec" style={{ marginTop: 2 }} aria-label={t("savedRoutes")}>
           <div className="plist stagger">
-            {rs.map((r) => (
-              <PlanRow key={r.id} r={r} onGone={() => { toast(t("removedT")); refresh(); }} />
+            {rs.map((r, idx) => (
+              <PlanRow key={r.id} r={r} isLatest={idx === 0} onGone={() => { toast(t("removedT")); refresh(); }} />
             ))}
           </div>
         </section>

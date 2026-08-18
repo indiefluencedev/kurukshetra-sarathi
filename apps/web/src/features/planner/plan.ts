@@ -344,7 +344,7 @@ export function applyFix(fix: { key: string; patch: Record<string, number | stri
  * no carried answers, and above all no navigation — a visitor who reloads on
  * the Plan tab stays on the Plan tab.
  */
-function runEngine(p: Plan) {
+export function runEngine(p: Plan) {
   const sc = p.startClock != null ? p.startClock : nowM() < 9 * 60 ? 9 * 60 : nowM();
   p.startClock = sc;
   const opts = {
@@ -390,6 +390,7 @@ export function buildRoute() {
   });
   // and remember how it was answered, so the next plan starts four taps in
   rememberAnswers(p);
+  bump();
   go("/route");
 }
 
