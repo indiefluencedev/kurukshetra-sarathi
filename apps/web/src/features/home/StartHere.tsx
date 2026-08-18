@@ -80,7 +80,7 @@ export function StartHere() {
             lang={S.lang}
           >
             <span className="rt-img">
-              <img src={imgUrl(r.img)} alt="" loading="lazy" onLoad={(e) => e.currentTarget.classList.add("in")} />
+              <img src={imgUrl(r.img)} alt="" loading="lazy" decoding="async" onLoad={(e) => e.currentTarget.classList.add("in")} />
             </span>
             <span className="rt-body">
               <span className="rt-name" lang={S.lang}>

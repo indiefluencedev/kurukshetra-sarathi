@@ -1,0 +1,1612 @@
+[
+ {
+  "id": "the-swagatam-hotels-resorts",
+  "name": {
+   "en": "The Swagatam Hotels & Resorts",
+   "hi": "स्वागतम होटल्स एंड रिज़ॉर्ट्स"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "GT Road, near Vita milk bar",
+   "hi": "जी.टी. रोड, वीटा मिल्क बार के पास"
+  },
+  "phone": "9855242052",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "ambros-hotel",
+  "name": {
+   "en": "Ambros Hotel",
+   "hi": "एम्ब्रोस होटल"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "NH-44, opposite Pipli bus stand",
+   "hi": "एन.एच.-44, पिपली बस अड्डे के सामने"
+  },
+  "phone": "9466450009",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-bliss",
+  "name": {
+   "en": "Hotel Bliss",
+   "hi": "होटल ब्लिस"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli Road, Sector 2",
+   "hi": "पिपली रोड, सेक्टर 2"
+  },
+  "phone": "9466265073",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-h",
+  "name": {
+   "en": "Hotel H",
+   "hi": "होटल एच"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli Road, Sector 7",
+   "hi": "पिपली रोड, सेक्टर 7"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-saffron-kkr",
+  "name": {
+   "en": "Hotel Saffron KKR",
+   "hi": "होटल सैफ्रॉन के.के.आर."
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli Road, opposite PNB regional office, Sector 7",
+   "hi": "पिपली रोड, पी.एन.बी. क्षेत्रीय कार्यालय के सामने, सेक्टर 7"
+  },
+  "phone": "9817608230",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "the-meridien-kurukshetra",
+  "name": {
+   "en": "The Meridien Kurukshetra",
+   "hi": "द मेरिडियन कुरुक्षेत्र"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Ratgal Road, Sector 7",
+   "hi": "रतगल रोड, सेक्टर 7"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-amber",
+  "name": {
+   "en": "Hotel Amber",
+   "hi": "होटल एम्बर"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli Road, Urban Estate, Sector 7",
+   "hi": "पिपली रोड, अर्बन एस्टेट, सेक्टर 7"
+  },
+  "phone": "9053720532",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-cherish",
+  "name": {
+   "en": "Hotel Cherish",
+   "hi": "होटल चेरिश"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Ratgal Road, Sector 7",
+   "hi": "रतगल रोड, सेक्टर 7"
+  },
+  "phone": "8222077724",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-gold-regency",
+  "name": {
+   "en": "Hotel Gold Regency",
+   "hi": "होटल गोल्ड रीजेंसी"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "District Court Road, DD Colony",
+   "hi": "जिला न्यायालय रोड, डी.डी. कॉलोनी"
+  },
+  "phone": "7357051705",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "divine-clarks-inn-suites",
+  "name": {
+   "en": "Divine Clarks Inn Suites",
+   "hi": "डिवाइन क्लार्क्स इन सूट्स"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Divine City Centre, Pipli Road",
+   "hi": "डिवाइन सिटी सेंटर, पिपली रोड"
+  },
+  "phone": "9306753711",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hot-sizzler-resort",
+  "name": {
+   "en": "Hot Sizzler Resort",
+   "hi": "हॉट सिज़लर रिज़ॉर्ट"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Grand Trunk Road",
+   "hi": "ग्रैंड ट्रंक रोड"
+  },
+  "phone": "9991999306",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "the-celestial-beats-by-4kd-hotels",
+  "name": {
+   "en": "The Celestial Beats by 4KD Hotels",
+   "hi": "द सेलेस्टियल बीट्स बाय 4केडी होटल्स"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "DD Colony",
+   "hi": "डी.डी. कॉलोनी"
+  },
+  "phone": "8222832226",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "pride-24-hotel",
+  "name": {
+   "en": "Pride 24 Hotel",
+   "hi": "प्राइड 24 होटल"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli Road, DD Colony",
+   "hi": "पिपली रोड, डी.डी. कॉलोनी"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-g-plus",
+  "name": {
+   "en": "Hotel G Plus",
+   "hi": "होटल जी प्लस"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "DD Colony",
+   "hi": "डी.डी. कॉलोनी"
+  },
+  "phone": "8708099653",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "grand-taj-hotel",
+  "name": {
+   "en": "Grand Taj Hotel",
+   "hi": "ग्रैंड ताज होटल"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "SCO 243-244, Sector 10",
+   "hi": "एस.सी.ओ. 243-244, सेक्टर 10"
+  },
+  "phone": "9812282892",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-ace",
+  "name": {
+   "en": "Hotel Ace",
+   "hi": "होटल ऐस"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "SCO 242, Sector 10",
+   "hi": "एस.सी.ओ. 242, सेक्टर 10"
+  },
+  "phone": "8570849272",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "kimaya-hotel",
+  "name": {
+   "en": "Kimaya Hotel",
+   "hi": "किमाया होटल"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Red Road, opposite HP petrol pump, Sector 17",
+   "hi": "रेड रोड, एच.पी. पेट्रोल पंप के सामने, सेक्टर 17"
+  },
+  "phone": "9671856222",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-kissan",
+  "name": {
+   "en": "Hotel Kissan",
+   "hi": "होटल किसान"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Divine Business Park",
+   "hi": "डिवाइन बिज़नेस पार्क"
+  },
+  "phone": "8295964313",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-9th-planet",
+  "name": {
+   "en": "Hotel 9th Planet",
+   "hi": "होटल नाइंथ प्लैनेट"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Mohan Nagar",
+   "hi": "मोहन नगर"
+  },
+  "phone": "8929232132",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-mg-grand",
+  "name": {
+   "en": "Hotel MG Grand",
+   "hi": "होटल एम.जी. ग्रैंड"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli Road",
+   "hi": "पिपली रोड"
+  },
+  "phone": "9017722334",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-lee-merydein",
+  "name": {
+   "en": "Hotel Lee Merydein",
+   "hi": "होटल ली मेरीडियन"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Dhand Road, near Gurukul",
+   "hi": "ढांड रोड, गुरुकुल के पास"
+  },
+  "phone": "8059223999",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-tirupati",
+  "name": {
+   "en": "Hotel Tirupati",
+   "hi": "होटल तिरुपति"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Railway Road",
+   "hi": "रेलवे रोड के पास"
+  },
+  "phone": "9254390718",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-pearl-marc",
+  "name": {
+   "en": "Hotel Pearl Marc",
+   "hi": "होटल पर्ल मार्क"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Railway Road",
+   "hi": "रेलवे रोड"
+  },
+  "phone": "9354684777",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-delight",
+  "name": {
+   "en": "Hotel Delight",
+   "hi": "होटल डिलाइट"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Jhansa Road, Bhiwani Khera",
+   "hi": "झांसा रोड, भिवानी खेड़ा"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "rahat-hotel-banquet",
+  "name": {
+   "en": "Rahat Hotel & Banquet",
+   "hi": "रहत होटल एंड बैंक्वेट"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "KDB Road, new grain market",
+   "hi": "के.डी.बी. रोड, नई अनाज मंडी"
+  },
+  "phone": "7419444003",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "c-seven-hotel",
+  "name": {
+   "en": "C Seven Hotel",
+   "hi": "सी सेवन होटल"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Kirmich Road, opposite NIT",
+   "hi": "किरमिच रोड, एन.आई.टी. के सामने"
+  },
+  "phone": "8168612908",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-almond-leaf",
+  "name": {
+   "en": "Hotel Almond Leaf",
+   "hi": "होटल आमंड लीफ"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Dhand Road, opposite Gurukul",
+   "hi": "ढांड रोड, गुरुकुल के सामने"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-comfort-zone",
+  "name": {
+   "en": "Hotel Comfort Zone",
+   "hi": "होटल कम्फर्ट ज़ोन"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Street 3, Kurukshetra University",
+   "hi": "गली नंबर 3, कुरुक्षेत्र विश्वविद्यालय"
+  },
+  "phone": "9813451460",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "hotel-d9-kurukshetra",
+  "name": {
+   "en": "Hotel D9 Kurukshetra",
+   "hi": "होटल डी9 कुरुक्षेत्र"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near HDFC Bank, Rajesh Pilot Chowk",
+   "hi": "एच.डी.एफ.सी. बैंक के पास, राजेश पायलट चौक"
+  },
+  "lat": 29.95536,
+  "lng": 76.84721,
+  "phone": "+91 74197 77001"
+ },
+ {
+  "id": "hotel-legend-pehowa",
+  "name": {
+   "en": "Hotel Legend",
+   "hi": "होटल लेजेंड"
+  },
+  "kind": "hotel",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "lat": 29.98238,
+  "lng": 76.57921
+ },
+ {
+  "id": "neelkanthi-krishna-dham-yatri-niwas",
+  "name": {
+   "en": "Neelkanthi Krishna Dham Yatri Niwas",
+   "hi": "नीलकंठी कृष्ण धाम यात्री निवास"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "University Road, near Birla Mandir",
+   "hi": "यूनिवर्सिटी रोड, बिरला मंदिर के पास"
+  },
+  "lat": 29.9625,
+  "lng": 76.8262,
+  "phone": "9817851615",
+  "note": {
+   "en": "Run by Haryana Tourism. 26 rooms, and the one most pilgrims are sent to.",
+   "hi": "हरियाणा पर्यटन द्वारा संचालित। 26 कमरे — अधिकांश तीर्थयात्रियों को यहीं भेजा जाता है।"
+  }
+ },
+ {
+  "id": "parashar-tourist-complex",
+  "name": {
+   "en": "Parashar Tourist Complex",
+   "hi": "पराशर पर्यटक परिसर"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "lat": 29.9601,
+  "lng": 76.8305
+ },
+ {
+  "id": "parakeet-tourist-complex",
+  "name": {
+   "en": "Parakeet Tourist Complex",
+   "hi": "पैराकीट पर्यटक परिसर"
+  },
+  "kind": "hotel",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli, on NH-44",
+   "hi": "पिपली, एन.एच.-44 पर"
+  },
+  "phone": "9416158601",
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-anjan-yatrika",
+  "name": {
+   "en": "Anjan Yatrika",
+   "hi": "अंजन यात्रिका"
+  },
+  "kind": "hotel",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa, run by Haryana Tourism",
+   "hi": "पिहोवा, हरियाणा पर्यटन द्वारा संचालित"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "youth-hostel-pipli",
+  "name": {
+   "en": "Youth Hostel Pipli",
+   "hi": "यूथ हॉस्टल पिपली"
+  },
+  "kind": "guesthouse",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Pipli",
+   "hi": "पिपली"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "aggarwal-dharamshala-railway-road",
+  "name": {
+   "en": "Aggarwal Dharamshala, Railway Road",
+   "hi": "अग्रवाल धर्मशाला, रेलवे रोड"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Railway Road, Thanesar",
+   "hi": "रेलवे रोड, थानेसर"
+  },
+  "note": {
+   "en": "31 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "31 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "aggarwal-dharamshala-krishna-gate",
+  "name": {
+   "en": "Aggarwal Dharamshala, Krishna Gate",
+   "hi": "अग्रवाल धर्मशाला, कृष्ण गेट"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Krishna Gate, Thanesar",
+   "hi": "कृष्ण गेट, थानेसर"
+  },
+  "note": {
+   "en": "2 single rooms, 19 double rooms, 2 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "2 सिंगल कमरे, 19 डबल कमरे, 2 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "baba-kali-kamli-wala-dharamshala",
+  "name": {
+   "en": "Baba Kali Kamli Wala Dharamshala",
+   "hi": "बाबा काली कमली वाला धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Beside Baba Kali Kamli Wale, near Brahma Sarovar",
+   "hi": "बाबा काली कमली वाले के साथ, ब्रह्म सरोवर के पास"
+  },
+  "lat": 29.964299,
+  "lng": 76.833283,
+  "note": {
+   "en": "8 double rooms.",
+   "hi": "8 डबल कमरे।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ]
+ },
+ {
+  "id": "birla-mandir-dharamshala",
+  "name": {
+   "en": "Birla Mandir Dharamshala",
+   "hi": "बिरला मंदिर धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "In the Birla Mandir complex",
+   "hi": "बिरला मंदिर परिसर में"
+  },
+  "lat": 29.9651357,
+  "lng": 76.8270519,
+  "note": {
+   "en": "12 single rooms, 6 double rooms.",
+   "hi": "12 सिंगल कमरे, 6 डबल कमरे।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ]
+ },
+ {
+  "id": "bishnoi-dharamshala",
+  "name": {
+   "en": "Bishnoi Dharamshala",
+   "hi": "बिश्नोई धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "4 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "4 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "beragi-dharamshala",
+  "name": {
+   "en": "Beragi Dharamshala",
+   "hi": "बैरागी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "20 single rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "20 सिंगल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "brahmanand-ashram",
+  "name": {
+   "en": "Brahmanand Ashram",
+   "hi": "ब्रह्मानंद आश्रम"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "38 single rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "38 सिंगल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "gita-bhawan-trust",
+  "name": {
+   "en": "Gita Bhawan Trust",
+   "hi": "गीता भवन ट्रस्ट"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "On Brahma Sarovar",
+   "hi": "ब्रह्म सरोवर पर"
+  },
+  "lat": 29.9638687,
+  "lng": 76.8294689,
+  "note": {
+   "en": "14 single rooms, 24 double rooms, 7 dormitories.",
+   "hi": "14 सिंगल कमरे, 24 डबल कमरे, 7 डॉरमेट्री।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ]
+ },
+ {
+  "id": "gaudiya-math-dharamshala",
+  "name": {
+   "en": "Gaudiya Math Dharamshala",
+   "hi": "गौड़ीय मठ धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Shri Vyas Gaudiya Math, near Brahma Sarovar",
+   "hi": "श्री व्यास गौड़ीय मठ, ब्रह्म सरोवर के पास"
+  },
+  "lat": 29.9636279,
+  "lng": 76.8314856,
+  "note": {
+   "en": "20 double rooms.",
+   "hi": "20 डबल कमरे।"
+  },
+  "facilities": [
+   "parking"
+  ]
+ },
+ {
+  "id": "gujjar-dharamshala",
+  "name": {
+   "en": "Gujjar Dharamshala",
+   "hi": "गुज्जर धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "15 single rooms, 120 double rooms, 9 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "15 सिंगल कमरे, 120 डबल कमरे, 9 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "jat-dharamshala",
+  "name": {
+   "en": "Jat Dharamshala",
+   "hi": "जाट धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "149 single rooms, 266 double rooms, 5 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "149 सिंगल कमरे, 266 डबल कमरे, 5 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "hans-yog-ashram",
+  "name": {
+   "en": "Hans Yog Ashram",
+   "hi": "हंस योग आश्रम"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "30 single rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "30 सिंगल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "shri-jairam-vidyapeeth-dharamshala",
+  "name": {
+   "en": "Shri Jairam Vidyapeeth Dharamshala",
+   "hi": "श्री जयराम विद्यापीठ धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "In the Jairam Vidyapeeth compound, near Brahma Sarovar",
+   "hi": "जयराम विद्यापीठ परिसर में, ब्रह्म सरोवर के पास"
+  },
+  "lat": 29.9640579,
+  "lng": 76.8304651,
+  "note": {
+   "en": "40 single rooms, 30 double rooms.",
+   "hi": "40 सिंगल कमरे, 30 डबल कमरे।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ]
+ },
+ {
+  "id": "kashyap-rajput-dharamshala",
+  "name": {
+   "en": "Kashyap Rajput Dharamshala",
+   "hi": "कश्यप राजपूत धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "20 single rooms, 40 double rooms, 2 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "20 सिंगल कमरे, 40 डबल कमरे, 2 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "kshatriya-rajput-dharamshala",
+  "name": {
+   "en": "Kshatriya Rajput Dharamshala",
+   "hi": "क्षत्रिय राजपूत धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "4 single rooms, 4 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "4 सिंगल कमरे, 4 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "prajapati-kumhar-dharamshala",
+  "name": {
+   "en": "Prajapati Kumhar Dharamshala",
+   "hi": "प्रजापति कुम्हार धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "130 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "130 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "rai-dharamshala",
+  "name": {
+   "en": "Rai Dharamshala",
+   "hi": "राय धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "42 single rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "42 सिंगल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking"
+  ],
+  "pending": true
+ },
+ {
+  "id": "shri-guru-ravidass-mandir-and-dharamshala",
+  "name": {
+   "en": "Shri Guru Ravidass Mandir and Dharamshala",
+   "hi": "श्री गुरु रविदास मंदिर एवं धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "1 single rooms, 26 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "1 सिंगल कमरे, 26 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "ror-dharamshala",
+  "name": {
+   "en": "Ror Dharamshala",
+   "hi": "रोड़ धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "82 single rooms, 16 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "82 सिंगल कमरे, 16 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "saraswat-brahman-dharamshala",
+  "name": {
+   "en": "Saraswat Brahman Dharamshala",
+   "hi": "सारस्वत ब्राह्मण धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "66 single rooms, 21 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "66 सिंगल कमरे, 21 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "shree-brahampuri-ashram",
+  "name": {
+   "en": "Shree Brahampuri Ashram",
+   "hi": "श्री ब्रह्मपुरी आश्रम"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "30 single rooms, 50 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "30 सिंगल कमरे, 50 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "shri-geeta-dham",
+  "name": {
+   "en": "Shri Geeta Dham",
+   "hi": "श्री गीता धाम"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "15 single rooms, 20 double rooms, 4 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "15 सिंगल कमरे, 20 डबल कमरे, 4 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "vardh-raj-mandir-dharamshala",
+  "name": {
+   "en": "Vardh Raj Mandir Dharamshala",
+   "hi": "वर्ध राज मंदिर धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "9 double rooms, 2 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "9 डबल कमरे, 2 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "saini-dharamshala",
+  "name": {
+   "en": "Saini Dharamshala",
+   "hi": "सैनी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Thanesar",
+   "hi": "थानेसर"
+  },
+  "note": {
+   "en": "50 single rooms, 100 double rooms, 3 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "50 सिंगल कमरे, 100 डबल कमरे, 3 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "brahman-dharamshala-and-chhattravas",
+  "name": {
+   "en": "Brahman Dharamshala and Chhattravas",
+   "hi": "ब्राह्मण धर्मशाला एवं छात्रावास"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Sannihit Sarovar",
+   "hi": "सन्निहित सरोवर के पास"
+  },
+  "note": {
+   "en": "125 single rooms, 45 double rooms, 29 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "125 सिंगल कमरे, 45 डबल कमरे, 29 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "guru-ramdas-saray",
+  "name": {
+   "en": "Guru Ramdas Saray",
+   "hi": "गुरु रामदास सराय"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Sannihit Sarovar",
+   "hi": "सन्निहित सरोवर के पास"
+  },
+  "note": {
+   "en": "55 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "55 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "gurudwara-sahib-patshahi-chhevin-sarai",
+  "name": {
+   "en": "Gurudwara Sahib Patshahi Chhevin Sarai",
+   "hi": "गुरुद्वारा साहिब पातशाही छठी सराय"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "In the Gurudwara Chhevin Patshahi complex",
+   "hi": "गुरुद्वारा छठी पातशाही परिसर में"
+  },
+  "lat": 29.9688743,
+  "lng": 76.8339753,
+  "note": {
+   "en": "11 double rooms.",
+   "hi": "11 डबल कमरे।"
+  },
+  "facilities": [
+   "parking",
+   "food"
+  ]
+ },
+ {
+  "id": "jogi-samaj-dharamshala",
+  "name": {
+   "en": "Jogi Samaj Dharamshala",
+   "hi": "जोगी समाज धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Sannihit Sarovar",
+   "hi": "सन्निहित सरोवर के पास"
+  },
+  "note": {
+   "en": "48 single rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "48 सिंगल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food"
+  ],
+  "pending": true
+ },
+ {
+  "id": "pal-gadaria-dharamshala",
+  "name": {
+   "en": "Pal Gadaria Dharamshala",
+   "hi": "पाल गडरिया धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Sannihit Sarovar",
+   "hi": "सन्निहित सरोवर के पास"
+  },
+  "note": {
+   "en": "77 single rooms, 12 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "77 सिंगल कमरे, 12 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "food"
+  ],
+  "pending": true
+ },
+ {
+  "id": "panjabi-dharamshala",
+  "name": {
+   "en": "Panjabi Dharamshala",
+   "hi": "पंजाबी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Sannihit Sarovar",
+   "hi": "सन्निहित सरोवर के पास"
+  },
+  "note": {
+   "en": "42 double rooms, 3 dormitories. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "42 डबल कमरे, 3 डॉरमेट्री। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "krishandham-dharamshala",
+  "name": {
+   "en": "Krishandham Dharamshala",
+   "hi": "कृष्णधाम धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "kurukshetra",
+  "area": {
+   "en": "Near Sannihit Sarovar",
+   "hi": "सन्निहित सरोवर के पास"
+  },
+  "note": {
+   "en": "50 single rooms, 20 double rooms. Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "50 सिंगल कमरे, 20 डबल कमरे। ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "facilities": [
+   "parking",
+   "water"
+  ],
+  "pending": true
+ },
+ {
+  "id": "p-aggarwal-dharamshala",
+  "name": {
+   "en": "Aggarwal Dharamshala",
+   "hi": "अग्रवाल धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-ahluwalia-dharamshala",
+  "name": {
+   "en": "Ahluwalia Dharamshala",
+   "hi": "आहलूवालिया धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-balmiki-dharamshala",
+  "name": {
+   "en": "Balmiki Dharamshala",
+   "hi": "बाल्मीकि धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-balmiki-dharamshala-indra-basti",
+  "name": {
+   "en": "Balmiki Dharamshala, Indra Basti",
+   "hi": "बाल्मीकि धर्मशाला, इंद्रा बस्ती"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-chintpurni-dharamshala",
+  "name": {
+   "en": "Chintpurni Dharamshala",
+   "hi": "चिंतपूर्णी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-dhiman-dharamshala",
+  "name": {
+   "en": "Dhiman Dharamshala",
+   "hi": "धीमान धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-harijan-dharamshala",
+  "name": {
+   "en": "Harijan Dharamshala",
+   "hi": "हरिजन धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-jangam-jogi-dharamshala",
+  "name": {
+   "en": "Jangam Jogi Dharamshala",
+   "hi": "जंगम जोगी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-kailash-dham",
+  "name": {
+   "en": "Kailash Dham",
+   "hi": "कैलाश धाम"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "lat": 29.978709,
+  "lng": 76.573446,
+  "note": {
+   "en": "Rooms at the tirtha of the same name.",
+   "hi": "इसी नाम के तीर्थ पर कमरे।"
+  }
+ },
+ {
+  "id": "p-mata-bala-sundri-dharamshala",
+  "name": {
+   "en": "Mata Bala Sundri Dharamshala",
+   "hi": "माता बाला सुंदरी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "lat": 29.9808,
+  "lng": 76.5762,
+  "note": {
+   "en": "Rooms at the tirtha of the same name.",
+   "hi": "इसी नाम के तीर्थ पर कमरे।"
+  }
+ },
+ {
+  "id": "p-panjabi-dharamshala",
+  "name": {
+   "en": "Panjabi Dharamshala",
+   "hi": "पंजाबी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-sita-devi-dharamshala",
+  "name": {
+   "en": "Sita Devi Dharamshala",
+   "hi": "सीता देवी धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-shorgir-dharamshala",
+  "name": {
+   "en": "Shorgir Dharamshala",
+   "hi": "शोरगिर धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ },
+ {
+  "id": "p-vyas-dharamshala",
+  "name": {
+   "en": "Vyas Dharamshala",
+   "hi": "व्यास धर्मशाला"
+  },
+  "kind": "dharamshala",
+  "city": "pehowa",
+  "area": {
+   "en": "Pehowa town",
+   "hi": "पिहोवा नगर"
+  },
+  "note": {
+   "en": "Listed by the district administration. Nobody has put it on the map yet, so it is hidden from the app until someone does.",
+   "hi": "ज़िला प्रशासन की सूची से। इसे अभी तक नक्शे पर चिह्नित नहीं किया गया है, इसलिए तब तक यह ऐप में नहीं दिखेगा।"
+  },
+  "pending": true
+ }
+]

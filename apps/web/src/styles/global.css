@@ -348,7 +348,15 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
    (inset well, no lift). Same palette, opposite depth, so a page reads as a
    hierarchy at a glance instead of a stack of equal boxes. */
 .card{background:var(--surface);border:1px solid var(--stone);border-radius:var(--r-lg);box-shadow:var(--shadow-2)}
-.ph{background:var(--stone);position:relative;overflow:hidden}
+/* `display:block`, and it is load-bearing.
+   Photo renders a <span>, so .ph was an INLINE box — and aspect-ratio, width
+   and height do nothing on one. Every card that set `.ph{aspect-ratio}` and
+   relied on it was quietly ignored: .fcard asked for 16/10 and got the
+   photograph's own proportions instead, so a portrait shot rendered full-width
+   and several hundred pixels tall, pushing the name and the meta line off the
+   bottom of the card. It read as "the card has no text".
+   .pcard escaped it only because a flex container blockifies its children. */
+.ph{display:block;background:var(--stone);position:relative;overflow:hidden}
 .ph img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity var(--t-slow) var(--ease)}
 .ph img.in{opacity:1}
 .ph::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(26,24,20,.06);pointer-events:none}
@@ -676,6 +684,12 @@ details.more[open] summary svg{transform:rotate(90deg)}
   border:2px solid #fff;box-shadow:0 2px 7px rgba(26,24,20,.32)}
 .rmk.start{background:var(--umber)}
 .rmk.end{background:var(--open)}
+/* a stop still to come, later today — present so the day has a shape, quiet so
+   it never competes with the one being driven to */
+.rmk.later{background:var(--surface);color:var(--ink-2);border-color:var(--stone-2);
+  font-size:calc(12px*var(--ts));opacity:.9;box-shadow:0 1px 4px rgba(26,24,20,.22)}
+/* the picker's pin is a glyph rather than a letter, and needs a size of its own */
+.rmk svg{width:15px;height:15px}
 
 /* ---- the plain-language walkthrough ---- */
 .walk{margin-top:22px}
@@ -698,18 +712,6 @@ details.more[open] summary svg{transform:rotate(90deg)}
   border-radius:var(--r-sm);padding:12px 13px;line-height:1.75}
 
 /* ---------- journey ---------- */
-.jcard{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-2);border:1px solid var(--stone)}
-.jcard .ph{aspect-ratio:16/11;position:relative}
-.jcard .ov{position:absolute;inset:auto 0 0 0;z-index:2;padding:15px;color:#fff;
-  background:linear-gradient(180deg,rgba(20,26,30,0),rgba(20,26,30,.86))}
-.jcard .ov .st{font-size:calc(13px*var(--ts));letter-spacing:.16em;text-transform:uppercase;font-weight:700;
-  color:rgba(255,255,255,.72)}
-:lang(hi) .jcard .ov .st{letter-spacing:.04em;text-transform:none;font-size:calc(13px*var(--ts))}
-.jcard .ov h2{font-family:var(--serif);font-size:calc(22px*var(--ts));font-weight:600;margin-top:4px;line-height:1.15}
-:lang(hi) .jcard .ov h2{font-family:var(--deva);font-size:calc(20px*var(--ts))}
-.jmeta{padding:12px;display:flex;gap:7px;flex-wrap:wrap;background:var(--surface)}
-.jsub{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
-.jprog{font-size:calc(13px*var(--ts));color:var(--muted);text-align:center;margin:16px 0 0;font-weight:600}
 
 /* ---------- detail ---------- */
 .hero{position:relative;margin:0 calc(-1*var(--pad));aspect-ratio:4/3.4;background:var(--stone)}
@@ -806,10 +808,16 @@ details.more[open] summary svg{transform:rotate(90deg)}
   background:rgba(255,255,255,.8);padding:2px 6px;border-radius:4px}
 
 /* ---------- sheet, toast, misc ---------- */
-.scrim{position:fixed;inset:0;background:rgba(20,18,14,.42);z-index:70;opacity:0;
+/* Above .drive (80), not below it.
+   The sheet is the app's one modal and every screen reaches for it, including
+   the full-screen drive map — which sat on top of it at 80, so "Add this place
+   to my day" while driving opened a sheet nobody could see and a scrim nobody
+   could tap through. Ordered against the toast (90), which is allowed to sit
+   over everything because it takes no input. */
+.scrim{position:fixed;inset:0;background:rgba(20,18,14,.42);z-index:84;opacity:0;
   transition:opacity var(--t) var(--ease);pointer-events:none;backdrop-filter:blur(2px)}
 .scrim.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:71;max-width:var(--maxw);margin:0 auto;
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:85;max-width:var(--maxw);margin:0 auto;
   background:var(--bone);border-radius:var(--r-xl) var(--r-xl) 0 0;box-shadow:0 -8px 40px rgba(20,18,14,.28);
   transform:translateY(101%);transition:transform var(--t-slow) var(--ease);
   padding:8px 18px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
@@ -1032,13 +1040,22 @@ main.screen{animation:pageIn .3s var(--ease) both}
   background-size:200% 100%;animation:shim 1.3s linear infinite}
 @keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
 /* gentle life in the icon */
-.wx-ic .spin{transform-origin:12px 12px;animation:slowspin 26s linear infinite}
-.wx-ic .drift{animation:drift 5.5s ease-in-out infinite}
-.wx-ic .fall{animation:fall 1.5s linear infinite}
+/* The weather glyph's own motion, hung off the DRAWING (.wxg) and not off the
+   box that happens to hold it — the sheet renders the same glyph at 62px and
+   had none of this, which is how the sun's rays ended up borrowing the route
+   spinner's `.spin`. `transform-box` is stated rather than assumed: the origin
+   below is in viewBox units and only means 12,12 if the reference box is the
+   view box. */
+.wxg .wray,.wxg .wdrift,.wxg .wfall{transform-box:view-box}
+.wxg .wray{transform-origin:12px 12px;animation:slowspin 26s linear infinite}
+/* the little sun in "partly" is at 8.6,8.2 — it turns about itself */
+.wxg .wray.sm{transform-origin:8.6px 8.2px}
+.wxg .wdrift{animation:drift 5.5s ease-in-out infinite}
+.wxg .wfall{animation:fall 1.5s linear infinite}
 @keyframes slowspin{to{transform:rotate(360deg)}}
 @keyframes drift{0%,100%{transform:translateX(0)}50%{transform:translateX(1.4px)}}
 @keyframes fall{0%{opacity:0;transform:translateY(-2px)}40%{opacity:1}100%{opacity:0;transform:translateY(3.5px)}}
-@media (prefers-reduced-motion:reduce){.wx-ic .spin,.wx-ic .drift,.wx-ic .fall,.wx-skel{animation:none}}
+@media (prefers-reduced-motion:reduce){.wxg .wray,.wxg .wdrift,.wxg .wfall,.wx-skel{animation:none}}
 
 /* hourly strip inside the sheet */
 .hrs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -1215,7 +1232,6 @@ nav.tab button.on svg{transform:translateY(-1px) scale(1.09)}
 nav.tab button:active svg{transform:scale(.9)}
 @media (prefers-reduced-motion:reduce){
   nav.tab:before,nav.tab button svg{transition:none}
-  .wxchip .wxg svg{animation:none}
 }
 /* room for the bar to float over */
 main.screen{padding-bottom:96px}
@@ -1304,7 +1320,15 @@ body.bigger{--ts:1.36}
 .lnum{width:22px;height:22px;border-radius:50%;background:var(--clay);color:#fff;display:grid;
   place-items:center;font-size:11px;font-weight:700;box-shadow:0 2px 6px rgba(26,24,20,.3)}
 .lme{display:block;width:18px;height:18px;border-radius:50%;background:var(--lapis);
-  border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(30,58,95,.22)}
+  border:2.5px solid #fff;box-shadow:0 0 0 6px rgba(30,58,95,.22);margin:2px}
+/* Moving, and the device knows which way. The cone is what turns a dot on a map
+   into "this is me, facing that way" — the difference between reading the map
+   and orienting yourself on it. Rotation is set inline, from the fix. */
+.lme.aim::before{content:"";position:absolute;left:50%;top:50%;width:0;height:0;
+  transform:translate(-50%,-15px);
+  border-left:7px solid transparent;border-right:7px solid transparent;
+  border-bottom:10px solid var(--lapis)}
+.lme.aim{position:relative;transform-origin:50% 50%}
 
 /* ---------------- reels ---------------- */
 .reels{padding-top:4px}
@@ -1500,7 +1524,7 @@ nav.tab button:not(.on){text-shadow:0 1px 0 rgba(255,255,255,.6)}
 .eyebrow:after{content:"";height:1px;width:26px;background:var(--brass);opacity:.8}
 
 /* ---- illuminated plates: an inner gold rule, held 4px off the edge ---- */
-.ev-slide,.tile,.jcard,.dl{outline:1px solid rgba(201,190,134,.55);outline-offset:-5px}
+.ev-slide,.tile,.dl{outline:1px solid rgba(201,190,134,.55);outline-offset:-5px}
 .summ{outline:1px solid rgba(201,190,134,.34);outline-offset:-6px}
 
 /* ---- type: Baskerville is high-contrast, so let it breathe ---- */
@@ -1559,6 +1583,42 @@ nav.tab button:not(.on){text-shadow:0 1px 0 rgba(255,255,255,.6)}
 /* nested selection is a tick, not another slab of indigo — one level of
    emphasis per screen, or the step turns into a blue wall */
 .subpick .opt.on{box-shadow:none;background:#fff}
+
+/* ---- the field that opens the list, and the list's own sheet ----
+   One row where twelve used to be. It reads as a field rather than as a
+   thirteenth option: a chevron, not a tick, because tapping it asks a question
+   instead of answering one. */
+.pickfield{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
+  background:#fff;border:1.5px solid var(--stone-2);border-radius:var(--r);padding:11px 12px;
+  min-height:var(--tap);box-shadow:var(--shadow-1);
+  transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),
+             transform var(--t-fast) var(--ease)}
+.pickfield:active{transform:scale(.99)}
+.pickfield.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),var(--shadow-1)}
+.pickfield .oi{width:36px;height:36px;border-radius:10px;background:var(--surface-2);
+  border:1px solid var(--stone);display:grid;place-items:center;color:var(--ink-2);flex:0 0 auto}
+.pickfield.on .oi{background:var(--accent);border-color:var(--accent);color:#fff}
+.pickfield .oi svg{width:18px;height:18px}
+.pickfield b{display:block;font-size:calc(14.5px*var(--ts));font-weight:600;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickfield.on b{color:var(--accent-deep)}
+.pickfield small{display:block;color:var(--muted);font-size:calc(12.5px*var(--ts));margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pickfield .chev{margin-left:auto;flex:0 0 auto;color:var(--muted);display:grid;place-items:center}
+.pickfield .chev svg{width:18px;height:18px;transform:rotate(-90deg)}
+
+/* The sheet is tall on purpose: a list that opens at the size of its longest
+   answer makes the sheet jump every keystroke as results are filtered. */
+.picksheet{display:flex;flex-direction:column;min-height:min(66vh,520px)}
+/* the search box never leaves the screen, however far down the list goes */
+.picksheet-top{position:sticky;top:0;z-index:2;background:var(--bone);
+  padding-bottom:8px;margin:0 -18px;padding-left:18px;padding-right:18px;
+  box-shadow:0 6px 12px -10px rgba(20,18,14,.5)}
+.picksheet-top .search{background:var(--surface-2)}
+.picksheet-top .iconbtn{width:34px;height:34px;min-width:34px;margin-right:-6px}
+.picksheet-top .iconbtn svg{width:17px;height:17px;color:var(--muted)}
+.picksheet-list{gap:7px;padding-top:8px}
+.picksheet-list .opt{padding:12px 13px}
 
 /* ---- one question, one plate ---- */
 .qcard{background:var(--surface);border:1px solid var(--stone);border-radius:var(--r);
@@ -1666,7 +1726,7 @@ nav.tab.off:before{opacity:0}
    GEOMETRY THE BRIEF NAMES BY NAME
    hero 24 · card 22 · search 18 · button 16 · bottom nav 28 · chip pill
    ================================================================ */
-.ev-slide,.summ,.jcard,.dl,.tblock{border-radius:var(--r-hero)}
+.ev-slide,.summ,.dl,.tblock{border-radius:var(--r-hero)}
 .search{border-radius:18px}
 
 /* a placeholder that is plainly a placeholder: the shape of the thing that is
@@ -1766,43 +1826,6 @@ nav.tab.off:before{opacity:0}
   box-shadow:inset 0 0 0 2px var(--accent)}
 
 /* ================================================================
-   THE DRIVE GUIDE
-   A companion in the car, not a satnav. It never gives a direction —
-   the phone's own maps app does that — it names what is going past.
-   ================================================================ */
-.guidebar{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px 14px;
-  background:var(--nav-wash);border:1px solid var(--nav-line);border-radius:var(--r-lg)}
-.guidebar .gi{width:38px;height:38px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;
-  background:var(--nav);color:#fff}
-.guidebar .gi svg{width:19px;height:19px}
-.guidebar .gt{flex:1;min-width:0}
-.guidebar .gt b{display:block;font-size:calc(14px*var(--ts));font-weight:650;color:var(--nav-deep)}
-.guidebar .gt small{display:block;font-size:calc(13px*var(--ts));color:var(--muted);line-height:1.4}
-.guidebar .gv{flex:0 0 auto;width:var(--tap);height:var(--tap);border-radius:50%;cursor:pointer;
-  border:1px solid var(--stone-2);background:var(--surface);color:var(--muted);display:grid;place-items:center}
-.guidebar .gv.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.guidebar .gv svg{width:21px;height:21px}
-
-/* what you are passing, right now. Big, because it is read at a glance from
-   a moving car, and it never demands a tap — it waits. */
-.passcard{display:flex;gap:13px;margin-top:11px;padding:12px;background:var(--surface);
-  border:1.5px solid var(--accent);border-radius:var(--r-lg);box-shadow:var(--shadow-2);
-  animation:passIn var(--t-slow) var(--ease) both}
-@keyframes passIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.passcard{animation:none}}
-.passcard .ph{width:84px;height:84px;flex:0 0 auto;border-radius:var(--r)}
-.pc-body{min-width:0;flex:1}
-.pc-side{display:block;font-size:calc(13px*var(--ts));font-weight:700;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--accent-deep)}
-:lang(hi) .pc-side{letter-spacing:.02em;text-transform:none}
-.pc-body h3{font-family:var(--serif);font-size:calc(17px*var(--ts));font-weight:600;margin-top:2px}
-:lang(hi) .pc-body h3{font-family:var(--deva);font-size:calc(16px*var(--ts))}
-.pc-body p{margin-top:4px;font-size:calc(13px*var(--ts));color:var(--muted);line-height:1.45;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.pc-btns{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.pc-btns .btn{width:auto}
-
-/* ================================================================
    THE ROUTE RESULT
    ================================================================ */
 
@@ -1887,12 +1910,12 @@ nav.tab.off:before{opacity:0}
 /* Building the route. The only spinner in the app, and it appears only after
    a tap the visitor made — never on first paint, where a skeleton belongs. */
 .btn.busy{pointer-events:none}
-.spin{width:18px;height:18px;flex:0 0 auto;border-radius:50%;
+.btnspin{width:18px;height:18px;flex:0 0 auto;border-radius:50%;
   border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;
   animation:spin360 .7s linear infinite}
 @keyframes spin360{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){
-  .spin{animation:none;border-top-color:rgba(255,255,255,.75)}
+  .btnspin{animation:none;border-top-color:rgba(255,255,255,.75)}
 }
 
 /* ---- semantics without a visual change ----
@@ -2166,7 +2189,10 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
 .drive-x svg,.drive-v svg{width:19px;height:19px}
 .drive-v.on{background:var(--accent);}
-.drive-next{flex:1;min-width:0;text-align:left}
+/* a button, because it opens the stop's panel — but it must read as the title
+   of the screen, so it borrows nothing from .btn */
+.drive-next{flex:1;min-width:0;text-align:left;background:none;border:0;padding:0;
+  color:inherit;font:inherit;cursor:pointer}
 .dn-k{display:block;font-size:calc(11px*var(--ts));letter-spacing:.14em;text-transform:uppercase;
   font-weight:700;color:var(--gold)}
 :lang(hi) .dn-k{letter-spacing:.03em;text-transform:none;font-size:calc(11.5px*var(--ts))}
@@ -2176,9 +2202,15 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
 :lang(hi) .drive-next b{font-family:var(--deva);font-size:calc(18px*var(--ts))}
 .dn-m{display:block;margin-top:2px;font-size:calc(12.5px*var(--ts));color:rgba(255,255,255,.82)}
 
+/* A card, not a line of red text. It has to say what is wrong, what to do
+   about it in the browser's own words, and carry the button that checks. */
 .drive-warn{position:absolute;top:calc(92px + env(safe-area-inset-top));left:12px;right:12px;z-index:3;
-  background:var(--shut-wash);border:1px solid var(--shut);color:var(--shut);
-  border-radius:var(--r);padding:9px 12px;font-size:calc(12.5px*var(--ts));line-height:1.45;font-weight:600}
+  max-width:var(--maxw);margin:0 auto;
+  background:var(--surface);border:1.5px solid var(--shut);
+  border-radius:var(--r);padding:11px 13px;box-shadow:var(--shadow-2)}
+.drive-warn b{display:block;font-size:calc(14px*var(--ts));font-weight:700;color:var(--shut)}
+.drive-warn p{margin:4px 0 0;font-size:calc(12.5px*var(--ts));line-height:1.5;color:var(--ink-2)}
+.drive-warn .btn{width:auto;margin-top:9px}
 
 .drive-recentre{position:absolute;right:12px;bottom:calc(104px + env(safe-area-inset-bottom));z-index:3;
   display:inline-flex;align-items:center;gap:7px;border:1px solid var(--stone);cursor:pointer;
@@ -2208,6 +2240,28 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
   padding:12px 12px calc(12px + env(safe-area-inset-bottom));
   background:linear-gradient(180deg,var(--bone-0),var(--bone) 40%)}
 .drive-bar .btn{flex:1;min-height:52px}
+/* the way into everything that is not "where am I" — see StopSheet */
+.drive-more{flex:0 0 auto;width:52px;min-height:52px;border-radius:var(--r);cursor:pointer;
+  background:var(--surface);border:1px solid var(--stone-2);color:var(--ink-2);
+  display:grid;place-items:center;box-shadow:var(--shadow-1)}
+.drive-more svg{width:20px;height:20px}
+.drive-more:active{background:var(--surface-2)}
+/* Within the last 130 metres the tap you are about to make is this one, and a
+   driver looking up for half a second has to find it without reading. */
+.btn.primary.here{animation:hereGlow 1.6s var(--ease) infinite}
+@keyframes hereGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(224,109,13,.55)}
+  55%{box-shadow:0 0 0 9px rgba(224,109,13,0)}
+}
+@media (prefers-reduced-motion:reduce){.btn.primary.here{animation:none;outline:3px solid var(--gold);outline-offset:2px}}
+
+/* the stop's own panel, over the map */
+.stopsheet-head{display:flex;gap:12px;align-items:flex-start}
+.stopsheet-head .ph{width:84px;height:84px;flex:0 0 auto;border-radius:var(--r-sm)}
+.stopsheet-head .dn-k{color:var(--brass-deep)}
+.stopsheet-head h2{margin:2px 0 6px}
+.stopsheet-acts{display:flex;gap:9px;margin-top:14px}
+.stopsheet-acts .btn{flex:1}
 
 /* ---- what is happening RIGHT NOW, and whether it is in your way ----
    Deliberately louder than the rail beneath it: the rail is a season's
@@ -2332,6 +2386,12 @@ a.btn:hover{text-decoration:none}
 
 .exnote{margin:12px 0 2px;align-items:center}
 .exnote svg{margin-top:0}
+/* the same note, when it is the way into the day it is describing */
+button.exnote{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit;
+  border-color:var(--accent-soft,var(--stone-2));background:var(--accent-wash)}
+button.exnote span{flex:1;min-width:0}
+button.exnote svg:last-child{color:var(--muted);width:16px;height:16px}
+button.exnote:active{transform:scale(.995)}
 
 /* The plus on a card. Its own tap target, top-right, clear of the two lines of
    text it sits beside — and 44px square, because the people this is built for
@@ -2351,3 +2411,101 @@ a.btn:hover{text-decoration:none}
 
 /* The town a place is in, shown only when both towns are listed together. */
 .tag.town{background:var(--brass-wash);color:var(--brass-deep);border-color:transparent}
+
+/* ---- the event page --------------------------------------------------------
+   One event, and what a visitor can do about it. Reached from the home rail,
+   which used to jump straight into the planner — see features/event/Event.tsx
+   for why that was the wrong first question.
+
+   It borrows the place page's hero and .dtitle wholesale: two detail screens
+   that look like two different apps is a worse problem than any of the small
+   things a bespoke layout would have solved. */
+.ev-hero{aspect-ratio:16/10}
+.ev-hero .hero-cap .ev-kick{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5);margin-bottom:6px}
+.ev-hero .hero-cap .ev-dot{background:var(--live)}
+
+/* The lead line under the title. Larger than body copy because it is the
+   sentence that says what this is, and smaller than the title because it is
+   not the title. */
+.lead{font-size:calc(16.5px*var(--ts));line-height:1.55;color:var(--ink-2);margin:2px 0 14px}
+:lang(hi) .lead{font-family:var(--deva);font-size:calc(16px*var(--ts));line-height:1.7}
+
+/* What a visitor should DO differently. The most useful sentence on the page
+   for anybody who lives here, so it is a panel and not a paragraph.
+
+   `avoid` takes the shut colour. "Keep away from this road" and "worth going
+   to" arriving in the same beige box is the one confusion this page could
+   actually cause — a closure read as an invitation. */
+.ev-notice{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;padding:12px 14px;
+  border-radius:12px;background:var(--open-wash);border:1px solid var(--stone);
+  font-size:calc(14.5px*var(--ts));line-height:1.5;color:var(--ink-2)}
+.ev-notice svg{width:19px;height:19px;flex:0 0 auto;margin-top:1px;color:var(--open)}
+.ev-notice.avoid{background:var(--shut-wash);border-color:var(--shut)}
+.ev-notice.avoid svg{color:var(--shut)}
+:lang(hi) .ev-notice{font-family:var(--deva);line-height:1.7}
+
+/* ---- "Where it happens" ----------------------------------------------------
+   The section the page exists for. Everything above it describes an event;
+   this is where the reader does something about it.
+
+   It is set apart deliberately — its own ground, inset from the page — because
+   it is a DECISION, not more reading. Five temples on one night, and the job
+   is to compare them and pick. Nothing else on the page asks for a choice, so
+   nothing else gets this treatment. */
+.ev-where{margin:26px calc(-1*var(--pad)) 8px;padding:22px var(--pad) 20px;
+  background:var(--surface-2);border-top:1px solid var(--stone);border-bottom:1px solid var(--stone)}
+
+/* The count is the point of the heading — "five temples" is the fact that
+   makes this a choice rather than an address. It rides in the heading as a
+   brass counter rather than sitting in the prose, where it would be read as
+   decoration and skipped. */
+.ev-wh{font-family:var(--serif);font-size:calc(20px*var(--ts));font-weight:600;
+  display:flex;align-items:center;gap:10px;margin:0}
+:lang(hi) .ev-wh{font-family:var(--deva);font-size:calc(19px*var(--ts))}
+.ev-wh .n{font-family:var(--sans);font-size:calc(12.5px*var(--ts));font-weight:700;
+  color:var(--brass-deep);background:var(--brass-wash);border:1px solid var(--brass-soft);
+  min-width:23px;height:23px;border-radius:99px;display:inline-flex;align-items:center;
+  justify-content:center;padding:0 6px;letter-spacing:.01em}
+.ev-whsub{margin:7px 0 16px;font-size:calc(14px*var(--ts));line-height:1.55;color:var(--muted);
+  max-width:52ch}
+:lang(hi) .ev-whsub{font-family:var(--deva);line-height:1.7}
+
+/* Stacked, never a rail — see the comment where this is built. Each card is
+   the full width of the column so two of them can be read against each other,
+   which is the whole job of this list. */
+.ev-places{display:flex;flex-direction:column;gap:10px}
+.ev-places .pcard{background:var(--surface)}
+
+/* The actions. Full width and stacked, because on a phone a row of two puts
+   the primary one under a thumb that is reaching for the other. */
+.ev-acts{display:flex;flex-direction:column;gap:10px;margin:22px 0 8px}
+.ev-acts .btn{width:100%;justify-content:center}
+
+/* ---- the photographs of a place --------------------------------------------
+   Half the catalogue has more than one, and the page used to show the first
+   and drop the rest. See features/place/HeroGallery.tsx for why they live in
+   the hero rather than in a strip further down. */
+.hg-track{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+  scrollbar-width:none;-ms-overflow-style:none}
+.hg-track::-webkit-scrollbar{display:none}
+.hg-shot{flex:0 0 100%;scroll-snap-align:center;position:relative;background:var(--stone)}
+.hg-shot img{width:100%;height:100%;object-fit:cover;opacity:0;
+  transition:opacity var(--t-slow) var(--ease)}
+.hg-shot img.in{opacity:1}
+
+/* Above the caption gradient, clear of the name. Light on dark because they
+   sit on a photograph, which is the one place in this app where that is true. */
+.hg-dots{position:absolute;left:0;right:0;bottom:8px;z-index:4;display:flex;gap:6px;
+  justify-content:center;pointer-events:none}
+.hg-dots i{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.5);
+  box-shadow:0 1px 2px rgba(0,0,0,.35);transition:width var(--t-fast) var(--ease),
+  background var(--t-fast) var(--ease)}
+.hg-dots i.on{width:18px;background:#fff}
+
+/* The count, so "there are more" is legible without counting dots. */
+.hg-n{position:absolute;top:14px;right:62px;z-index:4;display:inline-flex;align-items:center;
+  gap:4px;padding:4px 9px;border-radius:99px;background:rgba(28,24,21,.5);color:#fff;
+  font-size:calc(11.5px*var(--ts));font-weight:700;letter-spacing:.03em;
+  backdrop-filter:blur(4px)}
+.hg-n:before{content:"";width:11px;height:9px;border-radius:2px;border:1.5px solid currentColor;
+  display:inline-block}

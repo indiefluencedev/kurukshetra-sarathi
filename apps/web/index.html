@@ -15,6 +15,17 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="Kurukshetra" />
 <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+<!-- Every photograph in the app comes from the Worker, which is a different
+     origin from the app itself (Pages here, workers.dev there) — so the first
+     picture pays a DNS lookup, a TCP handshake and a TLS negotiation before a
+     single byte of it moves. On the rural mobile connection this app is built
+     for that is most of a second, spent before the browser has even been told
+     what to fetch. Opening the connection while the bundle is still parsing
+     costs nothing and buys all of it back.
+     No `crossorigin`: these are plain <img> loads, and an anonymous
+     preconnect would open a connection they cannot use. -->
+<link rel="preconnect" href="%VITE_MEDIA_URL%" />
+<link rel="dns-prefetch" href="%VITE_MEDIA_URL%" />
 <title>Kurukshetra Saarthi · कुरुक्षेत्र सारथी</title>
 </head>
 <body>

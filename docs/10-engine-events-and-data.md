@@ -645,7 +645,7 @@ on first touch, and the whole rail is reachable by swipe or by tapping the dots.
 | No-fit fallback | See §4.9 |
 
 **The badge and the notice are brass, not saffron.** Saffron is this app's
-action colour and nothing else ([06](06-design-system.md)); a badge explaining
+action colour and nothing else (`--accent` in `global.css`); a badge explaining
 why a visit takes longer is not something you tap. The place-page card *is*
 tappable and earns an indigo arrow for it, not a louder background.
 

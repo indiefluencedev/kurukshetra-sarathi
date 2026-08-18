@@ -8,8 +8,9 @@ import { distTo, byId, navTo } from "@/shared/lib/geo";
 import { theme, shownThemes, PHOTO_CREDIT } from "@/data/config";
 import { cityOf } from "@/data/cities";
 import { Icon } from "@/shared/icons/Icon";
+import { HeroGallery } from "./HeroGallery";
 import { Photo } from "@/shared/ui/Photo";
-import { StatusPill, Fcard } from "@/shared/ui/PlaceCard";
+import { StatusPill, Pcard } from "@/shared/ui/PlaceCard";
 import { ReelsRail } from "@/features/home/ReelsRail";
 import { eventsAt } from "@/data/events";
 import { isoToday } from "@/shared/lib/datetime";
@@ -78,7 +79,7 @@ export function Place() {
   return (
     <>
       <div className="hero">
-        <Photo d={d} />
+        <HeroGallery d={d} />
         <div className="grad" />
         <button className="fbtn b-back" onClick={() => history.back()} aria-label={t("back")}>
           <Icon name="back" />
@@ -92,8 +93,8 @@ export function Place() {
           </span>
         )}
 
-        {/* The name belongs ON the photograph. 06-design-system.md asks for
-            "title inside image" over a bottom gradient and `.hero .grad` was
+        {/* The name belongs ON the photograph — title inside the image over a
+            bottom gradient, and `.hero .grad` was
             already drawing that gradient — the title just wasn't using it, so
             the most photographic screen in the app opened on a cropped picture
             followed by a heading floating on cream. */}
@@ -289,9 +290,12 @@ export function Place() {
           <Icon name="pin" />
           {t("nearby")}
         </h2>
-        <div className="rail">
+        {/* Stacked, like the event page's places: "close by" is a list you
+            compare — how far, and is it open — not a shelf you browse. Pcard
+            carries both facts; the rail card carried neither. */}
+        <div className="ev-places">
           {near(d).map((x) => (
-            <Fcard key={x.id} d={x} />
+            <Pcard key={x.id} d={x} />
           ))}
         </div>
       </div>

@@ -120,7 +120,11 @@ async function submit(path: string, body: unknown): Promise<string | null> {
     // to know that waiting helps and trying harder does not.
     if (res.status === 429) return "rate";
     if (!res.ok) {
-      const e = (await res.json().catch(() => null)) as { message?: string } | null;
+      const e = (await res.json().catch(() => null)) as { message?: string; code?: string } | null;
+      // Signalled rather than shown. "Email not verified" is a true sentence
+      // and a useless one — what the reader needs is the box the code goes in,
+      // so the caller routes them there instead of printing this.
+      if (e?.code === "EMAIL_NOT_VERIFIED") return "unverified";
       return e?.message || "That did not work. Please check and try again.";
     }
     keepToken(res);
@@ -206,6 +210,119 @@ export async function loadConfig(): Promise<void> {
  */
 export const googleUrl = (): string =>
   BASE ? `${BASE}/api/auth/sign-in/social?provider=google&callbackURL=${encodeURIComponent(location.origin + location.pathname + "#/account")}` : "";
+
+/* ---- confirming an address ----------------------------------------------- */
+
+/**
+ * Ask for a fresh six-digit code.
+ *
+ * Sign-up sends one on its own; this is the "I never got it" button, which is
+ * the single most-needed control in any flow that depends on someone else's
+ * mail server.
+ */
+export async function sendVerificationOtp(email: string): Promise<string | null> {
+  if (!BASE) return "This build has no server configured.";
+  try {
+    const res = await fetch(`${BASE}/api/auth/email-otp/send-verification-otp`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, type: "email-verification" }),
+    });
+    if (res.status === 429) return "rate";
+    if (!res.ok) return "That did not work. Please check and try again.";
+    return null;
+  } catch {
+    return "No connection. Try again when you are back online.";
+  }
+}
+
+/**
+ * Hand the code back. Three wrong guesses and the code is dead, not the
+ * account — the person asks for another one.
+ *
+ * Better Auth signs the session in on success, so a token may come back; if it
+ * does it is kept and the caller can go straight to the app.
+ */
+export async function verifyEmailOtp(email: string, otp: string): Promise<string | null> {
+  if (!BASE) return "This build has no server configured.";
+  try {
+    const res = await fetch(`${BASE}/api/auth/email-otp/verify-email`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, otp }),
+    });
+    if (res.status === 429) return "rate";
+    if (!res.ok) {
+      const e = (await res.json().catch(() => null)) as { message?: string } | null;
+      return e?.message || "That code is wrong or has expired. Ask for a new one.";
+    }
+    keepToken(res);
+    const data = (await res.json().catch(() => ({}))) as { user?: User };
+    if (data.user) {
+      user = data.user;
+      bump();
+    }
+    return null;
+  } catch {
+    return "No connection. Try again when you are back online.";
+  }
+}
+
+/* ---- forgetting a password ---------------------------------------------- */
+
+/**
+ * Ask for a reset link. Answers the same way whether or not the address exists.
+ *
+ * That sameness is the security property, and it is worth stating because it
+ * reads like sloppiness: replying "no such account" to an unknown address
+ * turns this form into a way of asking whether someone has an account here.
+ * The server behaves the same way; this only has to avoid undoing it by
+ * reporting a difference the server took care not to reveal.
+ */
+export async function requestPasswordReset(email: string): Promise<string | null> {
+  if (!BASE) return "This build has no server configured.";
+  try {
+    const res = await fetch(`${BASE}/api/auth/request-password-reset`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (res.status === 429) return "rate";
+    // Anything else — including "unknown address" — is reported as sent.
+    return null;
+  } catch {
+    return "No connection. Try again when you are back online.";
+  }
+}
+
+/**
+ * Finish the reset, with the token out of the emailed link.
+ *
+ * Deliberately does NOT sign the person in afterwards. They have just proved
+ * they can read the mailbox, not that they are at their own phone — the link
+ * may have been opened on a borrowed laptop. They type the new password once
+ * more on the sign-in screen, which is one step and closes that gap.
+ */
+export async function resetPassword(token: string, newPassword: string): Promise<string | null> {
+  if (!BASE) return "This build has no server configured.";
+  try {
+    const res = await fetch(`${BASE}/api/auth/reset-password`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    if (res.status === 429) return "rate";
+    if (!res.ok) {
+      const e = (await res.json().catch(() => null)) as { message?: string } | null;
+      // The common failure is a link that was used already or has expired, and
+      // "invalid token" tells a reader nothing about what to do next.
+      return e?.message || "That link has expired or has already been used. Ask for a new one.";
+    }
+    return null;
+  } catch {
+    return "No connection. Try again when you are back online.";
+  }
+}
 
 /* ---- changing a password ------------------------------------------------ */
 

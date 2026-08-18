@@ -61,7 +61,7 @@ export function Home() {
           it has been answered once. */}
       <NotifyCard />
 
-      <EventRail withinDays={90} />
+      <EventRail />
 
       <StartHere />
 
@@ -78,7 +78,7 @@ export function Home() {
             return (
               <button key={th.id} className="tile" onClick={() => go("/theme/" + th.id)}>
                 <span className="tbg">
-                  <img src={imgUrl(th.img)} alt="" loading="lazy" />
+                  <img src={imgUrl(th.img)} alt="" loading="lazy" decoding="async" />
                 </span>
                 <span className="tveil" />
                 <span className="ti">

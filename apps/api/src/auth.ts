@@ -1,6 +1,8 @@
 import { betterAuth } from "better-auth";
-import { bearer } from "better-auth/plugins";
-import { D1Dialect } from "kysely-d1";
+import { bearer, emailOTP } from "better-auth/plugins";
+import { PostgresDialect, type PostgresPool } from "kysely";
+import { Pool } from "@neondatabase/serverless";
+import { appUrl, sendOtpEmail, sendResetEmail, sendVerificationEmail } from "./email";
 import type { Env } from "./index";
 
 /**
@@ -8,8 +10,8 @@ import type { Env } from "./index";
  *
  * Better Auth rather than a hosted identity service, so the client owns this
  * the way they own everything else here — the user table is a table in their
- * own D1, exportable with the rest of it, with no per-user bill and nobody to
- * ask for the data back. See docs/14.
+ * own database, exportable with the rest of it, with no per-user bill and
+ * nobody to ask for the data back. See docs/14.
  *
  * ── Why bearer tokens and not cookies ──────────────────────────────────────
  *
@@ -30,13 +32,35 @@ import type { Env } from "./index";
  *
  * ── Why this is a factory ──────────────────────────────────────────────────
  *
- * A D1 binding only exists inside a request. There is no module-level `auth`
- * to construct at import time; `env` arrives with the fetch event, so the
+ * Secrets only exist inside a request. There is no module-level `auth` to
+ * construct at import time; `env` arrives with the fetch event, so the
  * instance is built per request like the store already is.
+ *
+ * ── Why a Pool here and the HTTP driver in the store ───────────────────────
+ *
+ * `@neondatabase/serverless` offers two ways in. The store uses `neon()`, the
+ * HTTP one: one round trip per query, no socket, ideal for a Worker. Better
+ * Auth cannot use it, because it runs sign-up and sign-in inside interactive
+ * transactions — BEGIN, then decide what to write, then COMMIT — and the HTTP
+ * endpoint only accepts a transaction whose statements are all known upfront.
+ * `Pool` speaks the real Postgres protocol over a WebSocket and can hold one
+ * open, so that is what auth gets. Two drivers, one dependency, each on the
+ * side of the line where it is correct.
  */
 export function makeAuth(env: Env) {
   return betterAuth({
-    database: { dialect: new D1Dialect({ database: env.DB }), type: "sqlite" },
+    database: {
+      // The cast is structural, not a papering-over. Kysely's `PostgresPool`
+      // is written against node-postgres, whose `client.connect()` resolves to
+      // the client; Neon's resolves to void. Kysely never uses that return
+      // value — it awaits connect() and then uses the client it already holds
+      // — so the two agree on everything Kysely actually calls. Verified by
+      // signing up, signing in and reading a session against Neon.
+      dialect: new PostgresDialect({
+        pool: new Pool({ connectionString: env.NEON_DB_URL }) as unknown as PostgresPool,
+      }),
+      type: "postgres",
+    },
 
     // A real secret is required — Better Auth signs tokens with it. There is
     // no safe default, so a missing one must be loud rather than silently
@@ -46,16 +70,70 @@ export function makeAuth(env: Env) {
     basePath: "/api/auth",
 
     // The app's origin must be listed or Better Auth rejects its requests.
-    trustedOrigins: [env.APP_URL.replace(/\/$/, "")],
+    //
+    // Comma-separated, because development serves the app from two addresses
+    // that are both legitimate — localhost, which is what you type, and the
+    // laptop's LAN address, which is what a phone has to use (see dev.mjs).
+    // Listing one of them means sign-in works on the desktop and fails on the
+    // phone with a CORS error that says nothing about origins.
+    // Production sets a single value and splits to a list of one.
+    trustedOrigins: env.APP_URL.split(",")
+      .map((o) => o.trim().replace(/\/$/, ""))
+      .filter(Boolean),
 
     emailAndPassword: {
       enabled: true,
-      // Nothing is emailed yet — there is no sender configured (docs/14), and
-      // an unverified email costs nothing here: an account holds saved
-      // itineraries, not money or personal records. Turn this on together
-      // with a sender, not before.
-      requireEmailVerification: false,
+      /**
+       * An address has to be proved before it can be signed in with.
+       *
+       * This was `false` for as long as there was no sender: turning it on
+       * without one is not "more secure", it is an app nobody can log into.
+       * With Cloudflare Email Sending configured (src/email.ts) the trade is
+       * the right way round — an unverified address means anyone can register
+       * as anyone, and the account is about to be worth something (saved
+       * plans, and the Board's dashboard behind the same login).
+       *
+       * The two accounts that predate this were marked verified by migration
+       * 0005 rather than being locked out of their own dashboard. See the
+       * header of that file for why that is not a shortcut.
+       */
+      requireEmailVerification: true,
       minPasswordLength: 8,
+
+      /**
+       * The reset link points at the APP, not at this Worker.
+       *
+       * Better Auth would happily hand out a link to its own endpoint, but the
+       * person clicking it needs a form to type a new password into, and that
+       * form is a screen in the app. The token rides in the query string and
+       * `Account.tsx` posts it back to /reset-password.
+       */
+      sendResetPassword: async ({ user, token }) => {
+        await sendResetEmail(env, user.email, user.name, `${appUrl(env)}/account?reset=${token}`);
+      },
+      // One hour. Long enough to find the email on a slow phone, short enough
+      // that a forwarded or screenshotted link is not a standing key.
+      resetPasswordTokenExpiresIn: 60 * 60,
+    },
+
+    /**
+     * The link flow is still here, and is still what a "resend the link"
+     * button would use. It is no longer what sign-up sends — see the emailOTP
+     * plugin below, which overrides it with a six-digit code.
+     */
+    emailVerification: {
+      sendOnSignUp: false,
+      autoSignInAfterVerification: true,
+      expiresIn: 60 * 60,
+      sendVerificationEmail: async ({ user, token }) => {
+        const back = encodeURIComponent(`${appUrl(env)}/account?verified=1`);
+        await sendVerificationEmail(
+          env,
+          user.email,
+          user.name,
+          `${env.API_URL.replace(/\/$/, "")}/api/auth/verify-email?token=${token}&callbackURL=${back}`,
+        );
+      },
     },
 
     // Only registered when the client has actually created OAuth credentials.
@@ -80,15 +158,15 @@ export function makeAuth(env: Env) {
          * `input: false` is the important half: without it the role is an
          * ordinary profile field and anyone could sign up posting
          * {"role":"admin"} in the body. It is settable only from the server —
-         * in practice one UPDATE against D1, which is the right amount of
-         * friction for a handful of Board members.
+         * in practice one UPDATE, which is the right amount of friction for a
+         * handful of Board members.
          */
         role: { type: "string", required: false, defaultValue: "visitor", input: false },
       },
     },
 
     /**
-     * Throttling, stored in D1 rather than memory.
+     * Throttling, stored in the database rather than memory.
      *
      * Better Auth's default rate limiter keeps counters in the instance's
      * memory. On Workers that is worthless: every request may land on a fresh
@@ -137,7 +215,60 @@ export function makeAuth(env: Env) {
       updateAge: 60 * 60 * 24,
     },
 
-    plugins: [bearer()],
+    plugins: [
+      bearer(),
+
+      /**
+       * Six digits instead of a link, for confirming an address.
+       *
+       * Two reasons, and the second is the one that decided it.
+       *
+       * A code suits the readers: it can be read out over a phone call to
+       * someone who cannot find the email app, and it is typed on the screen
+       * they are already looking at rather than bouncing them through a
+       * browser that may open the wrong app.
+       *
+       * And it can be tested without a working mailbox. The OTP is a row in
+       * `verification` — identifier `email-verification-otp-<address>` — so
+       * while the sending domain is still not onboarded, the code can be read
+       * straight out of Neon and typed in. A link cannot be tested that way
+       * without reading the Worker's log. `npm run otp <email>` prints it.
+       *
+       * `sendVerificationOnSignUp` is the plugin's own hook, and it is what
+       * sends the code. It is deliberately NOT paired with
+       * `overrideDefaultEmailVerification` — the two are mutually exclusive,
+       * and setting both is how this shipped broken for twenty minutes: the
+       * plugin's hook reads
+       *
+       *     sendVerificationOnSignUp && !opts.overrideDefaultEmailVerification
+       *
+       * so with both true nothing fires at all. Sign-up returned 200, no
+       * email was attempted, and `verification` stayed empty. Nothing warns.
+       *
+       * With the override off, the core link flow above stays a separate,
+       * working path — `sendOnSignUp: false` keeps it quiet, and it is there
+       * for an "email me a link instead" the day anyone wants one.
+       */
+      emailOTP({
+        otpLength: 6,
+        expiresIn: 60 * 10,
+        // Three wrong guesses and the code is dead. Six digits is a million
+        // combinations, but a code that never gives up is a code an attacker
+        // can grind at leisure while the person who asked for it is asleep.
+        allowedAttempts: 3,
+        sendVerificationOnSignUp: true,
+        // Stored as written, not hashed, so it can be read out of the
+        // `verification` table while there is no working mailbox — which is
+        // the reason a code exists here at all today. `npm run otp` prints it.
+        // Turn this to "hashed" once mail is actually being delivered: a plain
+        // OTP is a live credential sitting in a row anyone with database
+        // access can read.
+        storeOTP: "plain",
+        sendVerificationOTP: async ({ email, otp }) => {
+          await sendOtpEmail(env, email, otp);
+        },
+      }),
+    ],
   });
 }
 
@@ -146,30 +277,28 @@ export type Auth = ReturnType<typeof makeAuth>;
 /**
  * A module-level instance for the Better Auth CLI only.
  *
- * `npx @better-auth/cli generate` imports this file to learn the schema. It
- * introspects the database first — to emit only the missing tables — so an
- * empty object is not enough: it calls `.prepare()` and crashes.
+ * `npx @better-auth/cli generate --config src/auth.ts` imports this file to
+ * learn the schema, introspecting the database first so it emits only the
+ * tables that are missing.
  *
- * This stub answers introspection with "no tables", which is what we want the
- * generator to assume. The alternative is pointing the CLI at a live D1, which
- * would mean the schema we generate depends on which database happened to be
- * connected. Never used to serve a request.
+ * Under D1 this was pointed at a hand-written stub that answered "no tables",
+ * because there was no way to reach a database from a Node CLI without a
+ * binding. Postgres has a URL, so it is pointed at the real one: the schema
+ * the CLI generates is then the schema this database actually needs, which is
+ * the whole point of introspecting. `Pool` does not connect until something
+ * queries it, so importing this file in the Worker — where NEON_DB_URL is not
+ * in `process.env` — costs nothing and connects to nothing.
+ *
+ * Never used to serve a request.
  */
-const introspectionStub = {
-  prepare: () => ({
-    bind() {
-      return this;
-    },
-    // kysely-d1 reads meta.changes and meta.last_row_id off every result, so
-    // the stub has to be a whole D1 result, not just an empty row set.
-    all: async () => ({ results: [], success: true, meta: { changes: 0, last_row_id: 0 } }),
-    first: async () => null,
-    run: async () => ({ success: true, meta: { changes: 0, last_row_id: 0 } }),
-  }),
-} as unknown as D1Database;
+// This file's tsconfig types the Worker runtime, which has no `process` — and
+// deliberately so, to stop Worker code reaching for environment variables that
+// will not exist at runtime. The line below is the one place in this file that
+// runs under Node instead.
+declare const process: { env: Record<string, string | undefined> };
 
 export const auth = makeAuth({
-  DB: introspectionStub,
+  NEON_DB_URL: process.env.NEON_DB_URL ?? "",
   AUTH_SECRET: "cli-only-not-a-real-secret",
   API_URL: "http://localhost:8787",
   APP_URL: "http://localhost:5173",

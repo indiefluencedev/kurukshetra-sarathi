@@ -2,12 +2,20 @@ import data from "@/content/data/places-index.json";
 import { register } from "@/content/live";
 import type { Loc } from "@/shared/types";
 
-// Curated start/end points for the planner (stations, bus stands, stays).
+// Curated arrival points for the planner — stations and bus stands.
 // Source of truth: src/content/data/places-index.json. See docs/04.
-export type PlaceKind = "station" | "busstand" | "hotel" | "dharamshala";
+//
+// Terminals only. A hotel or a dharamshala is a STAY (data/stays.ts): it has a
+// tariff, a phone number and a kind that matters to a pilgrim, and keeping a
+// second stripped-down copy of it here meant the planner offered the copy
+// without the phone number on it. The planner still lets someone start from
+// their hotel — it asks the stays catalogue.
+export type IndexKind = "station" | "busstand";
+/** What the planner's pickers can search: terminals here, stays in stays.ts. */
+export type PlaceKind = IndexKind | "hotel" | "dharamshala";
 export interface IndexPlace {
   id: string;
-  kind: PlaceKind;
+  kind: IndexKind;
   /** which town it serves — see data/cities.ts. Absent means Kurukshetra. */
   city?: string;
   name: Loc;
@@ -41,11 +49,3 @@ register<IndexPlace>("startpoints", (items) => {
 
 export const byIndexId = (id?: string): IndexPlace | undefined =>
   id ? PLACES_INDEX.find((p) => p.id === id) : undefined;
-
-/** Places of a given kind, filtered by a free-text query over either language. */
-export function searchIndex(kind: PlaceKind, q: string): IndexPlace[] {
-  const needle = q.trim().toLowerCase();
-  return PLACES_INDEX.filter((p) => p.kind === kind).filter(
-    (p) => !needle || (p.name.en + " " + p.name.hi).toLowerCase().includes(needle),
-  );
-}

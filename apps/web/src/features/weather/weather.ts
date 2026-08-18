@@ -35,24 +35,37 @@ export const WMO: Record<number, [string, Loc]> = {
 };
 export const wcode = (c: number): [string, Loc] => WMO[c] || WMO[0];
 
-// Animated glyph bodies (the wxchip / wxsheet icon), same 24-grid as the icons.
+/* Animated glyph bodies (the weather strip and the weather sheet), on the same
+   24-grid as the icons.
+
+   The class names are prefixed, and that is not decoration. They used to be
+   `spin`, `drift` and `fall` — and `.spin` is ALSO the route-builder's
+   spinner, a global class three hundred lines further down the stylesheet that
+   turns a bordered box 360° every 0.7 seconds. In the weather sheet, where no
+   `.wx-ic .spin` rule applied to outrank it, the sun's rays inherited it: eight
+   strokes whipping around the wrong centre once a second. On Home it happened
+   to look right, which is why it survived. Two unrelated things must not answer
+   to one name. */
 const GLYPH: Record<string, (day: number) => string> = {
   sun: (day) =>
     day
-      ? '<g class="spin"><path d="M12 2.7v2.3M12 19v2.3M2.7 12H5M19 12h2.3M5.5 5.5l1.6 1.6M16.9 16.9l1.6 1.6M18.5 5.5l-1.6 1.6M7.1 16.9l-1.6 1.6"/></g><circle cx="12" cy="12" r="4.3"/>'
+      ? '<g class="wray"><path d="M12 2.7v2.3M12 19v2.3M2.7 12H5M19 12h2.3M5.5 5.5l1.6 1.6M16.9 16.9l1.6 1.6M18.5 5.5l-1.6 1.6M7.1 16.9l-1.6 1.6"/></g><circle cx="12" cy="12" r="4.3"/>'
       : '<path d="M20.3 14.2A8.6 8.6 0 0 1 9.8 3.7a8.6 8.6 0 1 0 10.5 10.5Z"/>',
+  // `sm`: this sun sits at 8.6,8.2, not in the middle, so it needs its own
+  // centre to turn about — one origin for every glyph had the little rays
+  // orbiting a point off in the cloud.
   partly: () =>
-    '<g class="spin"><path d="M8.6 2.4v1.6M2.8 8.2h1.6M4.5 4.1l1.1 1.1M12.7 4.1l-1.1 1.1"/></g><circle cx="8.6" cy="8.2" r="3.1"/><g class="drift"><path d="M9 19.4h8.4a3.5 3.5 0 0 0 .4-6.98 5 5 0 0 0-9.6-1.05A3.5 3.5 0 0 0 9 19.4Z"/></g>',
+    '<g class="wray sm"><path d="M8.6 2.4v1.6M2.8 8.2h1.6M4.5 4.1l1.1 1.1M12.7 4.1l-1.1 1.1"/></g><circle cx="8.6" cy="8.2" r="3.1"/><g class="wdrift"><path d="M9 19.4h8.4a3.5 3.5 0 0 0 .4-6.98 5 5 0 0 0-9.6-1.05A3.5 3.5 0 0 0 9 19.4Z"/></g>',
   cloud: () =>
-    '<g class="drift"><path d="M7.2 18.6h9.9a3.9 3.9 0 0 0 .5-7.77 5.6 5.6 0 0 0-10.8-1.2A3.9 3.9 0 0 0 7.2 18.6Z"/></g>',
+    '<g class="wdrift"><path d="M7.2 18.6h9.9a3.9 3.9 0 0 0 .5-7.77 5.6 5.6 0 0 0-10.8-1.2A3.9 3.9 0 0 0 7.2 18.6Z"/></g>',
   rain: () =>
-    '<path d="M7.4 15.4h9.4a3.6 3.6 0 0 0 .4-7.18 5.2 5.2 0 0 0-10-1.1A3.6 3.6 0 0 0 7.4 15.4Z"/><g class="fall"><path d="M8.4 18.1l-.9 2.3M12 18.1l-.9 2.3M15.6 18.1l-.9 2.3"/></g>',
+    '<path d="M7.4 15.4h9.4a3.6 3.6 0 0 0 .4-7.18 5.2 5.2 0 0 0-10-1.1A3.6 3.6 0 0 0 7.4 15.4Z"/><g class="wfall"><path d="M8.4 18.1l-.9 2.3M12 18.1l-.9 2.3M15.6 18.1l-.9 2.3"/></g>',
   storm: () =>
-    '<path d="M7.4 14.6h9.4a3.6 3.6 0 0 0 .4-7.18 5.2 5.2 0 0 0-10-1.1A3.6 3.6 0 0 0 7.4 14.6Z"/><g class="fall"><path d="M13 16.2l-2.6 3.4h3l-2 3"/></g>',
+    '<path d="M7.4 14.6h9.4a3.6 3.6 0 0 0 .4-7.18 5.2 5.2 0 0 0-10-1.1A3.6 3.6 0 0 0 7.4 14.6Z"/><g class="wfall"><path d="M13 16.2l-2.6 3.4h3l-2 3"/></g>',
   fog: () =>
-    '<g class="drift"><path d="M6.6 12.6h10.8a3.5 3.5 0 0 0 .4-6.98 5.1 5.1 0 0 0-9.8-1.1A3.5 3.5 0 0 0 6.6 12.6Z"/><path d="M4.4 16.2h15.2M6.6 19.4h11"/></g>',
+    '<g class="wdrift"><path d="M6.6 12.6h10.8a3.5 3.5 0 0 0 .4-6.98 5.1 5.1 0 0 0-9.8-1.1A3.5 3.5 0 0 0 6.6 12.6Z"/><path d="M4.4 16.2h15.2M6.6 19.4h11"/></g>',
   snow: () =>
-    '<path d="M7.4 14.6h9.4a3.6 3.6 0 0 0 .4-7.18 5.2 5.2 0 0 0-10-1.1A3.6 3.6 0 0 0 7.4 14.6Z"/><g class="fall"><path d="M9 18.3h.01M12 20h.01M15 18.3h.01"/></g>',
+    '<path d="M7.4 14.6h9.4a3.6 3.6 0 0 0 .4-7.18 5.2 5.2 0 0 0-10-1.1A3.6 3.6 0 0 0 7.4 14.6Z"/><g class="wfall"><path d="M9 18.3h.01M12 20h.01M15 18.3h.01"/></g>',
 };
 /** Inner SVG markup for an animated weather glyph. */
 export const glyphBody = (kind: string, day: number): string =>

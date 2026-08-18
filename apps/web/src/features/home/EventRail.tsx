@@ -5,7 +5,8 @@ import { ongoing, upcoming, type EventDef } from "@/data/events";
 import { imgUrl } from "@/data/images";
 import { byId } from "@/shared/lib/geo";
 import { isoToday, daysBetween } from "@/shared/lib/datetime";
-import { shortDate, planForEvent } from "@/features/planner/plan";
+import { shortDate } from "@/features/planner/plan";
+import { go } from "@/app/nav";
 import { Icon } from "@/shared/icons/Icon";
 import { useRail } from "./useRail";
 
@@ -43,13 +44,13 @@ function kicker(e: EventDef, today: string): string {
  * outranks the evergreen list, and it renders nothing at all when the calendar
  * is empty: an empty rail with a heading is worse than no rail.
  */
-export function EventRail({ withinDays = 120 }: { withinDays?: number } = {}) {
+export function EventRail() {
   const trackRef = useRef<HTMLDivElement>(null);
   const dotsRef = useRef<HTMLDivElement>(null);
   useRail(trackRef, dotsRef, 6500);
 
   const today = isoToday();
-  const list = [...ongoing(today), ...upcoming(today, withinDays)];
+  const list = [...ongoing(today), ...upcoming(today)];
   if (!list.length) return null;
 
   return (
@@ -69,12 +70,17 @@ export function EventRail({ withinDays = 120 }: { withinDays?: number } = {}) {
               <button
                 key={e.id}
                 className={"ev-slide" + (live ? " live" : "")}
-                onClick={() => planForEvent(e)}
+                /* The card opens the EVENT, not the planner.
+                   It used to go straight into "how long do you have?", which
+                   answers a question the reader has not asked yet: somebody
+                   who has just seen "in 24 days" is deciding whether to come
+                   at all. Planning is still one tap, one screen later. */
+                onClick={() => go("/event/" + e.id)}
                 aria-label={
-                  nm(e.name) + " — " + kicker(e, today) + ". " + nm({ en: "Plan a visit", hi: "यात्रा की योजना बनाएँ" })
+                  nm(e.name) + " — " + kicker(e, today) + ". " + nm({ en: "See the details", hi: "विवरण देखें" })
                 }
               >
-                <span className="ev-img">{img && <img src={img} alt="" loading="lazy" />}</span>
+                <span className="ev-img">{img && <img src={img} alt="" loading="lazy" decoding="async" />}</span>
                 <span className="ev-scrim" />
                 <span className="ev-body">
                   <span className="ev-kick">
@@ -89,7 +95,7 @@ export function EventRail({ withinDays = 120 }: { withinDays?: number } = {}) {
                     {nm(e.blurb)}
                   </span>
                   <span className="ev-cta">
-                    {nm({ en: "Plan around it", hi: "इसके अनुसार योजना बनाएँ" })}
+                    {nm({ en: "See what is on", hi: "क्या है, देखें" })}
                     <Icon name="fwd" />
                   </span>
                 </span>

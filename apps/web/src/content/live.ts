@@ -80,7 +80,22 @@ async function fromCache<T>(f: Feed<T>): Promise<string | null> {
 async function fromNetwork<T>(f: Feed<T>, have: string | null) {
   if (!BASE) return false;
   try {
-    const r = await fetch(`${BASE}/content/${f.name}.json`, { cache: "no-cache" });
+    /*
+     * The browser's own cache is allowed to answer this, and that is a change.
+     *
+     * It used to be `cache: "no-cache"`, which forces a revalidation on every
+     * launch: six feeds, six requests, six revision reads against the database,
+     * every time anyone opened the app — to be told six times that nothing had
+     * changed. The freshness that bought is not freshness anybody can perceive.
+     * Nothing here is on screen because of this call: the bundled copy renders
+     * first, the IndexedDB copy has already been applied above it, and this is
+     * only ever the third opinion.
+     *
+     * The Worker now answers with `max-age=60, stale-while-revalidate=600`, so
+     * the honest reading is: at most a minute stale, refreshed behind the
+     * visitor rather than in front of them, and free for the next ten minutes.
+     */
+    const r = await fetch(`${BASE}/content/${f.name}.json`);
     if (!r.ok) return false;
     const p = (await r.json()) as Payload<T>;
     // An endpoint that answers with nothing must never blank the calendar —

@@ -33,7 +33,7 @@ export function Start() {
       <div className="crest">
         <div className="halo" aria-hidden="true" />
         <div className="seal">
-          <img src={LOGO} alt="Kurukshetra Development Board" />
+          <img src={LOGO} alt="Kurukshetra Development Board" decoding="async" />
         </div>
         <div className="board">Kurukshetra Development Board</div>
         <div className="boardhi" lang="hi">कुरुक्षेत्र विकास मंडल</div>

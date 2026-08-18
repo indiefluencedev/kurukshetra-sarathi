@@ -21,8 +21,10 @@ export const REELS = reels as unknown as ReelItem[];
 export let HERO = hero as unknown as HeroItem[];
 register<HeroItem>("hero", (items) => {
   // A hero with no picture is a blank screen where the app opens. Rather than
-  // trust the feed, keep only the entries that can actually draw.
-  const ok = items.filter((h) => h && h.img && h.fact);
+  // trust the feed, keep only the entries that can actually draw — which since
+  // the photograph became optional means: an entry with its own picture, or one
+  // whose place has one, because that is what HomeHero falls back to.
+  const ok = items.filter((h) => h && h.fact && (h.img || byId(h.id)?.img));
   if (ok.length) HERO = ok;
 });
 

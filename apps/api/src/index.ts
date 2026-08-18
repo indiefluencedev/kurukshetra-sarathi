@@ -1,4 +1,4 @@
-import { D1Store } from "./store.d1";
+import { NeonStore } from "./store.neon";
 import { isContentKind, type Store, type EventRow, type ContentKind } from "./store";
 import { makeAuth } from "./auth";
 import { validateEvent, validateEventSet } from "@kuk/shared/event-rules.mjs";
@@ -6,9 +6,29 @@ import { sendPush } from "./push";
 import { ADMIN_HTML } from "./admin";
 
 export interface Env {
-  DB: D1Database;
+  /**
+   * The Neon Postgres connection string. A secret, not a binding — which is
+   * the one real difference from D1: a binding could not leak because it was
+   * not a value, and this is. It is set with `wrangler secret put`, never in
+   * wrangler.toml. See docs/15.
+   */
+  NEON_DB_URL: string;
   /** every photograph the app shows — see the /img/ route */
   MEDIA: R2Bucket;
+  /**
+   * Outgoing mail. Only read when EMAIL_PROVIDER is "cloudflare" (the
+   * default) — under "resend" or "log" nothing touches this binding, so a
+   * deployment can drop it entirely. See email.ts.
+   */
+  EMAIL: SendEmail;
+  /** "cloudflare" (default) | "resend" | "log" — who carries the mail */
+  EMAIL_PROVIDER?: string;
+  /** the From address. Its domain must be verified with whichever provider */
+  EMAIL_FROM?: string;
+  /** the From display name */
+  EMAIL_NAME?: string;
+  /** secret; only read when EMAIL_PROVIDER is "resend" */
+  RESEND_API_KEY?: string;
   VAPID_PUBLIC: string;
   VAPID_PRIVATE: string;
   /** mailto: address Web Push requires as the JWT subject */
@@ -29,11 +49,27 @@ export interface Env {
   GOOGLE_CLIENT_SECRET?: string;
 }
 
+/**
+ * A JSON response, and by default one that is never stored anywhere.
+ *
+ * `no-store` is the default because of what sits in front of this Worker now:
+ * Workers Cache treats a 200 with NO cache-control as cacheable for two hours
+ * (RFC 9111 heuristic freshness), so silence is not opting out — it is opting
+ * in, for longer than anything here would choose. Every response that may be
+ * cached says so, in one place, on purpose: `/content`, `/img`, `/config` and
+ * `/vapid`. Everything else — the dashboard's own reads, the audit log, an
+ * error — is a private answer to one person and stays that way.
+ *
+ * Requests carrying an Authorization header bypass the cache anyway, which
+ * covers every admin route twice over. Twice is the right number here: the
+ * first is a rule in someone else's product, and the second is in this file.
+ */
 const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
       // Same-origin is the intended deployment (app on Pages, this Worker on a
       // route of the same domain) and then this header is redundant. It is here
       // for the case it is not, because the failure without it is silent: the
@@ -42,6 +78,25 @@ const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =
       ...extra,
     },
   });
+
+/**
+ * Throw away what the edge is holding for these tags.
+ *
+ * Workers Cache answers a hit without running this Worker at all, which is the
+ * whole point of it and also the whole risk: an edit in the dashboard would
+ * otherwise be invisible for as long as the entry lives. Every write purges the
+ * tag it touched, so the Board sees its own edit immediately rather than at the
+ * end of a TTL.
+ *
+ * `ctx.cache` is newer than the types in this repo and newer than some
+ * runtimes, so it is reached for defensively: where it is absent, the TTLs on
+ * the responses themselves are still short, and nothing breaks.
+ */
+type PurgeCtx = ExecutionContext & { cache?: { purge(o: { tags: string[] }): Promise<void> } };
+const purge = (ctx: ExecutionContext, ...tags: string[]) => {
+  const c = (ctx as PurgeCtx).cache;
+  if (c) ctx.waitUntil(c.purge({ tags }));
+};
 
 /**
  * Who is making this request, and may they edit?
@@ -102,15 +157,22 @@ function istNow(now = Date.now()) {
 const hm = (s: string) => Number(s.slice(0, 2)) * 60 + Number(s.slice(3));
 
 /**
- * A day, and revalidate in the background after that.
+ * A day in the browser, an hour at the edge, revalidate in the background.
  *
  * Deliberately not `immutable`. The keys are stable ids rather than content
  * hashes — which is what let the whole catalogue move to R2 without rewriting a
  * single `img` value — so replacing a photograph reuses its key. Immutable
  * caching would mean the new picture never arriving on a device that had seen
  * the old one. A day, plus an ETag so the revalidation is free, is the trade.
+ *
+ * `s-maxage` is an hour rather than a day for one reason: a replaced
+ * photograph is purged by tag on upload, and the hour is what happens if that
+ * purge ever does not (an older runtime, another data centre than the one the
+ * upload landed in). A ceiling of an hour on a wrong picture is a bad hour; a
+ * ceiling of a day is a support call. The cost of it is one R2 read per
+ * photograph per data centre per hour.
  */
-const IMG_CACHE = "public, max-age=86400, stale-while-revalidate=604800";
+const IMG_CACHE = "public, max-age=86400, s-maxage=3600, stale-while-revalidate=604800";
 
 const TYPES: Record<string, string> = {
   webp: "image/webp", jpg: "image/jpeg", jpeg: "image/jpeg",
@@ -123,6 +185,12 @@ const guessType = (key: string) => TYPES[key.split(".").pop()?.toLowerCase() || 
 const UPLOAD_TYPES = new Set(["image/webp", "image/jpeg", "image/png", "image/avif"]);
 const MAX_UPLOAD = 6 * 1024 * 1024;
 const IMG_EXT = ["webp", "jpg", "jpeg", "png", "avif"];
+
+/* A key becomes a public URL and an R2 object name. Anything outside this
+   alphabet is refused rather than sanitised: silently renaming an editor's file
+   is how an `img` value and its object stop matching. Shared by upload and
+   rename, which must agree on what a legal name is. */
+const MEDIA_KEY = /^[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png|avif)$/;
 
 /**
  * The same photograph under a different extension.
@@ -152,9 +220,9 @@ async function sameStem(media: R2Bucket, key: string): Promise<R2ObjectBody | nu
 }
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
-    const store: Store = new D1Store(env.DB);
+    const store: Store = new NeonStore(env.NEON_DB_URL);
 
     if (req.method === "OPTIONS")
       return new Response(null, {
@@ -177,6 +245,10 @@ export default {
       // Better Auth builds its own responses, so the CORS headers the `json`
       // helper adds never touch them.
       const h = new Headers(res.headers);
+      // A session, a sign-in, a verification redirect: none of it may be held
+      // by anything in front of this Worker, and Better Auth does not say so
+      // itself. See the note on `json`.
+      h.set("cache-control", "no-store");
       h.set("access-control-allow-origin", "*");
       h.set("access-control-expose-headers", "set-auth-token");
       return new Response(res.body, { status: res.status, headers: h });
@@ -241,6 +313,10 @@ export default {
       const headers = {
         "content-type": obj.httpMetadata?.contentType || guessType(key),
         "cache-control": IMG_CACHE,
+        // What a replacement of this photograph has to throw away. Per key, not
+        // per bucket: swapping the picture of Jyotisar must not evict the other
+        // ninety-eight and make the next visitor fetch the lot again.
+        "cache-tag": "img,img:" + key,
         etag: obj.httpEtag,
         "access-control-allow-origin": "*",
       };
@@ -283,7 +359,25 @@ export default {
 
       const rev = await revP;
       const etag = `"${kind}-${rev}"`;
-      const headers = { "cache-control": "public, max-age=300", etag };
+      /*
+       * A minute at the edge, ten more while it refreshes behind the visitor.
+       *
+       * Was `max-age=300` and nothing else, which asked the browser to hold it
+       * for five minutes and told the edge nothing. Now the edge holds it too —
+       * and an edge hit does not run this Worker at all, so it costs no CPU and,
+       * far more to the point, no Neon query. Every launch of the app used to be
+       * five revision reads against the database however little had changed.
+       *
+       * A minute rather than five because a purge only reaches the data centre
+       * that served the write: `s-maxage` is the ceiling on how stale another
+       * one can be, and a minute is short enough that nobody in the office
+       * doubts whether their edit saved.
+       */
+      const headers = {
+        "cache-control": "public, max-age=60, s-maxage=60, stale-while-revalidate=600",
+        "cache-tag": "content," + kind,
+        etag,
+      };
       if (cond === etag)
         return new Response(null, { status: 304, headers: { ...headers, "access-control-allow-origin": "*" } });
 
@@ -350,6 +444,7 @@ export default {
         problems.push(...validateEventSet([...others, e]).filter((p) => p.startsWith(e.id + ":")));
         if (problems.length) return json({ error: "invalid", problems }, 422);
         await store.upsertEvent(e, email);
+        purge(ctx, "events");
         return json({ ok: true });
       }
 
@@ -357,6 +452,7 @@ export default {
         const b = (await req.json().catch(() => null)) as { id?: string } | null;
         if (!b?.id) return json({ error: "no id" }, 400);
         await store.deleteEvent(b.id, email);
+        purge(ctx, "events");
         return json({ ok: true });
       }
 
@@ -377,6 +473,7 @@ export default {
           const doc = (await req.json().catch(() => null)) as { id?: string } | null;
           if (!doc?.id) return json({ error: "no id" }, 400);
           await store.upsertContent(kind, doc.id, doc, email);
+          purge(ctx, kind);
           return json({ ok: true });
         }
 
@@ -384,6 +481,7 @@ export default {
           const b = (await req.json().catch(() => null)) as { id?: string } | null;
           if (!b?.id) return json({ error: "no id" }, 400);
           await store.deleteContent(kind, b.id, email);
+          purge(ctx, kind);
           return json({ ok: true });
         }
       }
@@ -411,10 +509,7 @@ export default {
         if (req.method === "PUT") {
           const type = req.headers.get("content-type") || "";
           const key = (url.searchParams.get("key") || "").trim();
-          // The key becomes a public URL and an R2 object name. Anything outside
-          // this alphabet is refused rather than sanitised: silently renaming an
-          // editor's file is how an `img` value and its object stop matching.
-          if (!/^[a-z0-9][a-z0-9-]*\.(webp|jpg|jpeg|png|avif)$/.test(key))
+          if (!MEDIA_KEY.test(key))
             return json({ error: "key must be lower-case letters, digits and hyphens, with an image extension" }, 400);
           if (!UPLOAD_TYPES.has(type)) return json({ error: "unsupported image type: " + type }, 415);
 
@@ -425,6 +520,10 @@ export default {
 
           await env.MEDIA.put(key, body, { httpMetadata: { contentType: type } });
           await store.noteMedia(email, "update", key);
+          // The key is reused when a photograph is replaced — that is what let
+          // the catalogue move to R2 untouched — so the old picture is what the
+          // edge is holding under this exact URL.
+          purge(ctx, "img:" + key);
           return json({ ok: true, key, size: body.byteLength });
         }
 
@@ -433,12 +532,88 @@ export default {
           if (!key) return json({ error: "no key" }, 400);
           await env.MEDIA.delete(key);
           await store.noteMedia(email, "delete", key);
+          purge(ctx, "img:" + key);
           return json({ ok: true });
         }
       }
 
+      /* ---- renaming a photograph ----
+       *
+       * The name of a file is the only link between a picture and the record it
+       * belongs to, so it is also the only thing that describes it: IMG_4821 in
+       * the library tells nobody what it is a photograph of, and until now the
+       * only way to correct that was to upload the same picture again under a
+       * better name and delete the old one by hand.
+       *
+       * R2 has no rename, so this is a read, a write and a delete. Both keys are
+       * purged: the new one may have been fetched and 404'd a moment ago, and the
+       * old one is what the edge is still holding a picture under.
+       *
+       * It does NOT rewrite the documents pointing at the old name — the caller
+       * does that, because the caller is a form that is about to save the record
+       * anyway. The dashboard refuses the rename when anything else points at it.
+       */
+      if (url.pathname === "/admin/media/rename" && req.method === "POST") {
+        const from = (url.searchParams.get("key") || "").trim();
+        const to = (url.searchParams.get("to") || "").trim();
+        if (!MEDIA_KEY.test(to))
+          return json({ error: "the new name must be lower-case letters, digits and hyphens, with an image extension" }, 400);
+        if (!from) return json({ error: "no key" }, 400);
+        if (from === to) return json({ ok: true, key: to });
+        // Overwriting another photograph is not a rename, it is losing one.
+        if (await env.MEDIA.head(to)) return json({ error: "there is already a photograph called " + to }, 409);
+
+        const obj = await env.MEDIA.get(from);
+        if (!obj) return json({ error: "no such image" }, 404);
+        await env.MEDIA.put(to, obj.body, { httpMetadata: obj.httpMetadata });
+        await env.MEDIA.delete(from);
+        // Two rows rather than one "rename": the audit's vocabulary is what the
+        // rest of the dashboard reads, and both halves of this did happen.
+        await store.noteMedia(email, "update", to);
+        await store.noteMedia(email, "delete", from);
+        purge(ctx, "img:" + from, "img:" + to);
+        return json({ ok: true, key: to });
+      }
+
       if (url.pathname === "/admin/audit" && req.method === "GET")
         return json({ items: await store.listAudit(100) });
+
+      /**
+       * Follow a shortened map link far enough to read the coordinates off it.
+       *
+       * The Share button on a phone gives `maps.app.goo.gl/xxxx`, which carries
+       * no numbers at all — and the dashboard's answer was to tell the editor to
+       * open it, wait, and copy the long address by hand. That is the exact
+       * moment a pin gets typed wrong.
+       *
+       * What comes back is the redirect TARGET and nothing else: no page body is
+       * read, nothing is stored, and the coordinates are parsed in the browser
+       * from a URL the editor already had. That is the same act the dashboard
+       * already documents — a person reading a map and writing down where a
+       * building is — with the tedious half automated.
+       *
+       * Admin-only (this block is past the auth check) and host-allowlisted,
+       * because a Worker that fetches any URL a caller names is an open proxy.
+       */
+      if (url.pathname === "/admin/unshorten" && req.method === "GET") {
+        const OK = ["maps.app.goo.gl", "goo.gl", "g.co", "maps.google.com", "www.google.com", "google.com"];
+        let target: URL;
+        try {
+          target = new URL(url.searchParams.get("u") || "");
+        } catch {
+          return json({ error: "not a link" }, 400);
+        }
+        if (target.protocol !== "https:" || !OK.includes(target.hostname))
+          return json({ error: "Only Google Maps links can be opened this way." }, 400);
+        const r = await fetch(target.toString(), {
+          redirect: "follow",
+          // A bare Worker request is answered with a different page than a
+          // browser gets, and the one without coordinates is the wrong one.
+          headers: { "user-agent": "Mozilla/5.0 (compatible; KurukshetraSaarthi/1.0; +https://kuk-saarthi.pages.dev)" },
+        }).catch(() => null);
+        if (!r) return json({ error: "could not open that link" }, 502);
+        return json({ url: r.url });
+      }
 
       if (url.pathname === "/admin/test-push" && req.method === "POST") {
         const n = await notify(env, store, "test");
@@ -451,7 +626,7 @@ export default {
 
   /** Cron. Set to every 15 minutes in wrangler.toml. */
   async scheduled(_c: ScheduledController, env: Env, ctx: ExecutionContext) {
-    ctx.waitUntil(notify(env, new D1Store(env.DB)));
+    ctx.waitUntil(notify(env, new NeonStore(env.NEON_DB_URL)));
   },
 };
 

@@ -14,7 +14,7 @@
 //
 //   node check-forms.mjs
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -127,9 +127,10 @@ for (const [, id] of JS.matchAll(/\$\("#([\w-]+)"\)/g))
       renders as nothing at all, with no error anywhere). */
 for (const c of ["gmap", "gsearch", "gres", "gnum", "gwarn", "cbar", "craw", "sec", "wrongar",
   "ctl", "steprail", "jed", "jhl", "jk", "imgbar", "nothumbs", "upnote", "idraw", "rm",
-  "boolrow", "fcard", "fcover", "fbadge", "fmeta", "fhead", "fempty", "fname", "foldnote", "wall",
+  "boolrow", "foldnote", "thmove", "mainbadge", "pkviews", "pkloose", "pkdel", "pkface",
+  "pgrid", "pc", "pcshot", "pcb", "pcname", "pcalt",
   "tpick", "tbtn", "tclear", "clockread", "cr-part", "dial", "dial-hand", "dial-h", "dial-tip",
-  "tsegs", "thint", "tbox", "newf", "fplus", "nfkinds", "wgrid", "mtabs", "mtowns"])
+  "tsegs", "thint", "tbox"])
   // The boundary matters: without it ".gmapX" satisfies a check for ".gmap".
   assert.match(CSS, new RegExp("[.\\s]" + c + "[^\\w-]"), "no style for ." + c);
 
@@ -146,11 +147,23 @@ const sample = (fields) => {
   const o = {};
   for (const f of fields) {
     if (f.t === "geo") { o.lat = 29.9613554; o.lng = 76.8285533; continue; }
+    // Like geo, the photograph grid's value is the keys around it, not one key
+    // under its own name. See SPEC's note on "photos".
+    if (f.t === "photos") {
+      o.img = "a";
+      o.alt = { a: "The ghats at sunset" };
+      // A COMPLETE record describes every photograph, not just the first — the
+      // checks below say so, and a sample that skipped one would be asserting
+      // that a half-described record is finished.
+      if (f.max !== 1) { o.gallery = ["b"]; o.alt.b = "The bridge to the island shrine"; }
+      continue;
+    }
     o[f.k] =
       f.t === "loc" || f.t === "locarea" ? { en: "En", hi: "हि" } :
       f.t === "num" ? 7 : f.t === "bool" ? true :
       f.t === "mins" ? 1080 : f.t === "minspan" ? [1020, 1110] :
-      f.t === "csv" || f.t === "imgs" ? ["a", "b"] :
+      f.t === "csv" ? ["a", "b"] :
+      f.t === "places" ? ["brahma-sarovar", "jyotisar"] :
       f.t === "days" ? [1, 3] : f.t === "sel" ? f.opts[0] :
       f.t === "time" ? "06:30" : f.t === "date" ? "2026-08-05" :
       f.t === "pts" ? [{ lat: 29.97, lng: 76.83 }, { lat: 29.96, lng: 76.84 }] :
@@ -180,11 +193,21 @@ for (const [kind, fields] of Object.entries(SPEC)) {
   }
   if (fields.some((f) => f.t === "pts"))
     assert.match(html, /data-cmap/, kind + ": the route field has no map");
+
+  /* The places picker must survive the round trip through the raw id box.
+     That box is the value — the chips and the pins are drawn from it — so if
+     the ids do not reach it, the picker renders empty over a document that
+     had five places tagged, and saving then wipes them. */
+  if (fields.some((f) => f.t === "places")) {
+    assert.match(html, /data-rmap/, kind + ": the places field has no map to show the tags on");
+    assert.match(html, /data-i[^>]*value="brahma-sarovar, jyotisar"/,
+      kind + ": the places picker lost the ids it was given");
+  }
 }
 
 // The two kinds whose photograph is a banner say so, in words, on the field.
 for (const k of ["events", "hero"])
-  assert.match(SPEC[k].find((f) => f.t === "img").hint, /16:9/, k + ": the banner field must state its shape");
+  assert.match(SPEC[k].find((f) => f.t === "photos").hint, /16:9/, k + ": the banner field must state its shape");
 
 /* 6. The one dependency, and the reason it is safe to have. */
 const admin = readFileSync(join(HERE, "src", "admin.ts"), "utf8");
@@ -200,8 +223,8 @@ assert.ok(JS.includes("if (!window.L) return"), "map code must degrade when the 
  * way they break is by rendering nothing at all rather than by throwing.
  */
 const ENGINE = new Function(JS + "\nreturn { groupHtml, stepsOf, jsonTemplate, refHtml, keySet," +
-  " checksHtml, pvBody, jHighlight, nextKey, slug, makeId, folderOf, clock12," +
-  " minsToClock, clockToMins," +
+  " checksHtml, pvBody, jHighlight, nextKey, slug, makeId, folderOf, clock12, splitPhotos," +
+  " minsToClock, clockToMins, asPoint," +
   " setKind: function (k) { CKIND = k; }, setMedia: function (m) { MEDIA = m; }," +
   " setRecs: function (r) { RECS = r; } };")();
 
@@ -230,8 +253,14 @@ for (const [kind, fields] of Object.entries(SPEC)) {
 
      There is no DOM here, so this proves the two halves of that agree rather
      than querying the result: the wrapper is emitted in the exact shape the
-     selector describes, and each field lands in its own step. */
-  const wrap = html.match(/<div class="step" data-step="\d+" hidden><h3 class="sec">[^<]*<\/h3><div class="sfields">/g) || [];
+     selector describes, and each field lands in its own step.
+
+     What it must NOT pin is anything between the heading and the fields. It
+     used to require the two be adjacent, so adding a line of explanation under
+     a step heading failed this with "no longer emits the wrapper" — which is
+     not what had happened and sends you looking in the wrong place. `.sfields`
+     is a CHILD of `.step`, and that is the whole of what readGroup needs. */
+  const wrap = html.match(/<div class="step" data-step="\d+" hidden><h3 class="sec">[^<]*<\/h3>(?:<p class="sechint">[^<]*<\/p>)?<div class="sfields">/g) || [];
   assert.equal(wrap.length, steps.length,
     kind + ": groupHtml no longer emits the step > sfields wrapper readGroup selects through");
 
@@ -301,19 +330,51 @@ assert.match(CSS, /\.fld,\.sub > \.fld\{[^}]*subgrid/,
 
 /* 8c. A photograph field can still be read, and can still be filled.
        The value moved into a <details> when the field became a picture manager;
-       it is the one part of it readField actually looks at. */
+       it is the one part of it readField actually looks at.
+
+       The ORDER in that input is what splits back into img and gallery, so the
+       main photograph being first is not cosmetic — get it wrong and a record's
+       face silently becomes whichever picture sorted first. */
 for (const [kind, fields] of Object.entries(SPEC)) {
   ENGINE.setKind(kind);
-  for (const f of fields.filter((x) => x.t === "img" || x.t === "imgs")) {
-    const one = ENGINE.groupHtml([f], { [f.k]: f.t === "imgs" ? ["a", "b"] : "a" });
+  for (const f of fields.filter((x) => x.t === "photos")) {
+    const many = f.max !== 1;
+    const one = ENGINE.groupHtml([f], { img: "a", gallery: many ? ["b"] : undefined, alt: { a: "An alt line" } });
     assert.match(one, /data-i /, kind + "." + f.k + ": has no value input, so nothing can be saved");
     assert.match(one, /data-file/, kind + "." + f.k + ": has no file input, so nothing can be uploaded");
     assert.match(one, /data-thumbs/, kind + "." + f.k + ": has nowhere to show the photographs");
     assert.match(one, /data-up\b/, kind + "." + f.k + ": has no upload button");
-    if (f.t === "imgs")
+    assert.match(one, /data-alts/, kind + "." + f.k + ": has nowhere to keep the descriptions");
+    assert.match(one, new RegExp('data-i [^>]*value="' + (many ? "a, b" : "a") + '"'),
+      kind + "." + f.k + ": the main photograph must be first in the value, or img and gallery swap");
+    if (many)
       assert.match(one, /data-file[^>]*multiple|multiple[^>]*data-file/,
         kind + "." + f.k + ": a gallery must take more than one file at a time");
   }
+}
+
+/* 8c-ii. One grid in, three keys out.
+ *
+ * The pair to the geo check: the form shows ONE control and the document must
+ * still carry img, gallery and alt exactly as the app reads them. This is where
+ * a place's face is decided, and a regression is invisible — the form looks
+ * right and every list in the app shows the wrong picture. splitPhotos is kept
+ * free of the DOM precisely so this can call it. */
+{
+  const alts = { "brahma-sarovar": "The ghats at sunset", "gone-2": "not on this record any more" };
+  const back = ENGINE.splitPhotos(["brahma-sarovar", "brahma-sarovar-2"], alts);
+  assert.equal(back.img, "brahma-sarovar", "the first photograph must be saved as img");
+  assert.deepEqual(back.gallery, ["brahma-sarovar-2"], "the rest must be saved as gallery");
+  assert.deepEqual(back.alt, { "brahma-sarovar": "The ghats at sunset" },
+    "a description for a photograph that is not on the record must not be saved");
+
+  const one = ENGINE.splitPhotos(["jyotisar"], {});
+  assert.equal(one.gallery, undefined, "one photograph must not write an empty gallery");
+  assert.equal(one.alt, undefined, "no descriptions must not write an empty alt map");
+  assert.equal(ENGINE.splitPhotos([], {}), undefined, "no photographs at all must leave img unset");
+
+  // Reordering is how the face is chosen, so the order in must be the order out.
+  assert.equal(ENGINE.splitPhotos(["b", "a"], {}).img, "b", "the grid's order must decide which photograph is the face");
 }
 
 /* 8d. Naming an upload. THE one that loses work quietly: hand back a name
@@ -426,10 +487,136 @@ const round = (s) =>
 for (const s of ['{"a":1}', '{ "s": "a \\" b", "n": -2.5e3 }', "", "{ broken", '{"u":"कुरु"}'])
   assert.equal(round(s), s, "jHighlight changed the text it was colouring: " + s);
 
+/* 8b. The coordinate the editor pasted is the coordinate that gets pinned.
+
+       asPoint is the one piece of parsing in the geo field, and every way it
+       can be wrong is silent: a URL it fails to read falls through to a name
+       search that finds nothing, and — worse — reading the wrong number pair
+       out of a Google link pins the map view centre instead of the place,
+       which saves, renders, and is off by a street. */
+const pt = (s) => ENGINE.asPoint(s);
+const near = (p, lat, lng, why) => {
+  assert.ok(p, why + " — parsed nothing at all");
+  assert.equal(p.lat, lat, why);
+  assert.equal(p.lng, lng, why);
+};
+
+near(pt("29.961355, 76.828553"), 29.961355, 76.828553, "a plain pasted pair");
+near(pt("29.961355,76.828553"), 29.961355, 76.828553, "a pair with no space");
+near(pt("29.961355 76.828553"), 29.961355, 76.828553, "a space-separated pair");
+// The place's own pin, and the map view centre, in one URL. !3d/!4d is the
+// place; @ is wherever the map was scrolled. Taking @ here is the off-by-a-
+// street bug, so it is asserted rather than assumed.
+near(pt("https://www.google.com/maps/place/Brahma+Sarovar/@29.9600,76.8200,17z/data=!3m1!4b1!4m6!3d29.961355!4d76.828553"),
+  29.961355, 76.828553, "a full Google place URL must use the pin, not the view centre");
+near(pt("https://www.google.com/maps/@29.961355,76.828553,17z"), 29.961355, 76.828553, "a bare Google view URL");
+near(pt("-29.961355, -76.828553"), -29.961355, -76.828553, "negative coordinates");
+
+assert.equal(pt("Brahma Sarovar"), null, "a place name must not parse as a coordinate");
+assert.equal(pt(""), null, "an empty box must not parse as a coordinate");
+assert.equal(pt("https://maps.app.goo.gl/aBcDeF12345"), null, "a short link carries no coordinate to find");
+assert.equal(pt("Sector 13"), null, "a sector number must not parse as a coordinate");
+// Out of range is not a coordinate. A transposed pair still lands in the
+// district check downstream; this one catches the string that was never a
+// point to begin with.
+assert.equal(pt("129.5, 76.8"), null, "a latitude past the pole must be refused");
+assert.equal(pt("29.9, 276.8"), null, "a longitude past the antimeridian must be refused");
+
+/* 8f. Every field the DATA carries, the form can edit.
+ *
+ * This is the one that had already gone wrong, and it goes wrong silently in
+ * the worst direction: a saved document is built by readGroup from SPEC alone,
+ * so a key no field owns is not preserved, it is DROPPED. Nineteen places
+ * carried "the opening hours are an estimate" and eleven carried "the pin is
+ * approximate"; one edit each in the dashboard would have deleted the caveat
+ * and left the guess reading as a fact. Nothing would have said so — the form
+ * saves happily, the app renders happily, and the record is quietly poorer.
+ *
+ * Checked against the bundled catalogues, which are the same documents the
+ * database holds (import-content.mjs writes one from the other). Direction
+ * matters: a key in the data with no field is a fault, a field no record
+ * happens to use yet is just an empty column.
+ */
+const FEEDS = {
+  places: "destinations.json",
+  startpoints: "places-index.json",
+  hotels: "hotels.json",
+  erickshaw: "erickshaw.json",
+  hero: "hero.json",
+};
+for (const [kind, file] of Object.entries(FEEDS)) {
+  const path = join(HERE, "..", "web", "src", "content", "data", file);
+  if (!existsSync(path)) continue; // a catalogue that does not exist yet
+  const items = JSON.parse(readFileSync(path, "utf8"));
+  /* Keys, not field names. Two controls write more than one key — the map
+     writes lat and lng, the photograph grid writes img, gallery and alt — so
+     asking SPEC for its field names would call half the catalogue orphaned.
+     keySet is what readGroup's behaviour is described by, and it is the same
+     list the JSON template is checked against above. */
+  const editable = new Set(Object.keys(ENGINE.keySet(SPEC[kind])));
+  const orphans = new Map();
+  for (const it of items)
+    for (const k of Object.keys(it))
+      if (!editable.has(k)) orphans.set(k, (orphans.get(k) || 0) + 1);
+  assert.deepEqual([...orphans], [],
+    kind + ": the data carries key(s) no field owns, so an edit in the dashboard would drop them: " +
+    [...orphans].map(([k, n]) => k + " (on " + n + ")").join(", "));
+}
+
 /* 9. Save goes through the preview. The extra click IS the feature — it is the
       only moment anybody sees the record drawn before it is live. */
 assert.match(JS, /if \(CSTEP !== "pv"\) \{ showStep\("pv"\)/,
   "cSave no longer routes the first press to the preview");
+
+/* 10. asPoint actually parses what an editor pastes.
+ *
+ * The one piece of pure logic in the whole blob, and the one whose failure is
+ * silent in the worst way: a shape it does not recognise falls through to a
+ * name search, which finds nothing, and the editor concludes the box is broken
+ * and types six decimal places by hand. A pin in the wrong district is the
+ * output of that.
+ *
+ * `new Function` gives us the real function out of the shipped string — no
+ * second copy of the parser to drift from this one.
+ */
+{
+  const { asPoint } = new Function(JS + "\nreturn { asPoint: asPoint };")();
+  const KKR = { lat: 29.9695, lng: 76.839 };
+  const near = (p, w) => p && Math.abs(p.lat - w.lat) < 0.001 && Math.abs(p.lng - w.lng) < 0.001;
+
+  const good = [
+    ["a plain pair", "29.9695, 76.8390"],
+    ["no space", "29.9695,76.8390"],
+    ["the place's own pin", "https://www.google.com/maps/place/Birla+Mandir/@29.95,76.82,17z/data=!4m6!3m5!1s0x0:0x0!8m2!3d29.9695!4d76.8390"],
+    ["a share link's q=", "https://maps.google.com/?q=29.9695,76.8390"],
+    ["a view centre", "https://www.google.com/maps/@29.9695,76.8390,15z"],
+    ["degrees, minutes, seconds", "29°58'10.2\"N 76°50'20.4\"E"],
+  ];
+  for (const [what, s] of good)
+    assert.ok(near(asPoint(s), KKR), what + " must parse to the Kurukshetra pin, got " + JSON.stringify(asPoint(s)));
+
+  /* The pin beats the view centre when a URL carries both, and this is the
+     real link that proved why it matters. Aggarwal Dharamshala at Krishna
+     Gate, Thanesar: its pin is !3d29.9689273!4d76.8511361, and the @ in the
+     same URL is 29.7794362,75.8209365 — the centre of a zoom-10 window, sixty
+     kilometres west and outside the district. An editor reading the address
+     bar by hand takes the @, because it is the part that looks like a
+     coordinate. That pin was saved, and it is the whole reason this parser
+     grew. The base64 blob is kept: it is full of digits, and a lazier regex
+     finds a "coordinate" inside it. */
+  const REAL = "https://www.google.com/maps/place/Aggarwal+Dhramsala/@29.7794362,75.8209365,10z/data=" +
+    "!4m10!1m2!2m1!1saggarwal-dharamshala-krishna-gate+Krishna+Gate,+Thanesar!3m6" +
+    "!1s0x390e4738259efaa9:0x3be8f2e10b12bad!8m2!3d29.9689273!4d76.8511361" +
+    "!15sCjhhZ2dhcndhbC1kaGFyYW1zaGFsYS1rcmlzaG5hLWdhdGUgS3Jpc2huYSBHYXRlLCBUaGFuZXNhclo5" +
+    "!16s%2Fg%2F11f29ntwpg?entry=ttu&g_ep=EgoyMDI2MDgxMC4wIKXMDSoASAFQAw%3D%3D";
+  const real = asPoint(REAL);
+  assert.ok(real && Math.abs(real.lat - 29.9689273) < 1e-6 && Math.abs(real.lng - 76.8511361) < 1e-6,
+    "a real Google place URL must give its PIN, not its view centre — got " + JSON.stringify(real));
+
+  for (const s of ["krishna ghaat", "", "Sector 2", "29.9695"])
+    assert.equal(asPoint(s), null, JSON.stringify(s) + " is a name, not a coordinate");
+  assert.equal(asPoint("999.5, 76.8"), null, "an impossible latitude is not a coordinate");
+}
 
 console.log("admin forms OK — " + Object.keys(SPEC).length + " kinds, " +
   Object.values(SPEC).reduce((n, f) => n + f.length, 0) + " top-level fields, " +

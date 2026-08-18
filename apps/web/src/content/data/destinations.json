@@ -3000,8 +3000,6 @@
   "id": "gurudwara-dasvin",
   "city": "kurukshetra",
   "img": "gurudwara-dasvin",
-  "gallery": [],
-  "pending": true,
   "name": {
    "en": "Gurudwara Dasvin Patshahi",
    "hi": "गुरुद्वारा दसवीं पातशाही"
@@ -3012,7 +3010,6 @@
   ],
   "lat": 29.964913,
   "lng": 76.822426,
-  "placeId": "",
   "short": {
    "en": "Marks Guru Gobind Singh Ji's visit, on the north-west bank of Brahma Sarovar.",
    "hi": "ब्रह्मसरोवर के उत्तर-पश्चिम तट पर, गुरु गोबिंद सिंह जी की यात्रा का स्मारक।"
@@ -3042,7 +3039,6 @@
    "o": "00:00",
    "c": "23:59"
   },
-  "closed": [],
   "free": true,
   "fee": {
    "en": "No entry fee",
@@ -3074,7 +3070,6 @@
   "gallery": [
    "kali-kamli-1"
   ],
-  "pending": true,
   "name": {
    "en": "Baba Kali Kamli Wale",
    "hi": "बाबा काली कमली वाले"
@@ -3085,7 +3080,6 @@
   ],
   "lat": 29.964299,
   "lng": 76.833283,
-  "placeId": "",
   "short": {
    "en": "One of the oldest service institutions near Brahma Sarovar.",
    "hi": "ब्रह्मसरोवर के निकट प्राचीनतम सेवा संस्थाओं में से एक।"
@@ -3115,7 +3109,6 @@
    "o": "05:00",
    "c": "21:00"
   },
-  "closed": [],
   "free": true,
   "fee": {
    "en": "No entry fee",
@@ -5048,12 +5041,6 @@
    "o": "06:00",
    "c": "18:00"
   },
-  "breaks": [
-   [
-    "10:00",
-    "15:00"
-   ]
-  ],
   "closed": [],
   "free": true,
   "fee": {

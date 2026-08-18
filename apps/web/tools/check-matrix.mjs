@@ -11,11 +11,13 @@ import { D } from "../src/data/destinations.ts";
 const read = (f) => JSON.parse(readFileSync(new URL("../src/content/data/" + f, import.meta.url), "utf8"));
 const M = read("matrix.json");
 const places = read("places-index.json");
-const at = new Map([...D, ...places].map((p) => [p.id, p]));
+// Only the pinned stays are in it — the rest have no coordinate to route from.
+const stays = read("hotels.json").filter((s) => s.lat != null && s.lng != null);
+const at = new Map([...D, ...places, ...stays].map((p) => [p.id, p]));
 
 /* ---- the index lines up with the data ---- */
 
-assert.equal(M.ids.length, D.length + places.length, "the matrix covers every fixed point");
+assert.equal(M.ids.length, D.length + places.length + stays.length, "the matrix covers every fixed point");
 M.ids.forEach((id) => assert.ok(at.has(id), `matrix names an unknown id: ${id}`));
 assert.equal(new Set(M.ids).size, M.ids.length, "no id appears twice");
 

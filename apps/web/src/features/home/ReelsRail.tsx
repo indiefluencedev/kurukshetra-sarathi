@@ -83,6 +83,7 @@ export function ReelsRail({ pid }: { pid?: string | null }) {
                     key={k}
                     src={imgUrl(k)}
                     alt=""
+                    decoding="async"
                     loading="lazy"
                     className={i ? "" : "on"}
                     style={{ animationDelay: i * 2.6 + "s" }}

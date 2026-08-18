@@ -173,6 +173,11 @@ export function Saved() {
       </>
     );
 
+  /* Places need a heading only when routes are above them — that is the one
+     boundary on this screen. Alone, they are the first group and the page
+     title already names them. */
+  const both = rs.length > 0 && favs.length > 0;
+
   return (
     <>
       <div className="phead">
@@ -180,23 +185,30 @@ export function Saved() {
           {t("saved")}
         </h1>
       </div>
+      {/* NO HEADING ON THE FIRST GROUP, ever. A heading marks a boundary, and
+          there is no boundary above the first one — the page title is sitting
+          on it. "Saved" directly over "Routes" is two titles in two sizes with
+          nothing between them, which is the same fault whether or not places
+          happen to follow further down the page.
+          Routes are always first when there are any, so this group is never
+          headed; the label survives for a screen reader, which navigates by
+          region and does not have the cards in front of it. */}
       {rs.length > 0 && (
-        <div className="sec" style={{ marginTop: 2 }}>
-          <div className="sec-head">
-            <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedRoutes")}</h2>
-          </div>
+        <section className="sec" style={{ marginTop: 2 }} aria-label={t("savedRoutes")}>
           <div className="plist stagger">
             {rs.map((r) => (
               <PlanRow key={r.id} r={r} onGone={() => { toast(t("removedT")); refresh(); }} />
             ))}
           </div>
-        </div>
+        </section>
       )}
       {favs.length > 0 && (
         <div className="sec">
-          <div className="sec-head">
-            <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedPlaces")}</h2>
-          </div>
+          {both && (
+            <div className="sec-head">
+              <h2 style={{ fontSize: "calc(17px*var(--ts))" }}>{t("savedPlaces")}</h2>
+            </div>
+          )}
           <div className="plist stagger">
             {favs.map((d) => (
               <Pcard key={d.id} d={d} />

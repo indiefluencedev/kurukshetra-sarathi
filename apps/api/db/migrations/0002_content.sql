@@ -1,4 +1,5 @@
--- Everything else the Board maintains: places, hotels, e-rickshaw stands.
+-- Everything else the Board maintains: places, start points, hotels,
+-- e-rickshaw stands, and the home screen's hero carousel.
 --
 -- One table, discriminated by `kind`, with the item stored as the JSON the app
 -- already consumes. Three reasons it is not a table per kind with real columns:
@@ -14,13 +15,15 @@
 --      holds, so import is a copy and the bundled fallback cannot drift from
 --      what the endpoint serves.
 --
+-- Point 3 is also why `doc` is text and not jsonb — see 0001.
+--
 -- The events table stays separate and columnar: the cron genuinely queries it
 -- by date and time-window, which is the one place a WHERE clause earns itself.
 CREATE TABLE IF NOT EXISTS content (
-  kind       TEXT NOT NULL,        -- 'places' | 'hotels' | 'erickshaw'
-  id         TEXT NOT NULL,        -- the item's own id, unique within its kind
-  doc        TEXT NOT NULL,        -- the item as JSON, exactly as the app reads it
-  updated_at INTEGER NOT NULL,
+  kind       text NOT NULL,        -- 'places' | 'startpoints' | 'hotels' | 'erickshaw' | 'hero'
+  id         text NOT NULL,        -- the item's own id, unique within its kind
+  doc        text NOT NULL,        -- the item as JSON, exactly as the app reads it
+  updated_at bigint NOT NULL,
   PRIMARY KEY (kind, id)
 );
 

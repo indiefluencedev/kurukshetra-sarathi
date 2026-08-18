@@ -13,6 +13,7 @@ const data = {
   reels: read(base + "data/reels.json"),
   hero: read(base + "data/hero.json"),
   places: read(base + "data/places-index.json"),
+  stays: read(base + "data/hotels.json"),
   events: read(base + "data/events.json"),
   cities: read(base + "data/cities.json"),
 };
@@ -38,7 +39,9 @@ for (const [name, node] of Object.entries(data)) walk(node, name);
    These are start and end points: a wrong coordinate doesn't degrade the app,
    it sends someone to the wrong side of town. So the shape is enforced, and
    anything a human hasn't confirmed yet is called out. */
-const KINDS = new Set(["station", "busstand", "hotel", "dharamshala"]);
+// Terminals only. Somewhere to sleep is a stay — see the block below it.
+const KINDS = new Set(["station", "busstand"]);
+const STAY_KINDS = new Set(["hotel", "dharamshala", "guesthouse", "homestay"]);
 // Kurukshetra district, generously boxed. Anything outside is a typo or a
 // coordinate pair that got swapped.
 const BOX = { lat: [29.6, 30.35], lng: [76.4, 77.2] };
@@ -62,6 +65,35 @@ data.places.forEach((p, i) => {
   else if (!p.checked) warn.push(`${at}: verified but no "checked" date`);
 });
 
+/* ---- the stays ----
+   Same rules, and one more: a stay is somewhere a visitor may be told to start
+   their day from, so a swapped coordinate is the same failure as a start
+   point's. The price is checked because "from 800 to 400" reads as a working
+   range and prints backwards. */
+const stayIds = new Map();
+data.stays.forEach((s, i) => {
+  const at = `stays[${i}] ${s?.name?.en || s?.id || "?"}`;
+  if (!s.id) out.push(`${at}: missing id`);
+  else if (stayIds.has(s.id)) out.push(`${at}: duplicate id "${s.id}" (also ${stayIds.get(s.id)})`);
+  else stayIds.set(s.id, at);
+
+  if (!STAY_KINDS.has(s.kind)) out.push(`${at}: unknown kind "${s.kind}"`);
+  /* A pin is what the app needs and the one field open data could not supply
+     for this district — see the header of the harvest. So a stay with no
+     coordinate is allowed IF it is hidden: it sits in the dashboard with its
+     phone number waiting for someone to place it. A stay the app will offer
+     without one is the error, because the planner would route to undefined. */
+  if (s.lat == null && s.lng == null) {
+    if (!s.pending) out.push(`${at}: no pin, so it must be "pending" until someone places it`);
+    else warn.push(`${at}: waiting for a pin`);
+  } else if (typeof s.lat !== "number" || typeof s.lng !== "number") {
+    out.push(`${at}: lat/lng must both be numbers`);
+  } else if (s.lat < BOX.lat[0] || s.lat > BOX.lat[1] || s.lng < BOX.lng[0] || s.lng > BOX.lng[1]) {
+    out.push(`${at}: ${s.lat}, ${s.lng} is outside Kurukshetra district`);
+  }
+  if (s.price && s.price.min > s.price.max) out.push(`${at}: price runs backwards`);
+});
+
 /* ---- the towns ----
    Every list on screen is `filter(d => d.city === S.city)`. A place carrying a
    town id that no longer exists is not a visible error — it is a place that
@@ -78,7 +110,7 @@ for (const c of data.cities) {
   if (!c.wx || typeof c.wx.lat !== "number") out.push(`${at}: wx must be {lat,lng} numbers`);
   if (!c.pin) out.push(`${at}: no pin code — the weather sheet prints it`);
 }
-for (const [name, list] of [["destinations", data.destinations], ["hero", data.hero], ["places", data.places]]) {
+for (const [name, list] of [["destinations", data.destinations], ["hero", data.hero], ["places", data.places], ["stays", data.stays]]) {
   list.forEach((x, i) => {
     const id = x.city ?? DEFAULT_CITY;
     if (!cityIds.has(id)) out.push(`${name}[${i}] ${x.id}: unknown city "${x.city}"`);

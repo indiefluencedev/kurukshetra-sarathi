@@ -8,19 +8,17 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w @kuk/web",
+    "dev": "node dev.mjs",
     "build": "npm run build -w @kuk/web",
     "preview": "npm run preview -w @kuk/web",
     "check": "npm run check -w @kuk/web",
+    "web:dev": "npm run dev -w @kuk/web",
     "api:dev": "npm run dev -w @kuk/api",
     "api:deploy": "npm run deploy -w @kuk/api",
     "deploy": "npm run build && wrangler pages deploy apps/web/dist --project-name=kuk-saarthi --branch=main"
   },
   "devDependencies": {
-    "@libsql/client": "^0.17.4",
-    "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "^0.45.2",
-    "wrangler": "^4.0.0",
-    "@types/node": "^26.1.2"
+    "@types/node": "^26.1.2",
+    "wrangler": "^4.0.0"
   }
 }

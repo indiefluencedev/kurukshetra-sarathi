@@ -18,6 +18,7 @@ import { Saved } from "./features/saved/Saved";
 import { Settings } from "./features/settings/Settings";
 import { Credits } from "./features/settings/Credits";
 import { Place } from "./features/place/Place";
+import { Event } from "./features/event/Event";
 import { Account } from "./features/account/Account";
 
 export function App() {
@@ -54,6 +55,7 @@ export function App() {
           <Route path="/credits" element={<Credits />} />
           <Route path="/account" element={<Account />} />
           <Route path="/place/:id" element={<Place />} />
+          <Route path="/event/:id" element={<Event />} />
         </Route>
         <Route path="*" element={<Navigate to={hasLang ? "/home" : "/start"} replace />} />
       </Routes>

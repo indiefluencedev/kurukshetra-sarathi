@@ -70,7 +70,12 @@ export const S = {
   city: isAll(store.city) ? ALL : cityById(store.city).id,
   plan: null as Plan | null,
   journey: null as Journey | null,
-  userLoc: null as { lat: number; lng: number } | null,
+  /** the last fix, with the radius the device claims for it (metres) */
+  userLoc: null as { lat: number; lng: number; acc?: number } | null,
+  /** a fix is being asked for right now — the picker says so instead of lying */
+  locBusy: false,
+  /** why the last attempt produced nothing. "" once one succeeds. */
+  locErr: "" as "" | "denied" | "unavailable" | "insecure",
   mapTheme: "all",
   sq: "",
   sf: {} as Record<string, boolean>,

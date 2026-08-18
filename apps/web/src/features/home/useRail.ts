@@ -43,6 +43,20 @@ export function useRail(
 
     tr.addEventListener("scroll", sync, { passive: true });
     tr.addEventListener("pointerdown", onDown, { passive: true });
+    sync();
+
+    /* everyMs of 0 means "dots and swipe, but never move on its own".
+     *
+     * Auto-advance is right for the home rails, which are ambient — nobody is
+     * reading them, they are showing what is on. It is wrong for a detail
+     * page's photographs: the reader chose that place and is looking at THAT
+     * picture, and sliding the next one under them is the entire complaint
+     * people have about carousels. */
+    if (!everyMs) return () => {
+      tr.removeEventListener("scroll", sync);
+      tr.removeEventListener("pointerdown", onDown);
+    };
+
     const id = setInterval(() => {
       if (hold) return;
       const w = step();

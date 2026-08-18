@@ -29,6 +29,15 @@ export interface Destination {
   city?: string;
   img?: string;
   gallery?: string[];
+  /**
+   * Photograph id → the line describing what is in it.
+   *
+   * Keyed by id rather than held beside each picture so that it follows the
+   * photograph through a reorder, and so that `img` and `gallery` keep the
+   * shape every document already has. Absent for most records: `photoAlt`
+   * falls back to the place's name, which is what was announced before.
+   */
+  alt?: Record<string, string>;
   name: Loc;
   themes: string[];
   lat: number;
@@ -77,8 +86,15 @@ export interface Stay {
   kind: "hotel" | "dharamshala" | "guesthouse" | "homestay";
   /** locality in words, because a coordinate does not tell you "near the bus stand" */
   area?: Loc;
-  lat: number;
-  lng: number;
+  /**
+   * Optional, and only because of where this data comes from. The district
+   * names 80 places to stay; open data could pin twelve of them, and a guessed
+   * coordinate sends a pilgrim to the wrong gate. The rest are `pending` until
+   * someone puts them on the map in the dashboard, so nothing the app offers
+   * is ever missing a pin — see `openStays`.
+   */
+  lat?: number;
+  lng?: number;
   /** indicative rupees per night. A range, because a tariff card is never one number. */
   price?: { min: number; max: number };
   phone?: string;
@@ -86,6 +102,8 @@ export interface Stay {
   note?: Loc;
   img?: string;
   gallery?: string[];
+  /** photograph id → what is in it. See Destination.alt. */
+  alt?: Record<string, string>;
   /** a handful of facts worth filtering on, from the same vocabulary places use */
   facilities?: string[];
   /** hidden from the app without being deleted — for a stay that has closed */
@@ -96,7 +114,8 @@ export interface HeroItem {
   id: string;
   /** which town it belongs to — see data/cities.ts. Absent means Kurukshetra. */
   city?: string;
-  img: string;
+  /** absent means "the place's own main photograph" — see HomeHero */
+  img?: string;
   fact: Loc;
 }
 

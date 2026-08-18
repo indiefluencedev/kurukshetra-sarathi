@@ -73,9 +73,23 @@ export function HomeHero() {
             >
               <span className="hh-img">
                 <img
-                  src={imgUrl(h.img)}
+                  /* The place's own photograph unless the entry names another.
+                     A hero row is about a place that already has a picture in
+                     the catalogue; requiring a second copy of it is how the
+                     library ended up with fifteen h-* files nothing could see
+                     the point of. A wider crop is still allowed, and h-* are
+                     exactly that — it is just no longer the price of entry. */
+                  src={imgUrl(h.img || d.img)}
                   alt=""
                   loading={i === 0 ? undefined : "lazy"}
+                  decoding="async"
+                  /* The first slide IS the largest thing on the home screen,
+                     which makes it the measurement everyone else calls LCP and
+                     the visitor calls "how long before I see anything". It
+                     otherwise queues behind the theme tiles and the rails,
+                     because the browser cannot know which of thirty images is
+                     the one on screen. */
+                  fetchPriority={i === 0 ? "high" : "auto"}
                   onLoad={(e) => e.currentTarget.classList.add("in")}
                 />
               </span>

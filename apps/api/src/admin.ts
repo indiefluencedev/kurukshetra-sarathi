@@ -112,8 +112,6 @@ ${FORMS_CSS}
    <button data-nav="events">Events</button>
    <span class="sgrp">Home screen</span>
    <button data-nav="hero" data-kind="hero">Opening photographs</button>
-   <span class="sgrp">Media</span>
-   <button data-nav="media">Photographs</button>
   </nav>
   <div class="sfoot">
    <span class="you" id="you"></span>
@@ -302,38 +300,31 @@ document.getElementById("testpush").addEventListener("click", testPush);
  * The sidebar, and what each entry puts on screen.
  *
  * One flat list of destinations. It used to be two levels — a top bar choosing
- * "Content / Events / Photographs" and, underneath it and somewhere else on the
- * page, a strip of pills choosing which KIND of content — so reaching Stays
- * meant two clicks in two different navigation bars, and neither told you where
- * you were. Four kinds, a calendar and a photograph library are six
- * destinations; six things belong in one list.
+ * the area and, underneath it and somewhere else on the page, a strip of pills
+ * choosing which KIND of content — so reaching Stays meant two clicks in two
+ * different navigation bars, and neither told you where you were. Four kinds
+ * and a calendar are five destinations; five things belong in one list.
  *
  * The four content kinds share one pane, because they are one screen with a
- * different table in it. Events and Photographs have their own.
+ * different table in it. Events keeps its own, for the audit log.
+ *
+ * There is no photograph pane any more. A photograph belongs to a record — a
+ * place, a stay, an event — and the library was a second place to stand: you
+ * went there to upload, came back to the record to attach, and the wall of
+ * folders fetched sixty cover photographs to help you choose between names you
+ * already knew. Uploading, attaching, ordering and deleting all happen in the
+ * record now, and the library survives as a view inside the picker, which is
+ * the moment anybody actually wants to look through it. See pickImage.
  */
-const PANES = { events: "#pane-events", media: "#pane-media" };
-const loaded = {};
-
 function show(nav) {
-  // Everything except the photograph library is a table of records, and
-  // "events" is now one of them — same engine, its own endpoint. The events
-  // pane that remains holds only the audit log, which is about all of them.
-  const kindly = nav !== "media";
-  $("#pane-content").hidden = !kindly;
+  $("#pane-content").hidden = false;
   $("#pane-events").hidden = nav !== "events";
-  $("#pane-media").hidden = nav !== "media";
   document.querySelectorAll("[data-nav]").forEach(b =>
     b.classList.toggle("on", b.getAttribute("data-nav") === nav));
   $("#ptitle").textContent =
     [...document.querySelectorAll("[data-nav]")].filter(b => b.getAttribute("data-nav") === nav)
       .map(b => b.textContent)[0] || "";
-
-  // Loaded when first opened, not at boot: the photograph library is a hundred
-  // thumbnails and fetching it to show a calendar helps nobody.
-  if (kindly) return void cLoad(nav);
-  if (loaded[nav]) return;
-  loaded[nav] = true;
-  if (nav === "media") paintLibrary(true);
+  cLoad(nav);
 }
 
 $("#sidenav").addEventListener("click", (e) => {
