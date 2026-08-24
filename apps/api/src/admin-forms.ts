@@ -3354,8 +3354,10 @@ export const FORMS_CSS = String.raw`
    display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
  .sbrand{font-weight:700;font-size:17px;padding:18px 18px 12px}
  #sidenav{display:flex;flex-direction:column;gap:1px;padding:4px 10px;flex:1;overflow:auto}
- .sgrp{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
-   font-weight:700;padding:14px 8px 5px}
+ .sgrp{font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:#9E9584;
+   font-weight:600;padding:6px 8px;margin-top:20px;border-top:1px solid rgba(28,24,21,0.08);
+   padding-top:16px}
+ .sgrp:first-of-type{margin-top:6px;border-top:0;padding-top:6px}
  #sidenav button{background:none;border:0;text-align:left;padding:9px 10px;border-radius:8px;
    color:var(--ink);font-size:14px;font-weight:600}
  #sidenav button:hover{background:var(--bg)}
