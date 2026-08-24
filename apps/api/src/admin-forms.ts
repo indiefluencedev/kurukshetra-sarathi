@@ -3405,20 +3405,20 @@ export const FORMS_CSS = String.raw`
     whether it still wants something. Free to jump: somebody fixing one phone
     number must not be walked through six screens to reach it. */
  .steprail{width:196px;flex:0 0 196px;background:#FAF8F5;border-right:1px solid var(--line);
-   padding:24px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+   padding:24px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto;position:relative}
+ .steprail::before{content:'';position:absolute;top:36px;bottom:36px;left:30px;width:1.5px;
+   background:rgba(28,24,21,0.08);z-index:0}
  .steprail .srow{background:none;border:0;text-align:left;padding:8px 12px;border-radius:6px;
    color:#8C8273;font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:12px;
-   transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);cursor:pointer}
+   transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);cursor:pointer;position:relative;z-index:1}
  .steprail .srow:hover{background:rgba(28,24,21,0.03);color:var(--ink)}
  .steprail .srow.on{background:rgba(210,96,10,0.05);color:var(--accent-d);font-weight:600}
  .steprail .srow i{width:8px;height:8px;border-radius:50%;flex:0 0 8px;
-   border:1.5px solid #C4BCAE;background:transparent;transition:all 0.2s ease}
- .steprail .srow.on i{border-color:var(--accent);background:var(--accent);transform:scale(1.2);
-   box-shadow:0 0 0 3px rgba(210,96,10,0.15)}
- .steprail .srow.ok i{background:#5A6E46;border-color:#5A6E46}
- .steprail .srow.on.ok i{background:var(--accent);border-color:var(--accent);
-   box-shadow:0 0 0 3px rgba(210,96,10,0.15);transform:scale(1.2)}
- .steprail .srow.todo i{border-color:var(--accent);border-style:dashed}
+   border:2px solid #C4BCAE;background:#FAF8F5;transition:all 0.2s ease;box-sizing:border-box}
+ .steprail .srow.ok i{background:#5A6E46;border-color:#5A6E46;border-style:solid!important}
+ .steprail .srow.todo i{background:#FAF8F5;border-color:#C4BCAE;border-style:solid!important}
+ .steprail .srow.on i{border-color:var(--accent)!important;background:var(--accent)!important;
+   transform:scale(1.3);box-shadow:0 0 0 3px rgba(210,96,10,0.15);border-style:solid!important}
  .steprail .srailgap{flex:1;min-height:10px}
  .steprail .pvstep{border-top:1px solid var(--line);border-radius:0;padding-top:16px;margin-top:8px}
  .steprail .pvstep i{border-radius:2px;transform:rotate(45deg);border-color:#8C8273}
