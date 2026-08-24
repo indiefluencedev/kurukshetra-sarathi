@@ -2295,18 +2295,25 @@ function kindWord() {
 
 function openEditor() {
   $("#editor").hidden = false;
+  $("#editor").offsetHeight; // force reflow
+  $("#editor").classList.add("open");
   document.body.style.overflow = "hidden";
   applyWhen();
   initMaps();
 }
 function closeEditor() {
-  $("#editor").hidden = true;
+  $("#editor").classList.remove("open");
   document.body.style.overflow = "";
   MODE = "form";
   // Leaflet keeps window-level listeners per map. cForm replaces the HTML under
   // them, so without this every open-and-close leaves another dead map watching
   // for resizes.
   $("#cform").querySelectorAll(".gmap").forEach(h => { if (h._map) { h._map.remove(); h._map = null; } });
+  setTimeout(() => {
+    if (!$("#editor").classList.contains("open")) {
+      $("#editor").hidden = true;
+    }
+  }, 600);
 }
 
 function cEdit(i) {
@@ -3357,9 +3364,13 @@ export const FORMS_CSS = String.raw`
     thing that matters while it is open, and sliding it over the list keeps the
     list exactly where it was for when it closes. */
  #editor{position:fixed;inset:0;z-index:40;display:flex;justify-content:flex-end;
-   background:rgba(28,24,21,.45)}
+   background:rgba(28,24,21,0);transition:background 0.6s cubic-bezier(0.16, 1, 0.3, 1)}
+ #editor.open{background:rgba(28,24,21,.45)}
  #editor .drawer{background:var(--bg);width:min(1000px,100%);height:100%;display:flex;
-   flex-direction:column;box-shadow:-8px 0 30px rgba(28,24,21,.18)}
+   flex-direction:column;box-shadow:-8px 0 30px rgba(28,24,21,.18);
+   transform:translate3d(100%, 0, 0);will-change:transform;backface-visibility:hidden;
+   transition:transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)}
+ #editor.open .drawer{transform:translate3d(0, 0, 0)}
  #editor .dhead{display:flex;align-items:center;gap:10px;padding:15px 20px;background:var(--paper);
    border-bottom:1px solid var(--line)}
  #editor .dhead h2{margin:0;font-size:16px;text-transform:none;letter-spacing:0;color:var(--ink)}

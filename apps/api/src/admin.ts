@@ -45,10 +45,92 @@ export const ADMIN_HTML = `<!doctype html>
    font:inherit;font-size:14px;background:#fff;margin-top:4px}
  textarea{min-height:60px;resize:vertical}
  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
- button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 16px;cursor:pointer}
- .primary{background:var(--accent);color:#fff} .primary:hover{background:var(--accent-d)}
- .ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
- .danger{background:#fff;border:1px solid var(--bad);color:var(--bad)}
+  button{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 16px;cursor:pointer}
+  .primary{background:var(--accent);color:#fff} .primary:hover{background:var(--accent-d)}
+  .ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .danger{background:#fff;border:1px solid var(--bad);color:var(--bad)}
+  /* Scoped Premium styles for edit drawer buttons to prevent impacting sidebar */
+  #editor button.primary, #editor button.ghost, #editor button.danger {
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    padding: 7px 16px;
+    height: 36px;
+    border-radius: 6px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: none;
+  }
+  #editor button.primary:hover:not(:disabled), #editor button.ghost:hover:not(:disabled), #editor button.danger:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+  #editor button.primary:active:not(:disabled), #editor button.ghost:active:not(:disabled), #editor button.danger:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  #editor button.primary {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+    box-shadow: 0 2px 4px rgba(210, 96, 10, 0.12);
+  }
+  #editor button.primary:hover:not(:disabled) {
+    background: var(--accent-d);
+    border-color: var(--accent-d);
+    box-shadow: 0 4px 10px rgba(210, 96, 10, 0.22);
+  }
+  #editor button.ghost {
+    background: #fff;
+    border: 1px solid #DCD5C5;
+    color: var(--ink);
+  }
+  #editor button.ghost:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent-d);
+    background: #FFFDF9;
+    box-shadow: 0 4px 10px rgba(210, 96, 10, 0.06);
+  }
+  #editor button.danger {
+    background: #fff;
+    border: 1px solid #F0C4B8;
+    color: var(--bad);
+  }
+  #editor button.danger:hover:not(:disabled) {
+    border-color: var(--bad);
+    background: #FFF9F6;
+    box-shadow: 0 4px 10px rgba(154, 59, 30, 0.06);
+  }
+
+  /* Scoped Premium style for the '+ Add new' button to make it highlighted and sleek */
+  #cadd {
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0 16px;
+    height: 34px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #e06c15 0%, #ba5508 100%);
+    color: #fff;
+    border: 1px solid #c85f10;
+    box-shadow: 0 2px 6px rgba(210, 96, 10, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #cadd:hover:not(:disabled) {
+    transform: translateY(-1.5px);
+    background: linear-gradient(135deg, #ec7821 0%, #c85f10 100%);
+    box-shadow: 0 5px 12px rgba(210, 96, 10, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  #cadd:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(210, 96, 10, 0.15);
+  }
  .bar{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
  ul{list-style:none;margin:0;padding:0} li{border-bottom:1px solid var(--line);padding:10px 0}
  li:last-child{border-bottom:0} li b{display:block} li span{color:var(--muted);font-size:13px}
