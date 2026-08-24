@@ -1597,8 +1597,25 @@ function cSpec() { return SPEC[CKIND]; }
    "error". One list of fields either way. */
 function cUrl() { return CKIND === "events" ? "/admin/events" : "/admin/content/" + CKIND; }
 
+function paintSkeleton() {
+  const rowsHtml = Array(5).fill(0).map(function() {
+    return '<tr>' +
+      '<td class="tpic"><div class="sk-thumb"></div></td>' +
+      '<td><div class="sk-line sk-title"></div><div class="sk-line sk-subtitle"></div></td>' +
+      '<td><div class="sk-line sk-id"></div></td>' +
+      '<td><div class="sk-line sk-where"></div></td>' +
+      '<td class="det"><div class="sk-line sk-details"></div></td>' +
+      '<td class="tacts"><div class="sk-btn"></div><div class="sk-btn"></div></td>' +
+    '</tr>';
+  }).join("");
+
+  const head = "<tr><th></th><th>Name</th><th>Id</th><th>Where</th><th>Details</th><th></th></tr>";
+  $("#clist").innerHTML = '<table class="dt sk-table"><thead>' + head + '</thead><tbody>' + rowsHtml + '</tbody></table>';
+}
+
 async function cLoad(kind) {
   if (kind) CKIND = kind;
+  paintSkeleton();
   const r = await api(cUrl()).then(r => r.json());
   CITEMS = r.items || [];
   paintTable();
@@ -3385,20 +3402,25 @@ export const FORMS_CSS = String.raw`
     One part of the record at a time, and a mark against each part saying
     whether it still wants something. Free to jump: somebody fixing one phone
     number must not be walked through six screens to reach it. */
- .steprail{width:186px;flex:0 0 186px;background:var(--paper);border-right:1px solid var(--line);
-   padding:14px 10px;display:flex;flex-direction:column;gap:2px;overflow:auto}
- .steprail .srow{background:none;border:0;text-align:left;padding:9px 10px;border-radius:8px;
-   color:var(--muted);font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:9px}
- .steprail .srow:hover{background:var(--bg);color:var(--ink)}
- .steprail .srow.on{background:var(--bg);color:var(--ink);box-shadow:inset 2px 0 0 var(--accent)}
- .steprail .srow i{width:9px;height:9px;border-radius:99px;flex:0 0 9px;
-   border:1.5px solid var(--line);background:transparent}
- .steprail .srow.ok i{background:var(--ok);border-color:var(--ok)}
+ .steprail{width:196px;flex:0 0 196px;background:#FAF8F5;border-right:1px solid var(--line);
+   padding:24px 14px;display:flex;flex-direction:column;gap:8px;overflow:auto}
+ .steprail .srow{background:none;border:0;text-align:left;padding:8px 12px;border-radius:6px;
+   color:#8C8273;font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:12px;
+   transition:all 0.2s cubic-bezier(0.16, 1, 0.3, 1);cursor:pointer}
+ .steprail .srow:hover{background:rgba(28,24,21,0.03);color:var(--ink)}
+ .steprail .srow.on{background:rgba(210,96,10,0.05);color:var(--accent-d);font-weight:600}
+ .steprail .srow i{width:8px;height:8px;border-radius:50%;flex:0 0 8px;
+   border:1.5px solid #C4BCAE;background:transparent;transition:all 0.2s ease}
+ .steprail .srow.on i{border-color:var(--accent);background:var(--accent);transform:scale(1.2);
+   box-shadow:0 0 0 3px rgba(210,96,10,0.15)}
+ .steprail .srow.ok i{background:#5A6E46;border-color:#5A6E46}
+ .steprail .srow.on.ok i{background:var(--accent);border-color:var(--accent);
+   box-shadow:0 0 0 3px rgba(210,96,10,0.15);transform:scale(1.2)}
  .steprail .srow.todo i{border-color:var(--accent);border-style:dashed}
  .steprail .srailgap{flex:1;min-height:10px}
- .steprail .pvstep{border-top:1px solid var(--line);border-radius:0 0 8px 8px;padding-top:12px;margin-top:2px}
- .steprail .pvstep i{border-radius:2px;transform:rotate(45deg);border-color:var(--muted)}
- .steprail .pvstep.on i{background:var(--accent);border-color:var(--accent)}
+ .steprail .pvstep{border-top:1px solid var(--line);border-radius:0;padding-top:16px;margin-top:8px}
+ .steprail .pvstep i{border-radius:2px;transform:rotate(45deg);border-color:#8C8273}
+ .steprail .pvstep.on i{background:var(--accent);border-color:var(--accent);transform:rotate(45deg) scale(1.2)}
  /* One step's fields. The heading is the step's own name, so it is a title
     rather than the divider it is inside a sub-group. */
  /* ---- a step, as a panel -------------------------------------------------
@@ -3879,6 +3901,50 @@ export const FORMS_CSS = String.raw`
  .js{color:#4F5B2E;font-weight:400}          /* strings — the open green */
  .jn{color:#A34A05}                          /* numbers — deep accent */
  .jl{color:#9A3B1E;font-weight:700}          /* true / false / null */
+
+  /* ---- Skeleton Loader ---- */
+  @keyframes sk-pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 0.3; }
+    100% { opacity: 0.6; }
+  }
+  .sk-table .sk-line, .sk-table .sk-thumb, .sk-table .sk-btn {
+    background: #EBE6D9;
+    border-radius: 4px;
+    animation: sk-pulse 1.5s ease-in-out infinite;
+  }
+  .sk-table .sk-thumb {
+    width: 56px;
+    height: 42px;
+    border-radius: 5px;
+  }
+  .sk-table .sk-line {
+    height: 12px;
+  }
+  .sk-table .sk-title {
+    width: 140px;
+    margin-bottom: 6px;
+  }
+  .sk-table .sk-subtitle {
+    width: 90px;
+    height: 10px;
+  }
+  .sk-table .sk-id {
+    width: 80px;
+  }
+  .sk-table .sk-where {
+    width: 100px;
+  }
+  .sk-table .sk-details {
+    width: 120px;
+  }
+  .sk-table .sk-btn {
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    border-radius: 6px;
+    margin-left: 6px;
+  }          /* true / false / null */
 `;
 
 export const FORMS_HTML = String.raw`
