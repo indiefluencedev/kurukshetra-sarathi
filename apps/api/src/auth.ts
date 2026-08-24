@@ -77,9 +77,13 @@ export function makeAuth(env: Env) {
     // Listing one of them means sign-in works on the desktop and fails on the
     // phone with a CORS error that says nothing about origins.
     // Production sets a single value and splits to a list of one.
-    trustedOrigins: env.APP_URL.split(",")
-      .map((o) => o.trim().replace(/\/$/, ""))
-      .filter(Boolean),
+    trustedOrigins: [
+      ...env.APP_URL.split(",")
+        .map((o) => o.trim().replace(/\/$/, ""))
+        .filter(Boolean),
+      env.API_URL.replace(/\/$/, ""),
+      "http://localhost:8787"
+    ],
 
     emailAndPassword: {
       enabled: true,

@@ -8,7 +8,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w @kuk/web\" \"npm run api:dev\"",
+    "dev": "node dev.mjs",
     "build": "npm run build -w @kuk/web",
     "preview": "npm run preview -w @kuk/web",
     "check": "npm run check -w @kuk/web",

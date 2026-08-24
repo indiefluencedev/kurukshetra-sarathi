@@ -30,7 +30,7 @@ export const ADMIN_HTML = `<!doctype html>
 <style>
  :root{--ink:#1C1815;--muted:#6B6252;--line:#DDD3BC;--paper:#FDFBF4;--bg:#F2ECDD;
        --accent:#D2600A;--accent-d:#A34A05;--bad:#9A3B1E;--ok:#4F5B2E}
- *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);
+ *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:var(--bg);color:var(--ink);
    font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
  header{background:var(--paper);border-bottom:1px solid var(--line);padding:14px 20px;
    display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:5}
