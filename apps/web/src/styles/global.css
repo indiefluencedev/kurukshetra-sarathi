@@ -67,6 +67,14 @@
   --tap: 48px; --maxw: 480px;
   --pad: 17px;              
 
+  --tab-bg: rgba(253,251,246,.62);
+  --tab-border: 1px solid rgba(255,255,255,.55);
+  --tab-pill-bg: linear-gradient(180deg,#E06D0D 0%,var(--accent) 55%,var(--accent-deep) 100%);
+  --tab-pill-shadow: 0 3px 10px rgba(163,74,5,.34), inset 0 1px 0 rgba(255,255,255,.28);
+  --tab-shadow: 0 10px 30px rgba(30,25,19,.16), 0 2px 8px rgba(30,25,19,.08);
+  --tab-btn-color: var(--ink-2);
+  --tab-btn-text-shadow: 0 1px 0 rgba(255,255,255,.6);
+
   --sans: "Inter", system-ui, -apple-system, sans-serif;
   --serif: "Baskerville", "Playfair Display", "Georgia", serif;
   --deva: "Noto Serif Devanagari", "Noto Sans Devanagari", "Nirmala UI", system-ui, sans-serif;
@@ -143,6 +151,14 @@
     --r-hero: 28px;
     --pad: 20px;
 
+    --tab-bg: rgba(18, 16, 26, 0.82);
+    --tab-border: 1px solid rgba(255, 255, 255, 0.08);
+    --tab-pill-bg: linear-gradient(135deg, #FF6B00 0%, #FF3300 100%);
+    --tab-pill-shadow: 0 4px 14px rgba(255, 107, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    --tab-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 2px 12px rgba(0, 0, 0, 0.3);
+    --tab-btn-color: rgba(255, 255, 255, 0.45);
+    --tab-btn-text-shadow: none;
+
     /* Font mapping override for dark theme */
     --sans: "Outfit", "Inter", system-ui, sans-serif;
     --serif: "Sora", "Outfit", sans-serif;
@@ -218,6 +234,14 @@
   --r-xs: 8px; --r-sm: 12px; --r: 16px; --r-lg: 24px; --r-xl: 32px;
   --r-hero: 28px;
   --pad: 20px;
+
+  --tab-bg: rgba(18, 16, 26, 0.82);
+  --tab-border: 1px solid rgba(255, 255, 255, 0.08);
+  --tab-pill-bg: linear-gradient(135deg, #FF6B00 0%, #FF3300 100%);
+  --tab-pill-shadow: 0 4px 14px rgba(255, 107, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --tab-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 2px 12px rgba(0, 0, 0, 0.3);
+  --tab-btn-color: rgba(255, 255, 255, 0.45);
+  --tab-btn-text-shadow: none;
 
   /* Font mapping override for dark theme */
   --sans: "Outfit", "Inter", system-ui, sans-serif;
@@ -1623,40 +1647,39 @@ header .langbtn:active,header .citybtn:active{background:var(--brass-wash)}
 nav.tab{
   /* Shell sets this inline from the TABS array; this is only the fallback. */
   --tabs:5;
-  background:rgba(253,251,246,.62);
+  background: var(--tab-bg);
   -webkit-backdrop-filter:blur(22px) saturate(185%);
   backdrop-filter:blur(22px) saturate(185%);
-  border:1px solid rgba(255,255,255,.55);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),
-             inset 0 -1px 0 rgba(255,255,255,.22),
-             0 10px 30px rgba(30,25,19,.16),
-             0 2px 8px rgba(30,25,19,.08);
+  border: var(--tab-border);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),
+             inset 0 -1px 0 rgba(255,255,255,.1),
+             var(--tab-shadow);
   border-radius:var(--r-xl);
 }
 /* Browsers without backdrop-filter get an opaque bar rather than a smear of
    unreadable text over whatever is behind it. */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  nav.tab{background:rgba(253,251,246,.97)}
+  nav.tab{background: var(--tab-bg)}
 }
 /* the hairline of light along the top edge — the thing that sells the glass */
-nav.tab:after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);opacity:1}
+nav.tab:after{background:linear-gradient(90deg,transparent,var(--glass-line),transparent);opacity:1}
 /* The live tab is a filled shape, not a tint, so which tab is open survives
    sunlight, cataracts and a cracked screen. It sits ON the glass, and is the
    one part deliberately not transparent. */
 nav.tab:before{
   width:calc((100% - 12px)/var(--tabs));
   border-radius:calc(var(--r-xl) - 6px);
-  background:linear-gradient(180deg,#E06D0D 0%,var(--accent) 55%,var(--accent-deep) 100%);
-  box-shadow:0 3px 10px rgba(163,74,5,.34), inset 0 1px 0 rgba(255,255,255,.28);
+  background: var(--tab-pill-bg);
+  box-shadow: var(--tab-pill-shadow);
 }
-nav.tab button{color:var(--ink-2);font-size:calc(12.5px*var(--ts));font-weight:700;
+nav.tab button{color: var(--tab-btn-color);font-size:calc(12.5px*var(--ts));font-weight:700;
   min-height:50px;gap:3px}
 :lang(hi) nav.tab button{font-size:calc(13px*var(--ts))}
 nav.tab button svg{width:22px;height:22px}
 nav.tab button.on{color:#fff}
 /* Inactive labels sit on glass over arbitrary content, so they carry their own
    faint halo — cheaper than making the bar opaque and it keeps the glass. */
-nav.tab button:not(.on){text-shadow:0 1px 0 rgba(255,255,255,.6)}
+nav.tab button:not(.on){text-shadow: var(--tab-btn-text-shadow)}
 
 /* ---- the signature: gold leaf laid under every section heading ---- */
 @keyframes drawRule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
