@@ -84,12 +84,12 @@
     --brand-soft: #FFD700;     /* Electric gold */
 
     /* Neutral surfaces - dark space theme */
-    --sand: #13111A;          
-    --bone: #09080E;          
-    --surface: rgba(20, 18, 28, 0.75); 
-    --surface-2: #1B1926;     
-    --stone: rgba(255, 255, 255, 0.08); 
-    --stone-2: rgba(255, 255, 255, 0.16);
+    --sand: #0D0C12;          
+    --bone: #08070C;          
+    --surface: #161420; 
+    --surface-2: #1D1B2B;     
+    --stone: rgba(255, 255, 255, 0.12); 
+    --stone-2: rgba(255, 255, 255, 0.22);
 
     /* Modern typography - light text on dark background */
     --ink: #FFFFFF;          
@@ -161,12 +161,12 @@
   --brand-soft: #FFD700;     
 
   /* Neutral surfaces - dark space theme */
-  --sand: #13111A;          
-  --bone: #09080E;          
-  --surface: rgba(20, 18, 28, 0.75); 
-  --surface-2: #1B1926;     
-  --stone: rgba(255, 255, 255, 0.08); 
-  --stone-2: rgba(255, 255, 255, 0.16);
+  --sand: #0D0C12;          
+  --bone: #08070C;          
+  --surface: #161420; 
+  --surface-2: #1D1B2B;     
+  --stone: rgba(255, 255, 255, 0.12); 
+  --stone-2: rgba(255, 255, 255, 0.22);
 
   /* Modern typography */
   --ink: #FFFFFF;          
