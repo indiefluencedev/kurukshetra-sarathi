@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { S, bump } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
 import { dur } from "@/shared/lib/format";
 import { clock } from "@/shared/lib/datetime";
 import { navTo, byId } from "@/shared/lib/geo";
+import { nearStays, nearFood } from "@/features/place/place-actions";
 import { CONFIG, theme } from "@/data/config";
 import { Icon } from "@/shared/icons/Icon";
 import { Photo } from "@/shared/ui/Photo";
@@ -23,6 +25,8 @@ function TlItem({ s, i, n, ev }: { s: Stop; i: number; n: number; ev: EventDef |
   const km = (s as any).km,
     travel = (s as any).travel,
     wait = (s as any).wait as number;
+  const [showNearby, setShowNearby] = useState(false);
+
   return (
     <>
       {/* A leg you walk is a different fact from a leg you drive, and the
@@ -90,6 +94,63 @@ function TlItem({ s, i, n, ev }: { s: Stop; i: number; n: number; ev: EventDef |
             </div>
           </div>
           <div className="tl-why">{nm(d.short)}</div>
+
+          {/* Expandable Proximity Section for Stays & Food */}
+          <div style={{ marginTop: "10px", borderTop: "1px solid var(--stone)", paddingTop: "8px" }} onClick={(e) => e.stopPropagation()}>
+            <button
+              className="btn sm"
+              style={{
+                padding: "4px 10px",
+                minHeight: "32px",
+                fontSize: "12.5px",
+                gap: "6px",
+                color: "var(--nav)",
+                background: "var(--nav-wash)",
+                borderRadius: "8px",
+                border: "1px solid var(--nav-line)",
+                fontWeight: "600",
+                cursor: "pointer",
+                width: "auto",
+                display: "inline-flex",
+                alignItems: "center"
+              }}
+              onClick={() => setShowNearby(!showNearby)}
+            >
+              {showNearby ? "✕ " + nm({ en: "Hide near spots", hi: "आसपास के स्थल छिपाएँ" }) : "📍 " + nm({ en: "Stays & Food nearby", hi: "आसपास ठहरने और भोजन की जगह" })}
+            </button>
+            {showNearby && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginTop: "10px", padding: "4px 2px" }}>
+                <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "var(--muted)", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: "4px" }}>
+                  🛌 {nm({ en: "Stays Nearby", hi: "नज़दीकी ठहरने के स्थान" })}
+                </div>
+                {nearStays(d).slice(0, 2).map(({ s, k }) => (
+                  <div key={s.id} style={{ fontSize: "12.5px", padding: "6px 10px", background: "rgba(26,24,20,0.035)", borderRadius: "8px", border: "1px solid var(--stone)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <strong>{nm(s.name)}</strong> <span style={{ color: "var(--muted)", fontSize: "11.5px" }}>({nm(s.area)})</span>
+                    </span>
+                    <span style={{ fontWeight: "700", color: "var(--accent-deep)", flexShrink: 0 }}>
+                      {k.toFixed(1)} km
+                    </span>
+                  </div>
+                ))}
+                
+                <div style={{ fontSize: "11px", fontWeight: "800", textTransform: "uppercase", color: "var(--muted)", letterSpacing: "0.05em", marginTop: "6px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  🍽️ {nm({ en: "Food & Dining Nearby", hi: "आसपास भोजन स्थान" })}
+                </div>
+                {nearFood(d).slice(0, 2).map(({ f, k }) => (
+                  <div key={f.id} style={{ fontSize: "12.5px", padding: "6px 10px", background: "rgba(26,24,20,0.035)", borderRadius: "8px", border: "1px solid var(--stone)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <strong>{nm(f.name)}</strong> <span style={{ color: "var(--muted)", fontSize: "11.5px" }}>({nm(f.speciality)})</span>
+                    </span>
+                    <span style={{ fontWeight: "700", color: "var(--accent-deep)", flexShrink: 0 }}>
+                      {k.toFixed(1)} km
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* One quiet icon, not two filled buttons.
               "Directions" was a filled indigo button on every card — fifteen of
               them down the page, which made a secondary action the loudest

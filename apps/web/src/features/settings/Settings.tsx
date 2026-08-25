@@ -41,6 +41,27 @@ export function Settings() {
             </button>
           </div>
         </div>
+
+        <div
+          style={{
+            display: "flex", justifyContent: "space-between", alignItems: "center",
+            padding: 14, borderBottom: "1px solid var(--stone)", gap: 10,
+          }}
+        >
+          <b style={{ fontSize: "calc(14.5px*var(--ts))" }}>{nm({ en: "App Theme", hi: "ऐप थीम" })}</b>
+          <div className="wrap">
+            <button className={"chip" + (store.theme === "system" ? " on" : "")} onClick={() => { store.theme = "system"; bump(); }}>
+              {nm({ en: "System", hi: "सिस्टम" })}
+            </button>
+            <button className={"chip" + (store.theme === "light" ? " on" : "")} onClick={() => { store.theme = "light"; bump(); }}>
+              {nm({ en: "Light", hi: "लाइट" })}
+            </button>
+            <button className={"chip" + (store.theme === "dark" ? " on" : "")} onClick={() => { store.theme = "dark"; bump(); }}>
+              {nm({ en: "Dark", hi: "डार्क" })}
+            </button>
+          </div>
+        </div>
+
         <div style={{ padding: 14 }}>
           <b style={{ fontSize: "calc(14.5px*var(--ts))" }} lang={S.lang}>
             {t("bigText")}

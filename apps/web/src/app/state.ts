@@ -18,6 +18,12 @@ export const store = {
   set city(v: string) {
     localStorage.setItem("k_city", v);
   },
+  get theme(): string {
+    return localStorage.getItem("k_theme") || "system";
+  },
+  set theme(v: string) {
+    localStorage.setItem("k_theme", v);
+  },
   get ts(): number {
     return +(localStorage.getItem("k_ts") || 0);
   },

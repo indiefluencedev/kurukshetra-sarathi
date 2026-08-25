@@ -1,12 +1,14 @@
 import { Outlet, useLocation, Navigate } from "react-router-dom";
 import { S, useApp, flipLang } from "@/app/state";
 import { go } from "@/app/nav";
-import { t } from "@/shared/i18n/i18n";
+import { t, nm } from "@/shared/i18n/i18n";
 import { CONFIG } from "@/data/config";
 import { LOGO_SM } from "@/data/images";
 import { Icon } from "@/shared/icons/Icon";
 import { openMenu } from "@/features/account/Menu";
 import { CityChip } from "@/shared/ui/CityPicker";
+import { ongoing } from "@/data/events";
+import { isoToday } from "@/shared/lib/datetime";
 
 // Five tabs. Explore had been folded into Home on the argument that browsing
 // is the same job as arriving — but Home is a long scroll, and "see every
@@ -49,6 +51,16 @@ export function Shell() {
         <span>{lb}</span>
       </button>
     );
+  };
+
+  const todayEvents = ongoing(isoToday());
+  const activeEv = todayEvents.length > 0 ? todayEvents[0] : null;
+
+  const fmtDate = (iso: string) => {
+    if (!iso) return "";
+    const p = iso.split("-");
+    if (p.length < 3) return iso;
+    return `${p[2]}/${p[1]}`;
   };
 
   return (
@@ -96,6 +108,40 @@ export function Shell() {
           </div>
         </div>
       </header>
+      {activeEv && (
+        <div
+          className="live-event-banner"
+          onClick={() => go(`/event/${activeEv.id}`)}
+          style={{
+            background: "linear-gradient(135deg, oklch(65% 0.25 36) 0%, oklch(55% 0.23 34) 100%)",
+            color: "#fff",
+            padding: "10px 16px",
+            fontSize: "13.5px",
+            fontWeight: "600",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: "pointer",
+            boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.2), 0 4px 12px rgba(0, 0, 0, 0.05)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+            <span style={{
+              display: "inline-block",
+              width: "8px",
+              height: "8px",
+              background: "#fff",
+              borderRadius: "50%",
+              boxShadow: "0 0 8px #fff",
+              flexShrink: 0
+            }} />
+            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              📢 <strong>Live Event:</strong> {nm(activeEv.name)} ({activeEv.from === activeEv.to ? fmtDate(activeEv.from) : `${fmtDate(activeEv.from)} – ${fmtDate(activeEv.to)}`})
+            </span>
+          </div>
+          <Icon name="fwd" style={{ width: "16px", height: "16px", flexShrink: 0 }} />
+        </div>
+      )}
       <main className="screen">
         <Outlet />
       </main>

@@ -15,7 +15,7 @@ import { ReelsRail } from "@/features/home/ReelsRail";
 import { eventsAt } from "@/data/events";
 import { isoToday } from "@/shared/lib/datetime";
 import { shortDate, planForEvent } from "@/features/planner/plan";
-import { FAC, DY, near, flipFav } from "./place-actions";
+import { FAC, DY, near, flipFav, nearStays, nearFood } from "./place-actions";
 import { addTo } from "./AddSheet";
 import type { ReactNode } from "react";
 
@@ -296,6 +296,74 @@ export function Place() {
         <div className="ev-places">
           {near(d).map((x) => (
             <Pcard key={x.id} d={x} />
+          ))}
+        </div>
+      </div>
+
+      <div className="blk">
+        <h2 lang={S.lang}>
+          <Icon name="home" />
+          {nm({ en: "Stays & Hotels Nearby", hi: "आसपास ठहरने के स्थान" })}
+        </h2>
+        <div className="plist" style={{ gap: 12, marginTop: 12 }}>
+          {nearStays(d).map(({ s, k }) => (
+            <div key={s.id} className="card pcard" style={{ padding: "14px", border: "1px solid var(--stone)" }}>
+              <div className="body">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <h3 lang={S.lang} style={{ fontSize: "16px", fontWeight: "600" }}>{nm(s.name)}</h3>
+                  <span className="tag brass" style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "8px", flexShrink: 0 }}>
+                    {k.toFixed(1)} {t("km")}
+                  </span>
+                </div>
+                <div className="alt" style={{ fontSize: "13px", color: "var(--muted)", marginTop: "4px" }}>
+                  {nm(s.area)} · {s.kind === "hotel" ? nm({ en: "Hotel", hi: "होटल" }) : nm({ en: "Dharamshala", hi: "धर्मशाला" })}
+                </div>
+                {s.price && (
+                  <div style={{ fontSize: "14px", color: "var(--accent-deep)", fontWeight: "700", marginTop: "6px" }}>
+                    ₹{s.price.min} - ₹{s.price.max} / {nm({ en: "night", hi: "रात" })}
+                  </div>
+                )}
+                {s.phone && (
+                  <a href={`tel:${s.phone}`} className="link" style={{ fontSize: "13px", padding: "4px 0", minHeight: "auto", display: "inline-flex", gap: "6px", color: "var(--nav)", marginTop: "6px", textDecoration: "none" }}>
+                    📞 {s.phone}
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="blk">
+        <h2 lang={S.lang}>
+          <Icon name="surya" />
+          {nm({ en: "Food & Dining Nearby", hi: "आसपास भोजन के विकल्प" })}
+        </h2>
+        <div className="plist" style={{ gap: 12, marginTop: 12 }}>
+          {nearFood(d).map(({ f, k }) => (
+            <div key={f.id} className="card pcard" style={{ padding: "14px", border: "1px solid var(--stone)" }}>
+              <div className="body">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                  <h3 lang={S.lang} style={{ fontSize: "16px", fontWeight: "600" }}>{nm(f.name)}</h3>
+                  <span className="tag brass" style={{ fontSize: "12px", padding: "2px 8px", borderRadius: "8px", flexShrink: 0 }}>
+                    {k.toFixed(1)} {t("km")}
+                  </span>
+                </div>
+                <div className="alt" style={{ fontSize: "13px", color: "var(--muted)", marginTop: "4px" }}>
+                  {nm(f.area)} · {nm(f.speciality)}
+                </div>
+                {f.price && (
+                  <div style={{ fontSize: "14px", color: "var(--accent-deep)", fontWeight: "700", marginTop: "6px" }}>
+                    Avg: ₹{f.price.min} - ₹{f.price.max}
+                  </div>
+                )}
+                {f.phone && (
+                  <a href={`tel:${f.phone}`} className="link" style={{ fontSize: "13px", padding: "4px 0", minHeight: "auto", display: "inline-flex", gap: "6px", color: "var(--nav)", marginTop: "6px", textDecoration: "none" }}>
+                    📞 {f.phone}
+                  </a>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       </div>

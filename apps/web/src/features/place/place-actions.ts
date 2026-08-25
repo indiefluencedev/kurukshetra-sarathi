@@ -21,6 +21,9 @@ export const DY: [string, string][] = [
   ["Thu", "गुरु"], ["Fri", "शुक्र"], ["Sat", "शनि"],
 ];
 
+import { openStays, type PinnedStay } from "@/data/stays";
+import { FOOD_JOINTS, type FoodJoint } from "@/data/food";
+
 /** Four closest other places, within the same town. Scoped to `d`'s own town
     rather than the one on screen: Pehowa is twenty-five kilometres west, so
     "nearby" across the two is a suggestion nobody can act on. */
@@ -30,6 +33,20 @@ export const near = (d: Destination): Destination[] =>
     .sort((a, b) => a.k - b.k)
     .slice(0, 4)
     .map((o) => o.x);
+
+/** Three closest hotels / dharamshalas to a coordinate. */
+export const nearStays = (d: { lat: number; lng: number }): { s: PinnedStay; k: number }[] =>
+  openStays()
+    .map((s) => ({ s, k: Engine.roadKm(d, s) }))
+    .sort((a, b) => a.k - b.k)
+    .slice(0, 3);
+
+/** Three closest food joints to a coordinate. */
+export const nearFood = (d: { lat: number; lng: number }): { f: FoodJoint; k: number }[] =>
+  FOOD_JOINTS
+    .map((f) => ({ f, k: Engine.roadKm(d, f) }))
+    .sort((a, b) => a.k - b.k)
+    .slice(0, 3);
 
 export function flipFav(id: string) {
   let f = store.favs;

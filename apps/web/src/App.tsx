@@ -31,6 +31,10 @@ export function App() {
     document.documentElement.lang = S.lang;
     document.body.classList.toggle("big", store.ts === 1);
     document.body.classList.toggle("bigger", store.ts === 2);
+    
+    const t = store.theme || "system";
+    document.documentElement.classList.toggle("light-theme", t === "light");
+    document.documentElement.classList.toggle("dark-theme", t === "dark");
   });
 
   return (

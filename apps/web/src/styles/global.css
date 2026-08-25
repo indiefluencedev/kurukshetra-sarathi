@@ -1,191 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap');
+
 /* ================================================================
-   KURUKSHETRA — visual system: CREAM, ROYAL SAFFRON, TEMPLE GOLD,
-   and ONE RESERVED INDIGO
-
-   Cream paper ruled in soft brass and temple gold carries the mythic
-   register (a painted manuscript page). Royal saffron — sunrise over
-   Kurukshetra — carries every action, every selected state and all
-   progress: the one loud thing is always the thing to tap.
-
-   Peacock indigo is NOT an action colour. It is reserved, strictly,
-   for maps, routes, navigation, links and "you are here" — so that a
-   button which hands you to a map is never confusable with a button
-   that changes something in the app.
-
-   Read for older eyes first: no colour alone ever carries meaning,
-   targets are 54px, and no text in the app renders below ~13px.
+   KURUKSHETRA — visual system: ORIGINAL LIGHT & MODERN GLOW DARK
    ================================================================ */
-:root{
-  /* surfaces — warm cream, never grey, never white.
-     FOUR RUNGS, and the gaps between them are the point. The old set sat
-     inside 3% luminance of each other, so a card, the page under it and the
-     well inside it all read as one beige fog: no depth, nothing to rank.
-     The ground is now a warm sand and a plate is nearly paper-white, which
-     is what makes a card look like an object resting on a table rather than
-     a rectangle drawn on one. Everything below is measured off this. */
-  /* ============================================================
-     THE FOUR. Everything coloured in this app is one of these,
-     a darkened variant of one for text, or a wash of one for a
-     fill. Nothing else gets to be a colour.
+:root {
+  /* Original Light Theme Variables */
+  --brand: #D2600A;         
+  --brand-guide: #1E3A5F;   
+  --brand-hot: #E83F25;     
+  --brand-soft: #C9BE86;    
 
-       #D2600A  orange   → THE action colour
-       #1E3A5F  indigo   → navigation, links, maps, "you are here"
-       #C9BE86  brass    → ornament, and "open"
-       #E83F25  hot red  → live / urgent, and nothing else
+  --sand: #E5DCC7;          /* recessed — wells, tracks, empty slots */
+  --bone: #F2ECDD;          /* page ground */
+  --surface: #FDFBF4;       /* plates / cards — the raised rung */
+  --surface-2: #F7F1E3;     /* inset panels inside a plate */
+  --stone: #DDD3BC;         /* hairlines */
+  --stone-2: #C3B695;
 
-     Three of these are the palette that was chosen. #A62C2C is
-     retired, and the reason is the whole argument: it was the
-     NAVIGATION colour, and a warm red beside a warm orange left
-     the interface no cool note at all. Nothing receded, and a
-     control that hands you to a map looked like a control that
-     changes something here. Its replacement is a deep Krishna
-     indigo — the cool counterweight that makes warm sandstone
-     photography read rich rather than muddy, and the colour the
-     Gita was spoken under at Jyotisar.
+  --ink: #1C1815;
+  --ink-2: #40382E;
+  --muted: #6B6252;         
 
-     The orange is the chosen one pushed deeper: #EA7300 is 3.1:1
-     on paper and cannot hold white text at any size that matters.
-     #D2600A can. Brass is #D3CA79 calmed a shade so it reads as
-     metal rather than as a fourth loud hue.
+  --accent: var(--brand);
+  --accent-deep: #A34A05;   
+  --accent-wash: #FBEEDF;
+  --accent-line: #EFC08A;
+  --clay: var(--accent);
+  --clay-deep: var(--accent-deep);
+  --clay-wash: var(--accent-wash);
 
-     Each still has a -deep variant, because none of them carries
-     small text on paper unaided. The rule stays "no colour ever
-     carries meaning alone": every status is also a word and an icon.
-     ============================================================ */
-  --brand:#D2600A;         /* was #EA7300 — same hue, deep enough to carry a word */
-  --brand-guide:#1E3A5F;   /* replaces #A62C2C */
-  --brand-hot:#E83F25;     /* unchanged */
-  --brand-soft:#C9BE86;    /* was #D3CA79 — a shade calmer, so it reads as metal */
+  --nav: var(--brand-guide);
+  --nav-deep: #142943;
+  --nav-wash: #E9EEF5;
+  --nav-line: #B4C3D6;
 
-  /* surfaces — warm paper with an olive cast picked up from --brand-soft, so
-     the neutrals belong to the palette instead of sitting beside it.
-     FOUR RUNGS, and the gaps between them are the point: a card, the page
-     under it and the well inside it must not read as one fog. */
-  --sand:#E5DCC7;          /* recessed — wells, tracks, empty slots */
-  --bone:#F2ECDD;          /* page ground */
-  --surface:#FDFBF4;       /* plates / cards — the raised rung */
-  --surface-2:#F7F1E3;     /* inset panels inside a plate */
-  --stone:#DDD3BC;         /* hairlines */
-  --stone-2:#C3B695;
+  --gold: var(--brand-soft);
+  --brass: #8F8449;
+  --brass-soft: var(--brand-soft);
+  --brass-wash: #F4F0DF;
+  --brass-deep: #5C5326;    
 
-  /* ink — warm brown-black, softened off pure black for glare */
-  --ink:#1C1815;
-  --ink-2:#40382E;
-  --muted:#6B6252;         /* 5.6:1 on paper — a real reading colour */
+  --umber: #5E3B22;
+  --umber-deep: #22201C;
 
-  /* THE action colour: orange. CTAs, selection, progress, the live tab. */
-  --accent:var(--brand);
-  --accent-deep:#A34A05;   /* pressed, and the orange that may carry text (4.8:1) */
-  --accent-wash:#FBEEDF;
-  --accent-line:#EFC08A;
-  /* the stylesheet was written against --clay; it is the accent now, so
-     every existing rule follows the token without being touched */
-  --clay:var(--accent);
-  --clay-deep:var(--accent-deep);
-  --clay-wash:var(--accent-wash);
+  --lapis: var(--nav);      
 
-  /* RESERVED: deep red. Maps, routes, navigation, links, "you are here".
-     Never a primary button, never a selected chip — a control that hands you
-     to a map must never look like one that changes something here.
-     COST OF THE NEW PALETTE, stated plainly: this used to be a peacock indigo,
-     and a cool colour separated itself from a warm action colour at a glance.
-     Deep red and orange are neighbours, so the separation now rests on value
-     and on shape (buttons vs links) rather than on hue. It is a weaker signal.
-     If navigation ever gets mistaken for action, this is the reason. */
-  --nav:var(--brand-guide);
-  --nav-deep:#142943;
-  --nav-wash:#E9EEF5;
-  --nav-line:#B4C3D6;
+  --open: #4F5B2E;
+  --open-wash: #EFF1DF;
+  --shut: #9A3B1E;
+  --shut-wash: #F9EAE3;
 
-  /* olive — rules, badges, quiet ornament. Never an action. --gold is
-     decorative only (1.8:1 on paper — it can never carry a word); --brass and
-     --brass-deep are the variants that may hold text. */
-  --gold:var(--brand-soft);
-  --brass:#8F8449;
-  --brass-soft:var(--brand-soft);
-  --brass-wash:#F4F0DF;
-  --brass-deep:#5C5326;    /* olive that is legible as text (7.0:1) */
+  --live: var(--brand-hot);
 
-  /* the few plates that invert: hero overlays, the itinerary plate, the
-     splash. Used sparingly, and always large. */
-  --umber:#5E3B22;
-  --umber-deep:#22201C;
+  --shadow-1: 0 1px 2px rgba(74,48,18,.05), 0 2px 6px rgba(74,48,18,.06);
+  --shadow-2: 0 2px 5px rgba(74,48,18,.06), 0 7px 18px rgba(74,48,18,.09);
+  --shadow-3: 0 3px 10px rgba(74,48,18,.08), 0 16px 40px rgba(74,48,18,.15);
+  --shadow-accent: 0 1px 3px rgba(163,74,5,.18), 0 6px 16px rgba(163,74,5,.24);
 
-  --lapis:var(--nav);      /* kept: older rules reference it for focus rings */
+  --glass: rgba(252,249,242,.72);
+  --glass-line: rgba(255,255,255,.85);
+  --glass-blur: blur(26px) saturate(190%);
+  --bone-0: rgba(242,236,221,0);
 
-  /* status — carried by icon + word too, never by colour alone. Both of these
-     come out of the four: "open" is the olive darkened until it can hold text,
-     "shut" is the deep red. No fifth and sixth colour for a green and a red. */
-  --open:#4F5B2E;
-  --open-wash:#EFF1DF;
-  --shut:#9A3B1E;
-  --shut-wash:#F9EAE3;
+  --r-xs: 7px; --r-sm: 10px; --r: 13px; --r-lg: 18px; --r-xl: 22px;
+  --r-hero: 20px;
+  --tap: 48px; --maxw: 480px;
+  --pad: 17px;              
 
-  /* live / urgent — the hot red, and it appears almost nowhere: the pulsing
-     dot on an event happening today, and destructive confirmation. */
-  --live:var(--brand-hot);
+  --sans: "Inter", system-ui, -apple-system, sans-serif;
+  --serif: "Baskerville", "Playfair Display", "Georgia", serif;
+  --deva: "Noto Serif Devanagari", "Noto Sans Devanagari", "Nirmala UI", system-ui, sans-serif;
 
-  /* Depth, cast in warm brown rather than neutral black. A grey shadow on a
-     cream ground reads as dirt; a brown one reads as light. The old alphas
-     (4–8%) sat under the perceptual floor on this palette, so every card was
-     really just its own hairline. These are the values where a plate starts
-     to look lifted without the UI turning into stacked plastic. */
-  --shadow-1:0 1px 2px rgba(74,48,18,.05), 0 2px 6px rgba(74,48,18,.06);
-  --shadow-2:0 2px 5px rgba(74,48,18,.06), 0 7px 18px rgba(74,48,18,.09);
-  --shadow-3:0 3px 10px rgba(74,48,18,.08), 0 16px 40px rgba(74,48,18,.15);
-  /* the one orange thing on a screen gets coloured lift, not grey lift */
-  --shadow-accent:0 1px 3px rgba(163,74,5,.18), 0 6px 16px rgba(163,74,5,.24);
-
-  /* Floating chrome only — tab bar, sticky heads, dock bars, map overlays.
-     Deliberately NOT used on content: frosted panels cost text contrast, and
-     the audience reads Devanagari outdoors. Glass floats, paper carries words. */
-  --glass:rgba(252,249,242,.72);
-  --glass-line:rgba(255,255,255,.85);
-  --glass-blur:blur(26px) saturate(190%);
-  /* fully transparent --bone, for the fades under the fixed action bars. Must
-     track --bone by hand: colour-mix would do it but the fades predate it and
-     a wrong constant here shows up as content ghosting through a button. */
-  --bone-0:rgba(242,236,221,0);
-
-  /* Tightened one step across the board. The old scale was built when every
-     control was 54px and the type ran at 1.08, which read as an app designed
-     for a tablet and shown on a phone. Radii come down with the targets —
-     a 22px radius on a 48px control is nearly a pill and loses its corners. */
-  --r-xs:7px; --r-sm:10px; --r:13px; --r-lg:18px; --r-xl:22px;
-  --r-hero:20px;
-  /* 48px, not 54. Still comfortably over the 44px floor that WCAG 2.5.5 AAA
-     and Apple's HIG both set, so this is a density change, not an
-     accessibility trade — and Settings still offers Large and Largest, which
-     scale every size in this file through --ts. */
-  --tap:48px; --maxw:480px;
-  --pad:17px;              /* page gutter; edge-bleed rails negate it */
-
-  --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
-  --serif:"Baskerville","Playfair Display","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
-  --deva:"Noto Serif Devanagari","Noto Sans Devanagari","Nirmala UI",system-ui,sans-serif;
-
-  /* grounded motion — short, flat, no bounce */
-  --ease:cubic-bezier(.22,.61,.36,1);
-  --t-fast:140ms; --t:190ms; --t-slow:260ms;
+  --ease: cubic-bezier(.22,.61,.36,1);
+  --t-fast: 140ms; --t: 190ms; --t-slow: 260ms;
 }
-*{box-sizing:border-box}
-html,body{margin:0;padding:0;scroll-behavior:smooth}
-body{
-  font-family:var(--sans); color:var(--ink); background:#DCD2B8;
-  line-height:1.58; font-size:calc(16px*var(--ts)); -webkit-tap-highlight-color:transparent;
-  -webkit-font-smoothing:antialiased;
-}
-:lang(hi){font-family:var(--deva); line-height:1.72}
-button{font-family:inherit;color:inherit}
-img{max-width:100%;display:block}
-h1,h2,h3,h4{margin:0;font-weight:600}
-p{margin:0}
 
-#app{
-  max-width:var(--maxw); margin:0 auto; min-height:100vh; min-height:100dvh;
-  background:var(--bone); position:relative; overflow-x:hidden;
-  box-shadow:0 0 0 1px rgba(26,24,20,.05);
+@media (prefers-color-scheme: dark) {
+  :root:not(.light-theme) {
+    /* Vibrant, glowing electric colors */
+    --brand: #FF6B00;          /* Electric solar saffron */
+    --brand-guide: #6366F1;    /* Glowing neon indigo */
+    --brand-hot: #FF0055;      /* Cyberpunk pink/red */
+    --brand-soft: #FFD700;     /* Electric gold */
+
+    /* Neutral surfaces - dark space theme */
+    --sand: #13111A;          
+    --bone: #09080E;          
+    --surface: rgba(20, 18, 28, 0.75); 
+    --surface-2: #1B1926;     
+    --stone: rgba(255, 255, 255, 0.08); 
+    --stone-2: rgba(255, 255, 255, 0.16);
+
+    /* Modern typography - light text on dark background */
+    --ink: #FFFFFF;          
+    --ink-2: #D1CADB;        
+    --muted: #8E879C;        
+
+    /* Theme accent mappings */
+    --accent: var(--brand);
+    --accent-deep: #E05E00;
+    --accent-wash: rgba(255, 107, 0, 0.12);
+    --accent-line: rgba(255, 107, 0, 0.3);
+    --clay: var(--accent);
+    --clay-deep: var(--accent-deep);
+    --clay-wash: var(--accent-wash);
+
+    --nav: var(--brand-guide);
+    --nav-deep: #4F46E5;
+    --nav-wash: rgba(99, 102, 241, 0.12);
+    --nav-line: rgba(99, 102, 241, 0.3);
+
+    --gold: var(--brand-soft);
+    --brass: #E6B800;
+    --brass-soft: var(--brand-soft);
+    --brass-wash: rgba(255, 215, 0, 0.08);
+    --brass-deep: #FFD700;
+
+    --umber: #2C2638;
+    --umber-deep: #161320;
+
+    --lapis: var(--nav);
+
+    --open: #10B981;
+    --open-wash: rgba(16, 185, 129, 0.12);
+    --shut: #EF4444;
+    --shut-wash: rgba(239, 68, 68, 0.12);
+
+    --live: var(--brand-hot);
+
+    --shadow-1: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
+    --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+    --shadow-3: 0 16px 64px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.5);
+    --shadow-accent: 0 8px 24px rgba(255, 107, 0, 0.35);
+
+    --glass: rgba(13, 12, 21, 0.82);
+    --glass-line: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(24px) saturate(180%);
+    --bone-0: rgba(9, 8, 14, 0);
+
+    /* Corner radii and spacing */
+    --r-xs: 8px; --r-sm: 12px; --r: 16px; --r-lg: 24px; --r-xl: 32px;
+    --r-hero: 28px;
+    --pad: 20px;
+
+    /* Font mapping override for dark theme */
+    --sans: "Outfit", "Inter", system-ui, sans-serif;
+    --serif: "Sora", "Outfit", sans-serif;
+    --deva: "Noto Sans Devanagari", system-ui, sans-serif;
+  }
+  body:not(.light-theme) {
+    background: #07060A;
+  }
 }
+
+:root.dark-theme {
+  /* Vibrant, glowing electric colors */
+  --brand: #FF6B00;          
+  --brand-guide: #6366F1;    
+  --brand-hot: #FF0055;      
+  --brand-soft: #FFD700;     
+
+  /* Neutral surfaces - dark space theme */
+  --sand: #13111A;          
+  --bone: #09080E;          
+  --surface: rgba(20, 18, 28, 0.75); 
+  --surface-2: #1B1926;     
+  --stone: rgba(255, 255, 255, 0.08); 
+  --stone-2: rgba(255, 255, 255, 0.16);
+
+  /* Modern typography */
+  --ink: #FFFFFF;          
+  --ink-2: #D1CADB;        
+  --muted: #8E879C;        
+
+  --accent: var(--brand);
+  --accent-deep: #E05E00;
+  --accent-wash: rgba(255, 107, 0, 0.12);
+  --accent-line: rgba(255, 107, 0, 0.3);
+  --clay: var(--accent);
+  --clay-deep: var(--accent-deep);
+  --clay-wash: var(--accent-wash);
+
+  --nav: var(--brand-guide);
+  --nav-deep: #4F46E5;
+  --nav-wash: rgba(99, 102, 241, 0.12);
+  --nav-line: rgba(99, 102, 241, 0.3);
+
+  --gold: var(--brand-soft);
+  --brass: #E6B800;
+  --brass-soft: var(--brand-soft);
+  --brass-wash: rgba(255, 215, 0, 0.08);
+  --brass-deep: #FFD700;
+
+  --umber: #2C2638;
+  --umber-deep: #161320;
+
+  --lapis: var(--nav);
+
+  --open: #10B981;
+  --open-wash: rgba(16, 185, 129, 0.12);
+  --shut: #EF4444;
+  --shut-wash: rgba(239, 68, 68, 0.12);
+
+  --live: var(--brand-hot);
+
+  --shadow-1: 0 4px 20px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 16px 64px rgba(0, 0, 0, 0.8), 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-accent: 0 8px 24px rgba(255, 107, 0, 0.35);
+
+  --glass: rgba(13, 12, 21, 0.82);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(24px) saturate(180%);
+  --bone-0: rgba(9, 8, 14, 0);
+
+  /* Corner radii and spacing */
+  --r-xs: 8px; --r-sm: 12px; --r: 16px; --r-lg: 24px; --r-xl: 32px;
+  --r-hero: 28px;
+  --pad: 20px;
+
+  /* Font mapping override for dark theme */
+  --sans: "Outfit", "Inter", system-ui, sans-serif;
+  --serif: "Sora", "Outfit", sans-serif;
+  --deva: "Noto Sans Devanagari", system-ui, sans-serif;
+}
+html.dark-theme body {
+  background: #07060A;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
+body {
+  font-family: var(--sans); color: var(--ink); background: #DCD2B8;
+  line-height: 1.58; font-size: calc(16px * var(--ts)); -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+:lang(hi) { font-family: var(--deva); line-height: 1.7 }
+button { font-family: inherit; color: inherit; }
+img { max-width: 100%; display: block; border-radius: inherit; }
+h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+p { margin: 0; }
+
+#app {
+  max-width: var(--maxw); margin: 0 auto; min-height: 100vh; min-height: 100dvh;
+  background: var(--bone); position: relative; overflow-x: hidden;
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+}
+
 
 /* ---------- type ---------- */
 .display{font-family:var(--serif); font-weight:600; letter-spacing:-.01em; color:var(--ink)}
@@ -196,10 +257,14 @@ p{margin:0}
 .tnum{font-variant-numeric:tabular-nums}
 
 /* ---------- header ---------- */
-header{
-  position:sticky; top:0; z-index:40; background:rgba(245,242,236,.92);
-  backdrop-filter:saturate(1.4) blur(12px); -webkit-backdrop-filter:saturate(1.4) blur(12px);
-  border-bottom:1px solid var(--stone);
+header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--stone);
 }
 .hbar{display:flex;align-items:center;gap:8px;padding:9px 14px;min-height:58px}
 .brand{display:flex;align-items:center;gap:10px;min-width:0;border:0;background:none;
@@ -291,18 +356,51 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
 .btn svg{width:18px;height:18px;flex:0 0 auto}
 .btn:active{transform:translateY(1px) scale(.988)}
 
-.btn.primary{background:linear-gradient(180deg,#E06D0D 0%,var(--clay) 48%,var(--accent-deep) 100%);
-  color:#fff;box-shadow:var(--shadow-accent),inset 0 1px 0 rgba(255,255,255,.26)}
-.btn.primary:active{background:var(--clay-deep);box-shadow:0 1px 3px rgba(163,74,5,.30)}
+.btn.primary {
+  background: linear-gradient(135deg, oklch(72% 0.23 38) 0%, var(--clay) 50%, var(--clay-deep) 100%);
+  color: #fff;
+  box-shadow: var(--shadow-accent), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid oklch(62% 0.25 36 / 0.4);
+}
+.btn.primary:active {
+  background: var(--clay-deep);
+  box-shadow: 0 2px 8px oklch(58% 0.23 34 / 0.35);
+}
 
-.btn.nav{background:linear-gradient(180deg,#2A5382 0%,var(--nav) 48%,var(--nav-deep) 100%);color:#fff;
-  box-shadow:0 2px 5px rgba(20,41,67,.20),0 8px 22px rgba(20,41,67,.22),inset 0 1px 0 rgba(255,255,255,.20)}
-.btn.nav:active{background:var(--nav-deep);box-shadow:0 1px 3px rgba(20,41,67,.30)}
+.btn.nav {
+  background: linear-gradient(135deg, oklch(55% 0.16 230) 0%, var(--nav) 50%, var(--nav-deep) 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px oklch(38% 0.15 230 / 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  border: 1px solid oklch(42% 0.18 230 / 0.4);
+}
+.btn.nav:active {
+  background: var(--nav-deep);
+  box-shadow: 0 2px 8px oklch(38% 0.15 230 / 0.35);
+}
 
-.btn.ghost{background:var(--surface);border:1px solid var(--stone-2);color:var(--ink);box-shadow:var(--shadow-1)}
-.btn.ghost:active{background:var(--surface-2);box-shadow:none}
-.btn.quiet{background:rgba(26,24,20,.05);color:var(--ink)}
-.btn.sm{min-height:var(--tap);font-size:calc(13px*var(--ts));padding:0 14px;width:auto;border-radius:12px}
+.btn.ghost {
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--stone-2);
+  color: var(--ink);
+  box-shadow: var(--shadow-1);
+}
+.btn.ghost:active {
+  background: var(--surface-2);
+  box-shadow: none;
+}
+.btn.quiet {
+  background: rgba(26, 24, 20, 0.05);
+  color: var(--ink);
+}
+.btn.sm {
+  min-height: var(--tap);
+  font-size: calc(13px * var(--ts));
+  padding: 0 16px;
+  width: auto;
+  border-radius: 12px;
+}
 
 /* Not merely faded — sunk. A disabled control must not read as "another
    button in a quieter colour", which is exactly how a 40%-opacity ghost read
@@ -347,7 +445,20 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
    HOLD content are raised (paper + lift), things that ANNOTATE it are sunk
    (inset well, no lift). Same palette, opposite depth, so a page reads as a
    hierarchy at a glance instead of a stack of equal boxes. */
-.card{background:var(--surface);border:1px solid var(--stone);border-radius:var(--r-lg);box-shadow:var(--shadow-2)}
+.card {
+  background: var(--surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--stone);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+.card:hover, .card:active {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-2);
+  border-color: var(--stone-2);
+}
 /* `display:block`, and it is load-bearing.
    Photo renders a <span>, so .ph was an INLINE box — and aspect-ratio, width
    and height do nothing on one. Every card that set `.ph{aspect-ratio}` and
@@ -462,11 +573,35 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
 .hubcard .go svg{width:18px;height:18px}
 
 /* ---------- theme tiles ---------- */
-.themes{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.tile{position:relative;border-radius:var(--r-hero);overflow:hidden;aspect-ratio:1.42/1;cursor:pointer;border:0;
-  padding:12px;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;
-  background:var(--umber);box-shadow:var(--shadow-1);transition:transform var(--t-fast) var(--ease)}
-.tile:active{transform:scale(.985)}
+.themes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.tile {
+  position: relative;
+  border-radius: var(--r-hero);
+  overflow: hidden;
+  aspect-ratio: 1.42/1;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  background: var(--umber);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease), border-color var(--t) var(--ease);
+}
+.tile:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-2);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.tile:active {
+  transform: translateY(-1px) scale(0.98);
+}
 .tile .tbg{position:absolute;inset:0;z-index:0}
 .tile .tbg img{width:100%;height:100%;object-fit:cover}
 /* A straight 15%→78% ramp leaves the label sitting at roughly half-veil, which
@@ -528,9 +663,21 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
 .rcard p{margin-top:2px;font-size:calc(13px*var(--ts));color:var(--muted)}
 
 /* ---------- bottom nav ---------- */
-nav.tab{position:fixed;left:0;right:0;bottom:0;z-index:50;max-width:var(--maxw);margin:0 auto;
-  background:rgba(245,242,236,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-top:1px solid var(--stone);display:flex;padding:5px 4px calc(5px + env(safe-area-inset-bottom))}
+nav.tab {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  background: var(--glass);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--stone);
+  display: flex;
+  padding: 5px 4px calc(5px + env(safe-area-inset-bottom));
+}
 nav.tab button{flex:1;border:0;background:none;padding:7px 2px 5px;display:flex;flex-direction:column;
   align-items:center;gap:4px;color:var(--muted);font-size:calc(13px*var(--ts));font-weight:650;cursor:pointer;
   min-height:52px;letter-spacing:.01em;transition:color var(--t-fast) var(--ease)}
