@@ -2583,12 +2583,12 @@ button.exnote:active{transform:scale(.995)}
    text it sits beside — and 44px square, because the people this is built for
    should not have to aim. `.on` is a filled state rather than a different
    glyph alone: at arm's length the colour reads before the shape does. */
-.qadd{position:absolute;top:9px;right:9px;width:var(--tap);height:var(--tap);border-radius:50%;
+.qadd{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;
   display:grid;place-items:center;cursor:pointer;flex:0 0 auto;
   background:var(--surface-2);border:1px solid var(--stone-2);color:var(--ink-2);
   transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease),
              border-color var(--t-fast) var(--ease),transform var(--t-fast) var(--ease)}
-.qadd svg{width:19px;height:19px}
+.qadd svg{width:14px;height:14px}
 .qadd:active{transform:scale(.9)}
 .qadd.on{background:var(--clay);border-color:var(--clay);color:#fff}
 .pcard{position:relative}
