@@ -1748,7 +1748,7 @@ nav.tab button:not(.on){text-shadow: var(--tab-btn-text-shadow)}
 .opt.on{border-color:var(--accent);background:var(--accent-wash);
   box-shadow:inset 4px 0 0 var(--accent),var(--shadow-2)}
 .opt.on b{color:var(--accent-deep)}
-.opt.on .oi{background:#fff;color:var(--accent)}
+.opt.on .oi{background:var(--accent-wash);color:var(--accent)}
 .optwrap.on .opt{border-bottom-left-radius:0;border-bottom-right-radius:0;margin-bottom:0}
 
 /* the picker sits directly under its own option and is visibly joined to it —
@@ -1765,14 +1765,14 @@ nav.tab button:not(.on){text-shadow: var(--tab-btn-text-shadow)}
 .subpick .opt{padding:12px 13px}
 /* nested selection is a tick, not another slab of indigo — one level of
    emphasis per screen, or the step turns into a blue wall */
-.subpick .opt.on{box-shadow:none;background:#fff}
+.subpick .opt.on{box-shadow:none;background:var(--surface-2);border-color:var(--accent-line)}
 
 /* ---- the field that opens the list, and the list's own sheet ----
    One row where twelve used to be. It reads as a field rather than as a
    thirteenth option: a chevron, not a tick, because tapping it asks a question
    instead of answering one. */
 .pickfield{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
-  background:#fff;border:1.5px solid var(--stone-2);border-radius:var(--r);padding:11px 12px;
+  background:var(--surface);border:1.5px solid var(--stone-2);border-radius:var(--r);padding:11px 12px;
   min-height:var(--tap);box-shadow:var(--shadow-1);
   transition:border-color var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),
              transform var(--t-fast) var(--ease)}
