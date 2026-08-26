@@ -473,8 +473,8 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
 .tag{font-size:calc(13px*var(--ts));color:var(--ink-2);border-radius:6px;padding:4px 8px;font-weight:600;
   display:inline-flex;align-items:center;gap:5px;background:rgba(26,24,20,.045)}
 .tag svg{width:13px;height:13px;color:var(--muted)}
-.tag.brass{background:var(--brass-wash);color:#6E5624}
-.tag.brass svg{color:#9C7C3C}
+.tag.brass{background:var(--brass-wash);color:var(--brass-deep);border:1px solid rgba(255,215,0,0.18)}
+.tag.brass svg{color:var(--brass)}
 
 /* ---------- cards ----------
    The rule that ends the "twenty identical rectangles" screen: things that
@@ -838,7 +838,7 @@ details.more[open] summary svg{transform:rotate(90deg)}
   padding-left:10px;padding-right:44px;border-left:2px solid var(--brass-soft)}
 /* one icon, bottom-right, out of the reading path */
 .tl-nav{position:absolute;right:9px;bottom:9px;width:38px;height:38px;border-radius:50%;
-  border:1px solid var(--nav-line);background:var(--nav-wash);color:var(--nav);cursor:pointer;
+  border:1px solid var(--stone-2);background:var(--surface-2);color:var(--ink-2);cursor:pointer;
   display:grid;place-items:center;padding:0;transition:background var(--t-fast) var(--ease)}
 .tl-nav svg{width:17px;height:17px}
 .tl-nav:active{background:var(--nav);color:#fff}

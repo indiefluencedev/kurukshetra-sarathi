@@ -124,7 +124,7 @@ function TlItem({ s, i, n, ev }: { s: Stop; i: number; n: number; ev: EventDef |
                   🛌 {nm({ en: "Stays Nearby", hi: "नज़दीकी ठहरने के स्थान" })}
                 </div>
                 {nearStays(d).slice(0, 2).map(({ s, k }) => (
-                  <div key={s.id} style={{ fontSize: "12.5px", padding: "6px 10px", background: "rgba(26,24,20,0.035)", borderRadius: "8px", border: "1px solid var(--stone)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+                  <div key={s.id} style={{ fontSize: "12.5px", padding: "6px 10px", background: "var(--surface-2)", borderRadius: "8px", border: "1px solid var(--stone)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       <strong>{nm(s.name)}</strong> <span style={{ color: "var(--muted)", fontSize: "11.5px" }}>({nm(s.area)})</span>
                     </span>
@@ -138,7 +138,7 @@ function TlItem({ s, i, n, ev }: { s: Stop; i: number; n: number; ev: EventDef |
                   🍽️ {nm({ en: "Food & Dining Nearby", hi: "आसपास भोजन स्थान" })}
                 </div>
                 {nearFood(d).slice(0, 2).map(({ f, k }) => (
-                  <div key={f.id} style={{ fontSize: "12.5px", padding: "6px 10px", background: "rgba(26,24,20,0.035)", borderRadius: "8px", border: "1px solid var(--stone)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
+                  <div key={f.id} style={{ fontSize: "12.5px", padding: "6px 10px", background: "var(--surface-2)", borderRadius: "8px", border: "1px solid var(--stone)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px" }}>
                     <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       <strong>{nm(f.name)}</strong> <span style={{ color: "var(--muted)", fontSize: "11.5px" }}>({nm(f.speciality)})</span>
                     </span>
