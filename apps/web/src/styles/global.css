@@ -100,7 +100,7 @@
     --stone-2: rgba(255, 255, 255, 0.22);
     --tile-outline: rgba(255, 255, 255, 0.12);
     --tile-outline-soft: rgba(255, 255, 255, 0.06);
-    --tveil-bg: linear-gradient(180deg, rgba(13,12,18,0) 30%, rgba(13,12,18,.5) 60%, rgba(13,12,18,.98) 100%);
+    --tveil-bg: linear-gradient(180deg, rgba(13,12,18,0) 40%, rgba(13,12,18,.35) 70%, rgba(13,12,18,.85) 100%);
 
     /* Modern typography - light text on dark background */
     --ink: #FFFFFF;          
@@ -191,7 +191,7 @@
   --stone-2: rgba(255, 255, 255, 0.22);
   --tile-outline: rgba(255, 255, 255, 0.12);
   --tile-outline-soft: rgba(255, 255, 255, 0.06);
-  --tveil-bg: linear-gradient(180deg, rgba(13,12,18,0) 30%, rgba(13,12,18,.5) 60%, rgba(13,12,18,.98) 100%);
+  --tveil-bg: linear-gradient(180deg, rgba(13,12,18,0) 40%, rgba(13,12,18,.35) 70%, rgba(13,12,18,.85) 100%);
 
   /* Modern typography */
   --ink: #FFFFFF;          
@@ -616,7 +616,7 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
 }
 .tile {
   position: relative;
-  border-radius: var(--r-lg);
+  border-radius: var(--r-sm);
   overflow: hidden;
   aspect-ratio: 1.42/1;
   cursor: pointer;
@@ -648,10 +648,10 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
    now holds whatever photo lands behind it. */
 .tile .tveil{position:absolute;inset:0;z-index:1;
   background:var(--tveil-bg, linear-gradient(180deg,
-    rgba(16,22,28,.06) 0%,
-    rgba(16,22,28,.14) 42%,
-    rgba(16,22,28,.62) 72%,
-    rgba(16,22,28,.90) 100%))}
+    rgba(16,22,28,0) 20%,
+    rgba(16,22,28,.14) 50%,
+    rgba(16,22,28,.55) 75%,
+    rgba(16,22,28,.85) 100%))}
 .tile .ti{position:relative;z-index:2;color:var(--gold);margin-bottom:6px}
 .tile .ti svg{width:21px;height:21px}
 .tile .tl{position:relative;z-index:2;color:#fff;font-weight:700;font-size:calc(14px*var(--ts));text-align:left;
@@ -2216,11 +2216,11 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
    around a picture is most of what makes a card look like a template. */
 .routes{display:grid;gap:9px}
 .rt{display:flex;align-items:stretch;gap:0;width:100%;text-align:left;cursor:pointer;padding:0;
-  background:var(--surface-2);border:1px solid var(--stone);border-radius:var(--r-lg);
+  background:var(--surface-2);border:1px solid var(--stone);border-radius:var(--r-sm);
   overflow:hidden;box-shadow:var(--shadow-2);font-family:inherit;color:inherit;
   transition:transform var(--t-fast) var(--ease),box-shadow var(--t-fast) var(--ease),background var(--t-fast) var(--ease)}
 .rt:active{transform:scale(.99);box-shadow:var(--shadow-1);background:var(--surface)}
-.rt-img{flex:0 0 96px;position:relative;background:var(--sand)}
+.rt-img{flex:0 0 120px;position:relative;background:var(--sand)}
 .rt-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;
   transition:opacity var(--t-slow) var(--ease)}
 .rt-img img.in{opacity:1}
@@ -2235,12 +2235,13 @@ dl.facts,dl.facts dt,dl.facts dd{margin:0}
   color:var(--muted);font-weight:600}
 .rt-n{font-family:var(--serif);font-size:calc(16.5px*var(--ts));font-weight:700;color:var(--accent);
   letter-spacing:-.01em}
+.rt-places{color:var(--accent);font-weight:700}
 .rt-meta i{width:3px;height:3px;border-radius:50%;background:var(--stone-2);flex:0 0 auto}
 .rt-go{flex:0 0 auto;display:grid;place-items:center;padding:0 12px 0 6px;color:var(--nav)}
 .rt-go svg{width:18px;height:18px}
 
 @media (max-width:359px){
-  .rt-img{flex:0 0 78px}
+  .rt-img{flex:0 0 96px}
   .hh-name{font-size:calc(26px*var(--ts))}
 }
 

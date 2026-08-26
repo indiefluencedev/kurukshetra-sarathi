@@ -92,7 +92,7 @@ export function StartHere() {
               <span className="rt-meta">
                 <span className="rt-n tnum">{dur(r.mins)}</span>
                 <i />
-                <span>{nm({ en: poolSize(r.themes) + " places", hi: poolSize(r.themes) + " स्थान" })}</span>
+                <span className="rt-places">{nm({ en: poolSize(r.themes) + " places", hi: poolSize(r.themes) + " स्थान" })}</span>
               </span>
             </span>
             <span className="rt-go">
