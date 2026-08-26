@@ -1393,27 +1393,17 @@ nav.tab{
 /* a hairline of light along the top edge — the thing that sells the glass */
 nav.tab:after{content:"";position:absolute;left:14%;right:14%;top:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(255,255,255,.95),transparent);pointer-events:none}
-/* the sliding pill */
-nav.tab:before{
-  content:""; position:absolute; z-index:-1; top:6px; bottom:6px; left:6px;
-  /* Driven by --tabs, which Shell sets from the TABS array. This was hardcoded
-     to /5 while the bar rendered four buttons, so the pill was 1/5 wide and
-     stepped in 1/5 increments under 1/4-wide tabs — drifting further out of
-     line with every tab to the right. */
-  width:calc((100% - 12px)/var(--tabs,5));
-  transform:translateX(calc(var(--i,0) * 100%));
-  border-radius:20px; background:var(--surface);
-  box-shadow:0 2px 8px rgba(26,24,20,.14), 0 0 0 1px rgba(26,24,20,.05);
-  transition:transform 420ms cubic-bezier(.34,1.32,.48,1);
-}
-nav.tab button{flex:1;border:0;background:none;padding:8px 2px 6px;display:flex;
-  flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:calc(13px*var(--ts));
-  font-weight:700;cursor:pointer;min-height:50px;letter-spacing:.01em;position:relative;
+/* NO sliding pill — active tab uses icon color + dot indicator only */
+nav.tab:before{display:none}
+nav.tab button{flex:1;border:0;background:none;padding:7px 2px 8px;display:flex;
+  flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:calc(12.5px*var(--ts));
+  font-weight:600;cursor:pointer;min-height:50px;letter-spacing:.01em;position:relative;
   transition:color 240ms var(--ease)}
-nav.tab button svg{width:21px;height:21px;transition:transform 420ms cubic-bezier(.34,1.32,.48,1)}
-nav.tab button.on{color:var(--clay)}
-nav.tab button.on svg{transform:translateY(-1px) scale(1.09)}
-nav.tab button:active svg{transform:scale(.9)}
+nav.tab button svg{width:22px;height:22px;transition:transform 360ms cubic-bezier(.34,1.32,.48,1)}
+/* Active state: accent color icon + label + orange dot below */
+nav.tab button.on{color:var(--accent)}
+nav.tab button.on svg{transform:translateY(-1px) scale(1.12)}
+nav.tab button:active svg{transform:scale(.88)}
 @media (prefers-reduced-motion:reduce){
   nav.tab:before,nav.tab button svg{transition:none}
 }
@@ -1679,17 +1669,13 @@ nav.tab:after{background:linear-gradient(90deg,transparent,var(--glass-line),tra
 /* The live tab is a filled shape, not a tint, so which tab is open survives
    sunlight, cataracts and a cracked screen. It sits ON the glass, and is the
    one part deliberately not transparent. */
-nav.tab:before{
-  width:calc((100% - 12px)/var(--tabs));
-  border-radius:calc(var(--r-xl) - 6px);
-  background: var(--tab-pill-bg);
-  box-shadow: var(--tab-pill-shadow);
-}
-nav.tab button{color: var(--tab-btn-color);font-size:calc(12.5px*var(--ts));font-weight:700;
+/* No pill in dark mode either */
+nav.tab:before{display:none}
+nav.tab button{color: var(--tab-btn-color);font-size:calc(12.5px*var(--ts));font-weight:600;
   min-height:50px;gap:3px}
 :lang(hi) nav.tab button{font-size:calc(13px*var(--ts))}
 nav.tab button svg{width:22px;height:22px}
-nav.tab button.on{color:#fff}
+nav.tab button.on{color:var(--accent)}
 /* Inactive labels sit on glass over arbitrary content, so they carry their own
    faint halo — cheaper than making the bar opaque and it keeps the glass. */
 nav.tab button:not(.on){text-shadow: var(--tab-btn-text-shadow)}
