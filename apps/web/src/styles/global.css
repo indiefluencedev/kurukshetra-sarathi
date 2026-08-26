@@ -2066,8 +2066,8 @@ nav.tab.off:before{opacity:0}
 /* ---- the map, when there is a plan to draw on it ---- */
 .mapplan{margin:0 0 10px}
 .mp-line{display:flex;align-items:center;gap:8px;font-size:calc(13px*var(--ts));
-  font-weight:650;color:var(--nav-deep);margin-bottom:9px}
-.mp-line svg{width:16px;height:16px;flex:0 0 auto;color:var(--nav)}
+  font-weight:650;color:var(--ink-2);margin-bottom:9px}
+.mp-line svg{width:16px;height:16px;flex:0 0 auto;color:var(--accent)}
 .mapplan .daytabs{margin:0}
 .mapplan .daytabs button{min-width:74px}
 
