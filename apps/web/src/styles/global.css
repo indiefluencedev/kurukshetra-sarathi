@@ -854,7 +854,7 @@ details.more[open] summary svg{transform:rotate(90deg)}
 /* the answers behind a saved plan, so it's recognisable without opening it */
 .savemeta{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .savemeta span{display:inline-flex;align-items:center;gap:5px;font-size:calc(13px*var(--ts));
-  font-weight:600;color:var(--umber);background:var(--brass-wash);
+  font-weight:600;color:var(--ink-2);background:var(--brass-wash);
   border:1px solid var(--brass-soft);border-radius:999px;padding:4px 10px}
 .savemeta svg{width:13px;height:13px;color:var(--brass);flex:0 0 auto}
 

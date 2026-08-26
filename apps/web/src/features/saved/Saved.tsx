@@ -70,7 +70,19 @@ function PlanRow({ r, isLatest, onGone }: { r: SavedPlan; isLatest?: boolean; on
           </div>
         </div>
         {isLatest && (
-          <span className="tag brass" style={{ fontSize: "calc(11.5px*var(--ts))", padding: "2px 6px", fontWeight: 700 }}>
+          <span
+            style={{
+              fontSize: "calc(11px*var(--ts))",
+              fontWeight: 700,
+              padding: "3px 9px",
+              borderRadius: 20,
+              background: "var(--accent)",
+              color: "#fff",
+              letterSpacing: "0.03em",
+              textTransform: "uppercase",
+              flexShrink: 0,
+            }}
+          >
             {nm({ en: "Latest", hi: "नवीनतम" })}
           </span>
         )}
