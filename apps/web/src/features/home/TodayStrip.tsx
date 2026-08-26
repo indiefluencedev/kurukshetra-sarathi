@@ -30,36 +30,38 @@ export function TodayStrip() {
 
   return (
     <div className="today">
-      <button className="tdy-main" onClick={openWxSheet} lang={S.lang}>
-        <span className="tdy-date" lang={S.lang}>
-          {dateLine}
-        </span>
-        {w && (
-          <span className="tdy-wx">
-            <span className="tdy-glyph">
-              <WxGlyph kind={kind} day={w.day ? 1 : 0} />
-            </span>
-            <b className="tnum">{Math.round(w.temp)}°</b>
-            <span className="tdy-word" lang={S.lang}>
-              {nm(word)}
-            </span>
-            {w.sunset && (
-              <>
-                <i className="tdy-sep" />
-                <Icon name="sunset" />
-                <span className="tnum">{w.sunset}</span>
-              </>
-            )}
+      <div className="today-card">
+        <button className="tdy-main" onClick={openWxSheet} lang={S.lang}>
+          <span className="tdy-date" lang={S.lang}>
+            {dateLine}
           </span>
-        )}
-      </button>
-      <button
-        className="tdy-search"
-        onClick={() => go("/explore")}
-        aria-label={nm({ en: "Search places", hi: "स्थान खोजें" })}
-      >
-        <Icon name="search" />
-      </button>
+          {w && (
+            <span className="tdy-wx">
+              <span className="tdy-glyph">
+                <WxGlyph kind={kind} day={w.day ? 1 : 0} />
+              </span>
+              <b className="tnum">{Math.round(w.temp)}°</b>
+              <span className="tdy-word" lang={S.lang}>
+                {nm(word)}
+              </span>
+              {w.sunset && (
+                <>
+                  <i className="tdy-sep" />
+                  <Icon name="sunset" />
+                  <span className="tnum">{w.sunset}</span>
+                </>
+              )}
+            </span>
+          )}
+        </button>
+        <button
+          className="tdy-search"
+          onClick={() => go("/explore")}
+          aria-label={nm({ en: "Search places", hi: "स्थान खोजें" })}
+        >
+          <Icon name="search" />
+        </button>
+      </div>
     </div>
   );
 }
