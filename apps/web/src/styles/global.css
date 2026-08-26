@@ -2570,7 +2570,7 @@ a.btn:hover{text-decoration:none}
   box-shadow:none;background:var(--surface-2)}
 .chip.sm.on{background:var(--ink);color:var(--bone)}
 
-.exnote{margin:12px 0 2px;align-items:center}
+.exnote{margin:16px 0;align-items:center}
 .exnote svg{margin-top:0}
 /* the same note, when it is the way into the day it is describing */
 button.exnote{width:100%;text-align:left;cursor:pointer;font:inherit;color:inherit;

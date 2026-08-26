@@ -132,13 +132,6 @@ export function Explore({ theme: fixedTheme }: { theme?: string } = {}) {
         )}
       </div>
 
-      <div className="hscroll" style={{ marginTop: 9 }}>
-        {fchip("open", t("fOpen"))}
-        {fchip("free", t("fFree"))}
-        {fchip("indoor", t("fIndoor"))}
-        {fchip("short", t("fShort"))}
-      </div>
-
       {/* What the plus on every card is for. Said once, at the top, rather than
           repeated as a label on thirty-six buttons.
 
@@ -160,6 +153,13 @@ export function Explore({ theme: fixedTheme }: { theme?: string } = {}) {
           <span lang={S.lang}>{t("exHint")}</span>
         </div>
       )}
+
+      <div className="hscroll" style={{ marginTop: 0 }}>
+        {fchip("open", t("fOpen"))}
+        {fchip("free", t("fFree"))}
+        {fchip("indoor", t("fIndoor"))}
+        {fchip("short", t("fShort"))}
+      </div>
 
       <p className="srescount" role="status" aria-live="polite" lang={S.lang}>
         {list.length !== here.length ? nPlaces(list.length) : ""}
