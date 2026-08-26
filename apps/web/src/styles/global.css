@@ -662,11 +662,12 @@ main{padding:0 var(--pad) calc(88px + env(safe-area-inset-bottom))}
 
 /* ---------- place cards ---------- */
 .plist{display:grid;gap:11px}
-.pcard{display:flex;gap:13px;padding:11px;cursor:pointer;align-items:stretch;text-align:left;width:100%;
+.pcard{display:flex;gap:0;padding:0;cursor:pointer;align-items:stretch;text-align:left;width:100%;
+  border-radius:var(--r-sm);overflow:hidden;
   transition:transform var(--t-fast) var(--ease)}
 .pcard:active{transform:scale(.995)}
-.pcard .ph{width:92px;height:92px;flex:0 0 auto;border-radius:var(--r-sm)}
-.pcard .body{min-width:0;flex:1;display:flex;flex-direction:column}
+.pcard .ph{width:125px;flex:0 0 auto;border-radius:0}
+.pcard .body{min-width:0;flex:1;display:flex;flex-direction:column;padding:12px 12px 12px 14px}
 .pcard h3{font-family:var(--serif);font-size:calc(15.5px*var(--ts));line-height:1.22;font-weight:600}
 :lang(hi) .pcard h3{font-family:var(--deva);font-size:calc(15px*var(--ts));line-height:1.4}
 .pcard .alt{font-size:calc(13px*var(--ts));color:var(--muted);margin-top:2px}

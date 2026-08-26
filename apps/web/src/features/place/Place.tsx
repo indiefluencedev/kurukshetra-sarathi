@@ -307,7 +307,7 @@ export function Place() {
         </h2>
         <div className="plist" style={{ gap: 12, marginTop: 12 }}>
           {nearStays(d).map(({ s, k }) => (
-            <div key={s.id} className="card pcard" style={{ padding: "14px", border: "1px solid var(--stone)" }}>
+            <div key={s.id} className="card pcard" style={{ border: "1px solid var(--stone)" }}>
               <div className="body">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                   <h3 lang={S.lang} style={{ fontSize: "16px", fontWeight: "600" }}>{nm(s.name)}</h3>
@@ -341,7 +341,7 @@ export function Place() {
         </h2>
         <div className="plist" style={{ gap: 12, marginTop: 12 }}>
           {nearFood(d).map(({ f, k }) => (
-            <div key={f.id} className="card pcard" style={{ padding: "14px", border: "1px solid var(--stone)" }}>
+            <div key={f.id} className="card pcard" style={{ border: "1px solid var(--stone)" }}>
               <div className="body">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
                   <h3 lang={S.lang} style={{ fontSize: "16px", fontWeight: "600" }}>{nm(f.name)}</h3>
