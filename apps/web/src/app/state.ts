@@ -75,6 +75,10 @@ export const S = {
   /** which town every list, route and forecast is scoped to — or ALL for both */
   city: isAll(store.city) ? ALL : cityById(store.city).id,
   plan: null as Plan | null,
+  /** The plan that existed before "Plan a different visit" was tapped.
+   *  Back on Step 0 restores this instead of going home. Cleared once the
+   *  new plan is built or the user navigates away permanently. */
+  prevPlan: null as Plan | null,
   journey: null as Journey | null,
   /** the last fix, with the radius the device claims for it (metres) */
   userLoc: null as { lat: number; lng: number; acc?: number } | null,
@@ -103,6 +107,8 @@ let afterBump: (() => void) | null = null;
 export const onBump = (fn: () => void) => {
   afterBump = fn;
 };
+
+
 
 export function bump() {
   version++;

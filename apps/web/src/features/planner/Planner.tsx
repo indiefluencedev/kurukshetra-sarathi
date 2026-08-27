@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { S, newPlan } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
@@ -776,19 +776,38 @@ function ExistingPlan({ onNew, onEdit }: { onNew: () => void; onEdit: () => void
 /** 4-step visit planner. */
 export function Planner() {
   if (!S.plan) S.plan = newPlan();
-  const p = S.plan;
+  let p = S.plan;
   // A built route means there is something to come back to. `fresh` is set by
   // "plan a different visit", so the wizard is reachable without throwing the
   // old plan away first.
   const [fresh, setFresh] = useState(false);
+
+  const pRef = useRef(p);
+  pRef.current = p;
+
+  useEffect(() => {
+    return () => {
+      // If the user navigates away (e.g. browser back, bottom tabs) while on an
+      // empty wizard, and they have a backup, restore it so they don't lose it.
+      const curr = pRef.current;
+      if (S.prevPlan?.res && curr && !curr.res && curr.step === 0) {
+        S.plan = S.prevPlan;
+        S.prevPlan = null;
+      }
+    };
+  }, []);
+
   // The engine is synchronous and a three-day plan is real work — long enough
   // that the tap looked ignored. Paint the waiting state first, then build on
   // the next frame, so the button always answers immediately.
   const [building, setBuilding] = useState(false);
+  // Keep a reference to whichever plan had a result before the wizard was
+  // entered, so the back button on Step 0 can restore it instead of going home.
   if (p.res && !fresh)
     return (
       <ExistingPlan
         onNew={() => {
+          S.prevPlan = S.plan;   // ← save before clearing
           S.plan = newPlan();
           setFresh(true);
           bump();
@@ -801,6 +820,7 @@ export function Planner() {
         }}
       />
     );
+
   const i = Math.min(p.step, LAST);
   const last = i === LAST;
   const ok = valid(i);
@@ -808,19 +828,33 @@ export function Planner() {
   const CurrentStep = STEPS[i];
 
   const handleBack = async () => {
-    if (i === 0 && p.savedId && fresh) {
-      try {
-        const opened = await openPlan(p.savedId);
-        if (opened) {
-          runEngine(S.plan!);
-          setFresh(false);
-          bump();
-          return;
-        }
-      } catch (e) {}
+    if (i === 0 && fresh) {
+      // Try to restore from savedId first (was the old path)
+      if (p.savedId) {
+        try {
+          const opened = await openPlan(p.savedId);
+          if (opened) {
+            runEngine(S.plan!);
+            setFresh(false);
+            bump();
+            return;
+          }
+        } catch (e) {}
+      }
+      // If there was a result-bearing plan before the wizard was started,
+      // put it back and return to the ExistingPlan view — don't go home.
+      if (S.prevPlan?.res) {
+        S.plan = S.prevPlan;
+        S.prevPlan = null;
+        setFresh(false);
+        bump();
+        return;
+      }
     }
     pBack();
   };
+
+
 
   return (
     <>

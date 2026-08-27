@@ -50,6 +50,7 @@ export const MONS: Record<string, string[]> = {
 /** Quick-start a plan from a Home time pill. */
 export const quick = (m: number, l: string | Loc) => {
   const keep = S.plan && S.plan.date;
+  if (S.plan?.res) S.prevPlan = S.plan;
   S.plan = newPlan();
   if (keep) S.plan.date = keep;
   S.plan.mins = m;
@@ -70,6 +71,7 @@ export const go2plan = () => {
 };
 
 export const quickTheme = (id: string) => {
+  if (S.plan?.res) S.prevPlan = S.plan;
   S.plan = newPlan();
   S.plan.themes = [id];
   go("/plan");
@@ -88,6 +90,7 @@ export const quickTheme = (id: string) => {
  */
 export const quickRoute = (themes: string[], mins: number, label: string | Loc) => {
   const keep = S.plan && S.plan.date;
+  if (S.plan?.res) S.prevPlan = S.plan;
   S.plan = newPlan();
   if (keep) S.plan.date = keep;
   S.plan.themes = themes.slice();
@@ -108,6 +111,7 @@ export const quickRoute = (themes: string[], mins: number, label: string | Loc) 
  */
 export function planForEvent(e: EventDef) {
   const today = isoToday();
+  if (S.plan?.res) S.prevPlan = S.plan;
   S.plan = newPlan();
   S.plan.date = e.from > today ? e.from : today;
   // "now" only means anything today; a future date needs a stated start hour
@@ -226,6 +230,14 @@ export function pNext() {
 export function pBack() {
   const p = S.plan!;
   if (p.step === 0) {
+    // If the wizard was opened from an existing plan ("Plan a different visit"),
+    // restore that plan and show it — don't jump straight home.
+    if (S.prevPlan?.res) {
+      S.plan = S.prevPlan;
+      S.prevPlan = null;
+      bump();
+      return;
+    }
     go("/home");
     return;
   }
