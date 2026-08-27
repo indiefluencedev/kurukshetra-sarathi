@@ -1,4 +1,6 @@
+import { useState, useEffect } from "react";
 import { Outlet, useLocation, Navigate } from "react-router-dom";
+import { PageSkeleton } from "@/shared/ui/PageSkeleton";
 import { S, useApp, flipLang } from "@/app/state";
 import { go } from "@/app/nav";
 import { t, nm } from "@/shared/i18n/i18n";
@@ -37,7 +39,17 @@ function tabIndex(r: string): number {
 /** App chrome: header + scrolling main + bottom tab bar (hidden on the planner). */
 export function Shell() {
   useApp();
-  const r = useLocation().pathname;
+  const location = useLocation();
+  const r = location.pathname;
+  const [loading, setLoading] = useState(false);
+
+  // Flash skeleton for 200 ms on every route change.
+  useEffect(() => {
+    setLoading(true);
+    const id = setTimeout(() => setLoading(false), 200);
+    return () => clearTimeout(id);
+  }, [location.pathname]);
+
   if (!S.lang) return <Navigate to="/start" replace />;
 
   const tab = (id: string, ic: string, lb: string) => {
@@ -143,7 +155,7 @@ export function Shell() {
         </div>
       )}
       <main className="screen">
-        <Outlet />
+        {loading ? <PageSkeleton /> : <Outlet />}
       </main>
       {/* The planner's WIZARD keeps the bar hidden: it owns the bottom of the
           screen for Back / Continue, and a half-answered form is not a place to
