@@ -115,7 +115,7 @@ export function Explore({ theme: fixedTheme }: { theme?: string } = {}) {
         <Icon name="search" />
         <input
           ref={boxRef}
-          type="search"
+          type="text"
           placeholder={t("searchPh")}
           value={q}
           onChange={(e) => setQ(e.target.value)}
