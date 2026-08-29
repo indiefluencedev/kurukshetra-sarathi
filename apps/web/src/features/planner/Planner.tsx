@@ -19,6 +19,7 @@ import type { GeoPoint, Loc } from "@/shared/types";
 
 /**
  * Day and start time, each as one summary row that opens a real picker in the
+ * 
  * sheet: a month calendar for the day, a clock dial for the time. The row shows
  * the current value so the step reads at a glance.
  */

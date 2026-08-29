@@ -132,6 +132,7 @@ function howToInstall() {
 
 /**
  * The install offer, as a card.
+ * 
  *
  * This existed, styled and finished, from the port onwards — and was rendered
  * nowhere. The only install surface that ever reached Home was a slim bar,

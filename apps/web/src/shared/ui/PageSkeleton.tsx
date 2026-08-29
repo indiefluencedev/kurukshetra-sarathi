@@ -12,6 +12,7 @@ export function PageSkeleton() {
       {/* page title line */}
       <div className="psk-line psk-title" />
       <div className="psk-line psk-sub" />
+      
 
       {/* horizontal chip strip */}
       <div className="psk-row">

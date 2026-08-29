@@ -41,7 +41,7 @@ export function Explore({ theme: fixedTheme }: { theme?: string } = {}) {
   useEffect(() => {
     S.sq = q;
     S.sf = sf;
-  }, [q, sf]);
+  }, [q, sf]); 
 
   const here = DC();
   const themes = themesHere();
