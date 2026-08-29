@@ -9,6 +9,7 @@ import type { Loc } from "@/shared/types";
 // tariff, a phone number and a kind that matters to a pilgrim, and keeping a
 // second stripped-down copy of it here meant the planner offered the copy
 // without the phone number on it. The planner still lets someone start from
+
 // their hotel — it asks the stays catalogue.
 export type IndexKind = "station" | "busstand";
 /** What the planner's pickers can search: terminals here, stays in stays.ts. */

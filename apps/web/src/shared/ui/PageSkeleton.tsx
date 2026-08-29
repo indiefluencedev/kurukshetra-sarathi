@@ -12,7 +12,7 @@ export function PageSkeleton() {
       {/* page title line */}
       <div className="psk-line psk-title" />
       <div className="psk-line psk-sub" />
-      
+      {/* skeleton layout structure adjusted for theme compatibility */}
 
       {/* horizontal chip strip */}
       <div className="psk-row">
